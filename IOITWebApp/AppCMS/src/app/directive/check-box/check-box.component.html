@@ -1,0 +1,5 @@
+<div *ngFor="let item of items;let i = index" style="display: inline-block; margin-right: calc({{item.Level}} * 15px);" class="col-md-5 squaredcheck">
+	<input type="checkbox" class="checkbox4" id="Cate{{item.CategoryId}}" name="Cate{{item.CategoryId}}" [(ngModel)]="item.Check">
+	<label for="Cate{{item.CategoryId}}"><span style="width: max-content;">{{ item.Name }}</span></label>
+	<check-box *ngIf="item.categorySorts.length > 0" [data] ="item.categorySorts"></check-box>
+</div>

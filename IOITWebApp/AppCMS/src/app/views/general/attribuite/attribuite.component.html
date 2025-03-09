@@ -1,0 +1,136 @@
+<div class="animated fadeIn cms-main">
+  <div class="card cms-content">
+    <div class="titleCat">
+      <h1 class="cms-heading-inline">Danh sách thuộc tính</h1>
+      <button class="cms-addnew" type="button"  (click)="OpenAttribuiteModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <div class="row cms-filter">
+          <div class="col-sm-12 col-md-6" style="padding-left:0px; margin-left: -5px;">
+            <ul class="cms-subsubsub">
+              <li class="all"><a class="current" aria-current="page">Tất cả <span class="count">({{ paging.item_count }})</span></a> | </li>
+              <li class="publish"><a> thuộc tính hiển thị <span class="count">({{ paging.item_count }})</span></a> </li>
+            </ul>
+          </div>
+          <div class="col-sm-12 col-md-6" style="display: flex; justify-content: flex-end;align-items: flex-end;">
+
+            <label style="margin-right:10px;display: flex;align-items: center;">
+              <span style="width:200px">Tìm kiếm thuộc tính:</span>
+              <input type="text" class="form-control form-control-sm" placeholder="Nhập từ khóa cần tìm...." aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+            </label>
+
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListAttribuite()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-12">
+            <table class="table table-striped table-bordered datatable dataTable no-footer list-cat" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+              <thead>
+                <tr role="row" >
+                  <!-- <th [ngClass]="GetClassSortTable('AttribuiteId')" (click)="SortTable('AttribuiteId')" class="text-center" style="width:15%">STT</th> -->
+                  <th [ngClass]="GetClassSortTable('Name')" (click)="SortTable('Name')"   >
+                    Tên
+                  </th>
+                  <th [ngClass]="GetClassSortTable('Location')" (click)="SortTable('Location')" class="text-center" >
+                    Thứ tự hiển thị
+                  </th>
+                  <th [ngClass]="GetClassSortTable('CreatedAt')" (click)="SortTable('CreatedAt')" s>
+                    Ngày tạo
+                  </th>
+                  <!--<th style="width: 70px;">Thao tác</th>-->
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of listAttribuite; let i = index" role="row" ng-class-odd='odd' ng-class-even='even' class="fhsajfsa">
+                  <!-- <td class="text-center"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td> -->
+                  <td class="sorting_1 column-name name-child">{{ item.Name }}
+                    <ul class="cms-function">
+                      <li class="id-item">ID: {{item.AttribuiteId}} | </li>
+                      <li (click)="OpenAttribuiteModal(item)">Chỉnh sửa | </li>
+                      <li (click)="ShowConfirmDelete(item.AttribuiteId)" class="detete-item">Xóa</li>
+                    </ul>
+                  </td>
+                  <td class="text-center">{{ item.Location }}</td>
+                  <td>{{item.CreatedAt | date: 'dd/MM/yyyy hh:mm'}}</td>
+                  <!--<td style="text-align: center;">
+                    <a class="btn btn-info" href="javascript:void(0)" (click)="OpenAttribuiteModal(item)">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a class="btn btn-danger" href="javascript:void(0)" (click)="ShowConfirmDelete(item.AttribuiteId)">
+                      <i class="fa fa-trash-o"></i>
+                    </a>
+                  </td>-->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row cmspaging" style="padding-left:20px">
+          <div class="col-sm-12 col-md-5 -">
+            <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+              Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm"
+                        previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)" class="pull-right"></pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div [config]="{backdrop: 'static',  keyboard: false}" bsModal #AttribuiteModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" *ngIf="Item.AttribuiteId == undefined">Thêm mới thuộc tính sản phẩm</h4>
+          <h4 class="modal-title" *ngIf="Item.AttribuiteId != undefined">Sửa thông tin thuộc tính sản phẩm</h4>
+          <button type="button" class="close" (click)="AttribuiteModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row" style="    margin: 15px 0px;">
+                  <label class="col-md-4 col-form-label" for="Name">Tên thuộc tính<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="Name" name="Name" class="form-control" placeholder="" [(ngModel)]="Item.Name" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row"  style="    margin: 15px 0px;">
+                  <label class="col-md-4 col-form-label" for="Location">Thứ tự hiển thị<span *ngIf="Item.Location==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="number" id="Location" name="Location" class="form-control" min="1" placeholder="" [(ngModel)]="Item.Location" onkeypress="return event.charCode >= 48 && event.charCode <= 57" autocomplete="off">
+                  </div>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveAttribuite()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="AttribuiteModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

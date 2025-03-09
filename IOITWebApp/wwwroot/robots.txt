@@ -1,0 +1,6 @@
+User-agent: *
+
+Disallow: /cms/*
+Disallow: /bin/*
+
+Sitemap: https://koilover.vn/sitemap.xml

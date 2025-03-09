@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="vi" xmlns="http://www.w3.org/1999/xhtml" prefix="og: http://ogp.me/ns#" ng-app="IOITWeb" ng-cloak>
+<head>
+    <title>
+        @ViewBag.SeoTitle
+    </title>
+    <meta name="keywords" content="@ViewBag.SeoKeywords" />
+    <meta name="description" content="@ViewBag.SeoDescription" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="/favicon.ico">
+    @*
+        <link rel="canonical" href="/" />*@
+
+    <meta property="og:site_name" content="@ViewBag.SeoTitle" />
+    <meta property="og:type" content="Website" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="fb:app_id" content="1684158208483105" />
+    <meta property="fb:pages" content="295169763983232" />
+    <meta property="og:title" itemprop="name" content="@ViewBag.SeoTitle" />
+    <meta property="og:url" itemprop="url" content="@ViewBag.Url" />
+    <meta property="og:description" content="@ViewBag.SeoDescription" />
+    <meta property="og:image" content="@ViewBag.UrlImg" itemprop="thumbnailUrl" />
+
+    <meta name="language" content="vietnamese" />
+    <meta name="copyright" content="Copyright © 2018 - @DateTime.Now.Year by @ViewBag.SeoName" />
+    <meta name="abstract" content="@ViewBag.SeoName" />
+    <meta name="distribution" content="Global" />
+    <meta name="author" content="@ViewBag.SeoName" />
+    <meta http-equiv="refresh" content="1200" />
+    <meta name="REVISIT-AFTER" content="1 DAYS" />
+    <meta name="RATING" content="GENERAL" />
+    <meta http-equiv="x-dns-prefetch-control" content="on" />
+    <meta name="google-site-verification" content="DUdi8rBzERfrVj_PeYpo0puHbHWsVQMisKV1AzfHFhc" />
+
+    @*chi tiet*@
+    @*<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.4/css/lightgallery.min.css'>*@
+    <link href="/css/slickct.css" rel="stylesheet" />
+    @*<link href="/css/lightgallery.min.css" rel="stylesheet" />*@
+    <link href="/css/stylect.css" rel="stylesheet" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet">
+    @*<link href="~/css/slick/slick.css" rel="stylesheet" />
+        <link href="~/css/slick/slick-theme.css" rel="stylesheet" />*@
+    <link href="~/css/bootstrap/css/bootstrap.css" rel="stylesheet" />
+    <link href="~/css/reset.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    @*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.css">*@
+
+    @*Css Angular*@
+    <link rel="stylesheet" href="~/css/angular/angular-material.css">
+    <link rel="stylesheet" href="~/css/angular/loading-bar.min.css">
+    @*<link rel="stylesheet" href="~/css/angular/ui-carousel.min.css">*@
+
+    <!-- Owl-->
+    <link rel="stylesheet" href="/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="/css/owl.theme.default.min.css">
+
+    <link href="~/css/style.css" rel="stylesheet" />
+    <link href="~/css/responsive.css" rel="stylesheet" />
+
+    <script src="~/js/js/jquery-3.4.1.min.js"></script>
+    <script src="~/js/jquery-migrate.min.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.fancybox.min.js"></script>
+    @*<script src="~/js/slick/slick.js"></script>*@
+
+    @*<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/3.0.1/jquery-migrate.min.js'></script>*@
+    @*<script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/popper.min.js'></script>*@
+    @*<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>*@
+
+    @*<script src='https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.js'></script>*@
+    <script src="/js/my_js.js"></script>
+    @*<script src="~/js/js_all_slick.js"></script>
+
+        <script>
+            $(".slider").not('.slick-initialized').slick()
+        </script>*@
+
+    <!-- javascript -->
+    <script src="/js/js/owl.carousel.js"></script>
+    <!-- end Owl-->
+    @*chi tiet*@
+    <script src="/js/lightgallery-all.min.js"></script>
+    <script src="/js/slick.min.js"></script>
+    <script src="/js/scriptct.js"></script>
+    <style>
+        .sliderpc {
+            width: 585px;
+        }
+
+        .slidermd {
+        }
+    </style>
+</head>
+<body class="home pageCust-@ViewBag.PageHome">
+
+    @await Component.InvokeAsync("Header")
+    @RenderBody()
+    @await Component.InvokeAsync("Footer")
+
+
+
+    <div id='formSubmitted'></div>
+
+    <script src="/js/app.js"></script>
+
+    @*AngularJs*@
+    <script src="~/js/angular/angular.min.js"></script>
+    <script src="~/js/angular/angular-animate.min.js"></script>
+    <script src="~/js/angular/angular-aria.min.js"></script>
+    <script src="~/js/angular/angular-material.min.js"></script>
+    <script src="~/js/angular/loading-bar.min.js"></script>
+    <script src="~/js/angular/angular-md5.js"></script>
+    <script src="~/js/angular/angular-cookies.min.js"></script>
+    <script src="~/js/angular/ui-carousel.min.js"></script>
+
+    @*<script src="~/js/angular/angular-timer-bower.js"></script>
+        <script src="~/js/angular/angular-timer-all.min.js"></script>*@
+
+
+    @*<script src="~/js/angular/ui-bootstrap.min.js"></script>*@
+    <script src="~/js/angular/ui-bootstrap-tpls.min.js"></script>
+    @*<script src="~/js/angular/angular-sanitize.min.js"></script>*@
+
+    @*<script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+        <script src="~/js/angular/angularfire.min.js"></script>*@
+
+
+    <script src="~/js/app/app.js"></script>
+    <script src="~/js/app/customer.js"></script>
+    <script src="~/js/app/init.js"></script>
+    <script src="~/js/app/register.js"></script>
+    <script src="~/js/app/detail-product.js"></script>
+    <script src="~/js/app/shopping-cart.js"></script>
+    <script src="~/js/app/block-left-common.js"></script>
+    <script src="~/js/app/list-product.js"></script>
+    <script src="~/js/app/contact.js"></script>
+    <script src="~/js/app/search.js"></script>
+    <script src="~/js/app/bl-user.js"></script>
+    @*<script src="~/js/app/aution.js"></script>*@
+    @*<script src="~/js/app/aution-contact.js"></script>*@
+    <script src="~/js/app/checkout.js"></script>
+    <script src="~/js/app/Payments.js"></script>
+    <script src="~/js/js/common.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+            $("#cart").load("/ShoppingCart/LoadCart");
+        });
+
+        function RemoveFromCart(id) {
+            $.ajax({
+                url: '/ShoppingCart/RemoveFromCart?id=' + id,
+                contentType: 'application/html; charset=utf-8',
+                type: 'POST',
+                dataType: 'html'
+            })
+                .success(function (result) {
+                    //console.log(result);
+                    $('#cart').html(result);
+                    element.classList.toggle("mystyle");
+                    element1.style.display = "block";
+                    var msgSuccess = '<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong></strong> Xoa trong giỏ hàng thành công!</div>';
+                    $('#formSubmitted').append(msgSuccess);
+                })
+                .error(function (xhr, status) {
+                    var msgSuccess = '<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong></strong> Xoa trong giỏ hàng that bai!</div>';
+                    $('#formSubmitted').append(msgSuccess);
+                });
+        }
+
+    </script>
+
+    <!-- Go to www.addthis.com/dashboard to customize your tools -->
+    <script type="text/javascript" async defer src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5d27f7504045a9e8"></script>
+</body>
+</html>

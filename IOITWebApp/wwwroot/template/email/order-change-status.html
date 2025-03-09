@@ -1,0 +1,101 @@
+﻿<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="">
+    <title></title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900" rel="stylesheet">
+</head>
+<body style="font-family: 'Roboto'; font-weight: 400; font-size: 13px;">
+    <div class="template-email" style="width: 600px; margin:auto; background: #ffffff;">
+        <div class="header-mail" style="{0}">
+            <div class="logo-header">
+                <img src="{1}" alt="" style="position: relative; background: #ffffff;">
+            </div>
+        </div>
+        <div class="body-email" style="{2}">
+            <div class="title-email" style=" color: #ffffff; background: #ff9b38; padding: 20px;">
+                <span style="text-transform: uppercase; font-size: 20px; font-weight: 500; display: block; text-align: center; width: 100%; margin-bottom: 10px;">Cập nhật thông tin đơn hàng</span>
+                <span style="text-align: center; display: block; font-size: 15px">Mã đơn hàng: {8}</span>
+            </div>
+            <div class="content-email" style="float: left; padding: 20px; width:calc(100% - 40px);">
+                <p style="margin-top: 0;">Kính chào Quý khách <span style="font-weight: bold;">{9}</span>,</p>
+                <p style="margin-top: 0;">Chân thành cảm ơn Quý khách đã mua sắm tại <a href="{7}">{7}</a>!</p>
+                <p style="margin-top: 0;">{21}</p>
+                <table style="background: #ffffff; border: 1px solid #e1e1e1; width:100%; padding:20px 10px; font-size: 13px;vertical-align: middle; color:#555555;">
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="font-weight: bold; font-size: 17px; color: #25396c; padding-bottom: 15px">Thông tin đơn hàng</td>
+                        </tr>
+                        <tr><td style="padding-bottom: 10px; font-weight:bold; width:40%">Mã đơn hàng</td><td style="padding-bottom: 10px; font-weight:bold;">{8}</td></tr>
+                        <tr><td style="padding-bottom: 10px; font-weight:bold; width:40%">Ngày đặt hàng</td><td style="padding-bottom: 10px; font-weight:bold;">{10}</td></tr>
+                        <tr><td style="padding-bottom: 10px; font-weight:bold; width:40%">Trạng thái đơn hàng</td><td style="padding-bottom: 10px; font-weight:bold;">{11}</td></tr>
+                    </tbody>
+                </table>
+
+                <table style="background: #ffffff; border: 1px solid #e1e1e1; width:100%; padding:20px 10px; font-size: 13px; color: #555555; margin-top:15px;vertical-align: middle; margin-bottom: 20px;">
+                    <tbody>
+                        <tr>
+                            <td colspan="2" style="font-weight: bold; font-size: 17px; color: #25396c; padding-bottom: 15px">Đơn hàng chi tiết</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;border-bottom: 1px solid #e1e1e1; padding: 5px; width:35%">Sản phẩm</td>
+                            <td style="font-weight: bold;border-bottom: 1px solid #e1e1e1; padding: 5px;">Trạng thái</td>
+                            <td style="font-weight: bold;border-bottom: 1px solid #e1e1e1; padding: 5px;">Số lượng</td>
+                            <td style="font-weight: bold;border-bottom: 1px solid #e1e1e1; padding: 5px;">Giá tiền(VNĐ)</td>
+                            <td style="font-weight: bold;border-bottom: 1px solid #e1e1e1; padding: 5px; text-align:right;">Tổng cộng(VNĐ)</td>
+                        </tr>
+                        <tr><td colspan="5" style="height:5px"></td></tr>
+                        <tr><td colspan="5" style="height:5px"></td></tr>
+                        {12}
+                        <tr>
+                            <td colspan="4" style="border-top: 1px dashed #cccccc;padding: 10px 5px; font-weight:bold;">Tổng tiền sản phẩm</td>
+                            <td style="border-top: 1px dashed #cccccc;padding: 10px 5px; text-align:right;">{13}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="border-top: 1px dashed #cccccc;padding: 10px 5px; font-weight:bold;">Phí vận chuyển đơn hàng</td>
+                            <td style="border-top: 1px dashed #cccccc;padding: 10px 5px; text-align:right;">{14}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="border-top: 1px dashed #cccccc;padding: 10px 5px; font-weight:bold;">Số tiền được giảm trừ</td>
+                            <td style="border-top: 1px dashed #cccccc;padding: 10px 5px; text-align:right;">{15}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="border-top: 1px dashed #cccccc;padding: 10px 5px; font-weight:bold;">Tổng tiền đơn hàng</td>
+                            <td style="border-top: 1px dashed #cccccc;padding: 10px 5px; text-align:right;">{16}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="border-top: 1px solid #e1e1e1; padding: 10px 5px; font-weight: bold; background: #eef8ff;">Tổng tiền đã thanh toán</td>
+                            <td style="border-top: 1px solid #e1e1e1; padding: 10px 5px; font-weight: bold; background: #eef8ff; text-align:right;">{17}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" style="border-top: 1px solid #e1e1e1; padding: 10px 5px; font-weight: bold; background: #eef8ff;">Số tiền còn lại cần thanh toán</td>
+                            <td style="border-top: 1px solid #e1e1e1; padding: 10px 5px; font-weight: bold; background: #eef8ff; text-align:right;">{18}đ</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #e1e1e1;padding: 10px 5px; font-weight:bold;">Hình thức thanh toán</td>
+                            <td colspan="3" style="border-top: 1px solid #e1e1e1;padding: 10px 5px; text-align:right;">{19}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: 1px solid #e1e1e1;padding: 10px 5px; font-weight:bold;">Tình trạng thanh toán</td>
+                            <td colspan="3" style="border-top: 1px solid #e1e1e1;padding: 10px 5px; text-align:right;">{20}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 0;">Trong trường hợp gặp khó khăn, Quý khách liên hệ Trung tâm thông tin khách hàng của apc.com.vn để được hỗ trợ.</p>
+                <p style="margin-top: 0;">Mọi thắc mắc và góp ý, xin Quý khách vui lòng liên hệ với chúng tôi qua:</p>
+                <p style="margin-top: 0;">- Email hỗ trợ: <a href="mailto:Info@apc.com.vn" title="">Info@apc.com.vn</a> hoặc</p>
+                <p style="margin-top: 0;">- Tổng dài Chăm sóc khách hàng: 1800 6986</p>
+                <p style="margin-top: 0;">Apc.com.vn trân trọng cảm ơn và rất hân hạnh được phục vụ Quý khách.</p>
+                <p style="margin-top: 0; font-style: italic;">*Quý khách vui lòng không trả lời email này*</p>
+                <p style="margin-top: 0;">Trân trọng cảm ơn.</p>
+            </div>
+        </div>
+        <div class="footer-mail" style="{3}">
+            <p style="margin-top: 0; margin-bottom: 5px; padding:0px 20px;"><b>{4}</b></p>
+            <p style="margin-top: 0; margin-bottom: 5px; padding:0px 20px;"><b>Trụ sở chính: </b>{5}</p>
+            <p style="margin-top: 0; margin-bottom: 5px; padding:0px 20px;"><b>Hotline:</b> {6} - <b>Email:</b> info@apc.com.vn</p>
+            <p style="margin-top: 0; margin-bottom: 5px; padding:0px 20px;"><b>Website:</b> <a href="{7}">{7}</a></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TypeScriptToolsVersion>3.5</TypeScriptToolsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AppCMS\**" />
+    <Compile Remove="log\**" />
+    <Compile Remove="Views\Aution\**" />
+    <Compile Remove="Views\Category\**" />
+    <Compile Remove="Views\Checkout\**" />
+    <Compile Remove="Views\Customer\**" />
+    <Compile Remove="Views\Detail\**" />
+    <Compile Remove="Views\Home\**" />
+    <Compile Remove="Views\Search\**" />
+    <Compile Remove="Views\ShoppingCart\**" />
+    <Content Remove="AppCMS\**" />
+    <Content Remove="log\**" />
+    <Content Remove="Views\Aution\**" />
+    <Content Remove="Views\Category\**" />
+    <Content Remove="Views\Checkout\**" />
+    <Content Remove="Views\Customer\**" />
+    <Content Remove="Views\Detail\**" />
+    <Content Remove="Views\Home\**" />
+    <Content Remove="Views\Search\**" />
+    <Content Remove="Views\ShoppingCart\**" />
+    <EmbeddedResource Remove="AppCMS\**" />
+    <EmbeddedResource Remove="log\**" />
+    <EmbeddedResource Remove="Views\Aution\**" />
+    <EmbeddedResource Remove="Views\Category\**" />
+    <EmbeddedResource Remove="Views\Checkout\**" />
+    <EmbeddedResource Remove="Views\Customer\**" />
+    <EmbeddedResource Remove="Views\Detail\**" />
+    <EmbeddedResource Remove="Views\Home\**" />
+    <EmbeddedResource Remove="Views\Search\**" />
+    <EmbeddedResource Remove="Views\ShoppingCart\**" />
+    <None Remove="AppCMS\**" />
+    <None Remove="log\**" />
+    <None Remove="Views\Aution\**" />
+    <None Remove="Views\Category\**" />
+    <None Remove="Views\Checkout\**" />
+    <None Remove="Views\Customer\**" />
+    <None Remove="Views\Detail\**" />
+    <None Remove="Views\Home\**" />
+    <None Remove="Views\Search\**" />
+    <None Remove="Views\ShoppingCart\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\ApiCMS\OrderByController.cs" />
+    <Compile Remove="Controllers\ApiCMS\SessionAutionController.cs" />
+    <Compile Remove="Controllers\ComponentsController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Views\Shared\_BlockCategoryMain.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\ECOMMERCE %25281%2529\IOITWebApp\AppCMS\src\assets\login\bootstrap.min.css" />
+    <Content Include="..\..\ECOMMERCE %25281%2529\IOITWebApp\AppCMS\src\assets\login\bootstrap.min.js" />
+    <Content Include="..\..\ECOMMERCE %25281%2529\IOITWebApp\AppCMS\src\assets\login\jquery.min.js" />
+    <Content Include="..\..\ECOMMERCE %25281%2529\IOITWebApp\AppCMS\src\assets\login\login.css" />
+    <Content Include="..\..\ECOMMERCE %25281%2529\IOITWebApp\AppCMS\src\assets\login\login.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Views\Shared\Error.cshtml" />
+    <None Include="Views\Shared\_Layout.cshtml" />
+    <None Include="Views\_ViewImports.cshtml" />
+    <None Include="Views\_ViewStart.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.95.4" />
+    <PackageReference Include="Dapper" Version="1.60.6" />
+    <PackageReference Include="EntityFramework" Version="6.4.0" />
+    <PackageReference Include="EPPlus" Version="5.8.4" />
+    <PackageReference Include="FirebaseDatabase.net" Version="4.0.1" />
+    <PackageReference Include="HtmlTextWriter" Version="2.1.0" />
+    <PackageReference Include="iTextSharp.LGPLv2.Core" Version="1.7.1" />
+    <PackageReference Include="LigerShark.WebOptimizer.Core" Version="1.0.236" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.WebApiCompatShim" Version="2.1.0" />
+    <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="150.18208.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.10" />
+    <PackageReference Include="NPOI" Version="2.4.1" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="RestSharp" Version="106.6.9" />
+    <PackageReference Include="runtime.linux-x64.CoreCompat.System.Drawing" Version="1.0.0-beta009" />
+    <PackageReference Include="runtime.osx.10.10-x64.CoreCompat.System.Drawing" Version="5.6.20" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+    <PackageReference Include="Syncfusion.XlsIO.Net.Core" Version="18.1.0.42" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.12" />
+    <PackageReference Include="Wangkanai.Detection" Version="2.0.0-beta12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="templates\export\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="S7.Net">
+      <HintPath>..\..\..\S7.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="http://json.schemastore.org/azure-iot-edge-deployment-template-2.0" /></VisualStudio></ProjectExtensions>
+
+</Project>

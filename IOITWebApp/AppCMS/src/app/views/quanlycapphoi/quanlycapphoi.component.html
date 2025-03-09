@@ -1,0 +1,411 @@
+<div class="content-header" style="background-color: #2f00ff; color:white">
+  <div class="container-fluid">
+      <div class="row">
+      <div class="col-sm-6">
+          <h1 class="m-0">QUẢN LÝ MÁC BÊ TÔNG</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-left">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          </ol>
+      </div><!-- /.col -->
+      </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<section class="content" style="padding:20px">
+<div class="container-fluid">
+  <div class="card card-default">
+    <div class="card-header">
+      <h3 class="card-title">Lọc tìm kiếm</h3>
+      <div class="card-tools">
+        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+      </div>
+    </div>
+    <div class="card-body" style="display: block;">
+      <div class="form-group row">
+        <label for="inputCat3" *ngIf="role == 1" class="col-sm-2 col-form-label" >Công ty<span style="color: red;">&ngsp;(*)</span></label>
+        <div class="col-sm-4" *ngIf="role == 1">
+          <ng-select [items]="listCompany"
+                     bindLabel="Name"
+                     bindValue="CompanyId"
+                     [multiple]="false"
+                     placeholder="Chọn công ty"
+                     [(ngModel)]="q.CompanyId" [virtualScroll]="true"
+                     [ngModelOptions]="{standalone: true}"
+                     (change)="QueryChangedCompany()"
+
+                     id="listCompanySearchDropdown">
+          </ng-select>
+        </div>
+        <label for="inputCat4" class="col-sm-2 col-form-label">Trạm trộn<span style="color: red;">&ngsp;(*)</span></label>
+        <div class="col-sm-4">
+          <ng-select [items]="listBranch"
+                     bindLabel="Name"
+                     bindValue="BranchId" [virtualScroll]="true"
+                     [multiple]="false"
+                     placeholder="Chọn trạm trộn"
+                     [(ngModel)]="q.BranchId"
+                     [ngModelOptions]="{standalone: true}"
+                     (change)="QueryChanged()"
+
+                     id="listBranchSearchDropdown">
+          </ng-select>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="inputCat4" class="col-sm-2 col-form-label">Mác bê tông</label>
+        <div class="col-sm-4 ">
+          <input type="text" class="form-control" placeholder="Nhập tên mác bê tông..."  [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()" >
+        </div>
+        <div class="col-sm-2 ">
+          <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()"><i class="fa fa-filter"></i>Tìm kiếm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="DataTables_Table_0_wrapper">
+
+    <div class="row">
+      <!-- <div class="col-sm-12 col-md-3  mb-2">
+        <button class="btn btn-primary btn-sm" style="margin-top: -4px;" type="button" (click)="OpenAddModal()"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+      </div> -->
+      <div class="col-sm-12">
+        <button *ngIf="actionCreate" class="btn btn-info btn-sm" style="float: left;"  type="button" (click)="OpenAddModal()"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+        <button class="btn btn-warning btn-sm" style="float: right;" type="button" (click)="QueryChanged()"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+      </div>
+
+
+      <div class="table-responsive" style="height: 700px;">
+        <table  class="table table-bordered text-nowrap" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+          <thead style="position: sticky; top: 0; z-index: 1; background-color: #007bff; color: white;">
+            <tr role="row">
+              <th style="width: 50px; text-align:center" class="sticky-col first-col">STT</th>
+              <th (click)="SortTable('Ma') " class="sticky-col second-col">
+                Mã
+              </th>
+              <th >
+                Mã liên kết
+              </th>
+              <th >
+                Mác BT
+              </th>
+              <th *ngFor="let tenvl of listTenCuaVL">{{tenvl.TENCUAVL}}</th>
+              <th>
+                Cường độ
+              </th>
+              <th>
+                Cốt liệu MAX
+              </th>
+              <th>
+                Độ sụt
+              </th>
+              <th style="width: 120px">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of listCapPhoi; let i = index" role="row">
+              <td style="text-align: center;" class="sticky-col first-col">{{ (paging.page - 1) * paging.page_size + i + 1 }}</td>
+              <td class="sticky-col second-col">{{ item.Ma }}</td>
+              <td>{{ item.MALIENKET }}</td>
+              <td>{{ item.TENMACBETONG }}</td>
+              <td *ngFor="let itemA of item.VatLieus; let i = index">
+                {{itemA.VALUE}}
+              </td>
+              <!-- <td>{{ itemA.CAT1 }}</td>
+              <td>{{ item.CAT2 }}</td>
+              <td>{{ item.CAT3 }}</td>
+              <td>{{ item.DA1 }}</td>
+              <td>{{ item.DA2 }}</td>
+              <td>{{ item.DA3 }}</td>
+              <td>{{ item.XM1 }}</td>
+              <td>{{ item.XM2 }}</td>
+              <td>{{ item.XM3 }}</td>
+              <td>{{ item.XM4 }}</td>
+              <td>{{ item.NUOC1 }}</td>
+              <td>{{ item.NUOC2 }}</td>
+              <td>{{ item.PHUGIA1 }}</td>
+              <td>{{ item.PHUGIA2 }}</td>
+              <td>{{ item.PHUGIA3 }}</td>
+              <td>{{ item.PHUGIA4}}</td>
+              <td>{{ item.PHUGIA5 }}</td>
+              <td>{{ item.PHUGIA6 }}</td> -->
+              <td>{{ item.CUONGDO }}</td>
+              <td>{{ item.COTLIEUMAX }}</td>
+              <td>{{ item.DOSUT }}</td>
+              <td style="text-align: center;">
+                <a *ngIf="actionUpdate" class="btn btn-info btn-sm" href="javascript:void(0)" (click)="OpenEditModal(item)" tooltip="Sửa" style="margin-left: 5px;">
+                  <i class="fas fa-pencil-alt">
+                  </i>
+                  Sửa
+                </a>
+                <a *ngIf="actionDelete" class="btn btn-danger btn-sm"  href="javascript:void(0)" (click)="ShowConfirmDelete(item.MACBETONGID, this.q.BranchId)" tooltip="Xóa">
+                  <i class="fas fa-trash">
+                  </i>
+                  Xóa
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="row" style="padding-left:15px;">
+      <div class="col-sm-12 col-md-3">
+        Hiển thị
+        <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="input-search" [(ngModel)]="paging.page_size" (change)="QueryChanged()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div class="col-sm-12 col-md-4">
+        <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+          Hiển thị {{ (paging.page - 1) * paging.page_size + 1 }} đến {{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }} trong số {{ paging.item_count }} bản ghi
+        </div>
+      </div>
+      <div class="col-xs-12 col-md-5">
+        <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination pagination-sm m-0 float-right"
+                    previousText="&lsaquo;" nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+<div [config]="{backdrop: 'static',  keyboard: false}" bsModal #UserModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content card card-primary">
+        <div class="card-header" style="background-color: #2f00ff !important;" >
+          <h4 class="card-title" *ngIf="Item.MACBETONGID == undefined">Thêm mác bê tông</h4>
+          <h4 class="card-title" *ngIf="Item.MACBETONGID != undefined">Sửa mác bê tông</h4>
+          <button type="button" class="close" (click)="UserModal.hide()" aria-label="Close" style="color: white;margin-top:-5px">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body p-3">
+
+              <div class="form-group" >
+                <label>Công ty<span *ngIf="Item.CompanyId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                <ng-select [items]="listCompany"
+                           bindLabel="Name"
+                           bindValue="CompanyId"
+                           [multiple]="false"
+
+                           [disabled]="disable"
+                           placeholder="Chọn công ty"
+                           [(ngModel)]="q.CompanyId" [virtualScroll]="true"
+                           [ngModelOptions]="{standalone: true}" (change)="CompanyChanged()">
+                </ng-select>
+              </div>
+
+              <div class="form-group" >
+                <label>Trạm trộn<span *ngIf="Item.listBranchId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                <ng-select
+                  [multiple]="false"
+                  [virtualScroll]="true"
+                  placeholder="Chọn trạm trộn"
+                  [(ngModel)]="q.BranchId"
+                  [disabled]="disable"
+                  (change)="changeFn(q.BranchId)"
+                  [ngModelOptions]="{standalone:true}">
+                  <ng-option *ngFor="let branch of listBranch" [value]="branch.BranchId">{{branch.Name}}</ng-option>
+                </ng-select>
+              </div>
+              <div class="form-group row">
+                <label for="inputTenMac" style="text-align: left !important;" class="col-sm-2 col-form-label">Mã liên kết</label>
+                <div class="col-sm-10">
+
+                    <input type="text" class="form-control" id="inputMaMac" placeholder="Mã liên kết" [(ngModel)]="Item.MALIENKET" name="MaMac" >
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="inputTenMac" style="text-align: left !important;" class="col-sm-2 col-form-label">Tên mác</label>
+                <div class="col-sm-10">
+
+                    <input type="text" class="form-control" id="inputTenMac" placeholder="Tên mác" [(ngModel)]="Item.TENMACBETONG" name="TenMac" >
+                </div>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL.length > 0" *ngFor="let item of listTenCuaVL; let i = index">
+                    <ng-template [ngIf]="item.TENCUAVL">
+                      <label for="inputCat1" style="text-align: left !important; margin-top: 15px;" class="col-sm-2 col-form-label">{{item.TENCUAVL}}</label>
+                      <div class="col-sm-2">
+                        <input [disabled]="!item.TRANGTHAI" style="margin-top: 15px !important;" type="number" #i class="form-control" [id]="item.MACUAVL" [(ngModel)]="item.VALUE" [name]="item.MACUAVL" (change)="sum()"  placeholder="{{item.TENCUAVL}}">
+                      </div>
+                    </ng-template>
+              </ng-template>
+              </div>
+            <!-- <ng-template [ngIf]="listTenCuaVL.length > 0">
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[0]?.TENCUAVL">
+                  <label for="inputCat1" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[0].TENCUAVL}}</label>
+                <div class="col-sm-2">
+                  <input type="number" #inputCat1 class="form-control" id="inputCat1" [(ngModel)]="Item.CAT1" name="c1" (change)="sum()"  placeholder="{{listTenCuaVL[0].TENCUAVL}}">
+                </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[1]?.TENCUAVL">
+                  <label for="inputCat2" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[1].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" #inputCat2 class="form-control" id="inputCat2" [(ngModel)]="Item.CAT2" name="c2" (change)="sum()" placeholder="{{listTenCuaVL[1].TENCUAVL}}">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[2]?.TENCUAVL">
+                  <label for="inputCat3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[2].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputCat3" placeholder="{{listTenCuaVL[2].TENCUAVL}}" [(ngModel)]="Item.CAT3" name="c3" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[2]?.TENCUAVL">
+                  <label for="inputCat3" style="text-align: left !important; padding-top: 5px;" class="col-sm-2 col-form-label">{{listTenCuaVL[2].TENCUAVL}}</label>
+                  <div class="col-sm-2" style="padding-top: 5px;">
+                    <input type="number" class="form-control" id="inputCat3" placeholder="{{listTenCuaVL[2].TENCUAVL}}" [(ngModel)]="Item.CAT3" name="c3" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[2]?.TENCUAVL">
+                  <label for="inputCat3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[2].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputCat3" placeholder="{{listTenCuaVL[2].TENCUAVL}}" [(ngModel)]="Item.CAT3" name="c3" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[2]?.TENCUAVL">
+                  <label for="inputCat3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[2].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputCat3" placeholder="{{listTenCuaVL[2].TENCUAVL}}" [(ngModel)]="Item.CAT3" name="c3" (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[3]?.TENCUAVL">
+                  <label for="inputDa1" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[3].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputDa1" placeholder="{{listTenCuaVL[3].TENCUAVL}}" [(ngModel)]="Item.DA1" name="d1" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[4]?.TENCUAVL">
+                  <label for="inputDa2" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[4].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputDa2" placeholder="{{listTenCuaVL[4].TENCUAVL}}" [(ngModel)]="Item.DA2" name="d2" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[5]?.TENCUAVL">
+                  <label for="inputDa3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[5].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputDa3" placeholder="{{listTenCuaVL[5].TENCUAVL}}" [(ngModel)]="Item.DA3" name="d3" (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[6]?.TENCUAVL">
+                  <label for="inputxm1" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[6].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputxm1" placeholder="{{listTenCuaVL[6].TENCUAVL}}" [(ngModel)]="Item.XM1" name="xm1" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[7]?.TENCUAVL">
+                  <label for="inputxm2" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[7].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputxm2" placeholder="{{listTenCuaVL[7].TENCUAVL}}" [(ngModel)]="Item.XM2" name="xm2" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[8]?.TENCUAVL">
+                  <label for="inputxm3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[8].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputxm3" placeholder="{{listTenCuaVL[8].TENCUAVL}}" [(ngModel)]="Item.XM3" name="xm3" (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[9]?.TENCUAVL">
+                  <label for="inputxm4" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[9].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputxm4" placeholder="{{listTenCuaVL[9].TENCUAVL}}" [(ngModel)]="Item.XM4" name="xm4" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[10]?.TENCUAVL">
+                  <label for="inputNuoc1" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[10].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputNuoc1" placeholder="{{listTenCuaVL[10].TENCUAVL}}" [(ngModel)]="Item.NUOC1" name="n1" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[11]?.TENCUAVL">
+                  <label for="inputNuoc2" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[11].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputNuoc2" placeholder="{{listTenCuaVL[11].TENCUAVL}}" [(ngModel)]="Item.NUOC2" name="n2" (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[12]?.TENCUAVL">
+                  <label for="inputPg1" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[12].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg1" placeholder="{{listTenCuaVL[12].TENCUAVL}}" [(ngModel)]="Item.PHUGIA1" name="pg1" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[13]?.TENCUAVL">
+                  <label for="inputPg2" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[13].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg2" placeholder="{{listTenCuaVL[13].TENCUAVL}}" [(ngModel)]="Item.PHUGIA2" name="pg2" (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[14]?.TENCUAVL">
+                  <label for="inputPg3" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[14].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg3" placeholder="{{listTenCuaVL[14].TENCUAVL}}" [(ngModel)]="Item.PHUGIA3" name="pg3"  (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+              <div class="form-group row">
+                <ng-template [ngIf]="listTenCuaVL[15]?.TENCUAVL">
+                  <label for="inputPg4" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[15].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg4" placeholder="{{listTenCuaVL[15].TENCUAVL}}" [(ngModel)]="Item.PHUGIA4" name="pg4"  (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[16]?.TENCUAVL">
+                  <label for="inputPg5" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[16].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg5" placeholder="{{listTenCuaVL[16].TENCUAVL}}" [(ngModel)]="Item.PHUGIA5" name="pg5"  (change)="sum()">
+                  </div>
+                </ng-template>
+                <ng-template [ngIf]="listTenCuaVL[17]?.TENCUAVL">
+                  <label for="inputPg6" style="text-align: left !important;" class="col-sm-2 col-form-label">{{listTenCuaVL[17].TENCUAVL}}</label>
+                  <div class="col-sm-2">
+                    <input type="number" class="form-control" id="inputPg6" placeholder="{{listTenCuaVL[17].TENCUAVL}}" [(ngModel)]="Item.PHUGIA6" name="pg6"  (change)="sum()">
+                  </div>
+                </ng-template>
+              </div>
+            </ng-template> -->
+            <div class="form-group row">
+              <label for="inputCd1" style="text-align: left !important;" class="col-sm-2 col-form-label">Cường độ</label>
+              <div class="col-sm-2">
+                <input type="text" class="form-control" id="inputCd1" placeholder="Cường độ" [(ngModel)]="Item.CUONGDO" name="cd" >
+              </div>
+              <label for="inputClm" style="text-align: left !important;" class="col-sm-2 col-form-label">Cốt liệu max</label>
+              <div class="col-sm-2">
+                <input type="number" class="form-control" id="inputClm" placeholder="Cốt liệu max" [(ngModel)]="Item.COTLIEUMAX" name="clm" >
+              </div>
+              <label for="inputDosut" style="text-align: left !important;" class="col-sm-2 col-form-label">Độ sụt ( ± )</label>
+              <div class="col-sm-2">
+                <input type="text" class="form-control" id="inputDosut" placeholder="±" [(ngModel)]="Item.DOSUT" name="ds" >
+              </div>
+            </div>
+            <div class="form-group row">
+              <label>Tổng khối lượng: </label>
+              <p style="color: red; margin-left: 10px;">{{sum()}}</p>
+            </div>
+
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="AddUserFunc()">Lưu</button>
+          <button type="button" class="btn btn-secondary" (click)="UserModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+

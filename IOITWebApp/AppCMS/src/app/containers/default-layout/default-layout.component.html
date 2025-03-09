@@ -1,0 +1,217 @@
+<div class="wrapper">
+
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+      </li>
+    </ul>
+    
+    <!-- Right navbar links -->
+    
+  </nav>
+  <!-- /.navbar -->
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4 sidebar-dark-custom">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-link" style="height: 57px;">
+      <nav class="mt-2">
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link" data-toggle="dropdown" href="#">
+              <img src="../../../assets/img/logo3.jpg" height="30px" width="30px" class="img-circle elevation-2 mr-2 d-none d-sm-inline" alt="User Image"> <strong>{{ userChangePass.FullName }}</strong>
+            </a>
+            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+              <a href="javascript:void(0)" (click)="OpenModalInfo()" class="dropdown-item">
+                <i class="fas fa-user mr-2"></i> Thông tin tài khoản
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="javascript:void(0)" (click)="OpenChangePasswordModal()" class="dropdown-item">
+                <i class="fas fa-tools mr-2"></i> Đổi mật khẩu
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="javascript:void(0)" (click)="logout()" class="dropdown-item">
+                <i class="fas fa-lock mr-2"></i>  Đăng xuất
+              </a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      <!--<span class="brand-text font-weight-light">Admin</span>-->
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar menu-nav">
+      <!-- Sidebar user panel (optional) -->
+      <!-- <div class="user-panel pb-1 d-flex">
+        <div class="info ml-2">
+          <a class="d-block">TTSmart BP Online</a>
+        </div>
+      </div> -->
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          <!-- Add icons to the links using the .nav-icon class
+          with font-awesome or any other icon font library -->
+          <li *ngFor="let item of navItem" class="{{item.children ? 'nav-item has-treeview menu-open' : 'nav-item'}}">
+            <a [routerLink]="item.url" class="nav-link" *ngIf="!item.children" >
+              <i class="nav-icon {{item.icon}}"></i>
+              <p>
+                <span>{{item.name}}</span>
+              </p>
+            </a>
+            <a class="nav-link" *ngIf="item.children" href="#">
+              <i class="nav-icon {{item.icon}}"></i>
+              <p>
+                <span>{{item.name}}</span>
+              </p>
+              <i class="fas fa-angle-left right"></i>
+            </a>
+            <ul class="nav nav-treeview" *ngIf="item.children">
+              <li *ngFor="let itemchildren of item.children" class="nav-item">
+                <a [routerLink]="itemchildren.url" class="nav-link" >
+                  <i class="nav-icon {{itemchildren.icon}}" style="width: 2.6rem !important;"></i>
+                  <p>
+                    <span>{{itemchildren.name}}</span>
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <!-- <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="info ml-2">
+          <a class="d-block text-danger">Hotline:
+            <ul style="list-style-image: url('https://freehost.page/wp-content/uploads/2021/02/bullet-yellow.png');">
+              <li>+84.914 973 483</li>
+              <li>+84.944 407 369</li>
+             </ul>
+
+          </a>
+        </div>
+      </div> -->
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+
+    <router-outlet></router-outlet>
+    <!-- Main content -->
+    <!-- /.content -->
+  </div>
+</div>
+<!-- ./wrapper -->
+<div bsModal #ChangePasswordModal="bs-modal" class="modal fade show" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Đổi mật khẩu</h4>
+          <button type="button" class="close" (click)="ChangePasswordModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card-body body-form-add-new">
+            <div class="col-sm-12 col-md-12">
+              <div class="form-group row">
+                <label class="col-md-6 col-form-label" for="PasswordOld">Mật khẩu hiện tại<span *ngIf="userChangePass.PasswordOldE==undefined || userChangePass.PasswordOldE==''" style="color: red;">&ngsp;(*)</span></label>
+                <div class="col-md-6">
+                  <input type="password" id="PasswordOld" name="PasswordOld" class="form-control" placeholder="" [(ngModel)]="userChangePass.PasswordOldE">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-6 col-form-label" for="PasswordNew">Mật khẩu mới<span *ngIf="userChangePass.PasswordNewE==undefined || userChangePass.PasswordNewE==''" style="color: red;">&ngsp;(*)</span></label>
+                <div class="col-md-6">
+                  <input type="password" id="PasswordNew" name="PasswordNew" class="form-control" placeholder="" [(ngModel)]="userChangePass.PasswordNewE">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-6 col-form-label" for="ConfirmPassword">Xác nhận mật khẩu<span *ngIf="userChangePass.ConfirmPassword==undefined || userChangePass.ConfirmPassword=='' || userChangePass.PasswordNewE!=userChangePass.ConfirmPassword" style="color: red;">&ngsp;(*)</span></label>
+                <div class="col-md-6">
+                  <input type="password" id="ConfirmPassword" name="ConfirmPassword" class="form-control" placeholder="" [(ngModel)]="userChangePass.ConfirmPassword">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-primary" (click)="ChangePassword()">Lưu</button>
+          <button type="button" class="btn btn-secondary" (click)="ChangePasswordModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div bsModal #modalMyInfo="bs-modal" class="modal fade show" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" [config]="{backdrop: 'static',  keyboard: false}">
+  <div class="modal-dialog modal-xl" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Thông tin tài khoản</h4>
+          <button type="button" class="close" (click)="modalMyInfo.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card-body body-form-add-new">
+            <div class="col-sm-12 col-md-12">
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="FullName">Tên người dùng<span *ngIf="Item.FullName==undefined || Item.FullName==''" style="color: red;">&ngsp;(*)</span></label>
+                <div class="col-md-8">
+                  <input type="text" id="FullName" name="FullName" class="form-control" placeholder="" [(ngModel)]="Item.FullName" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="UserName">Tài khoản<span *ngIf="Item.UserName==undefined || Item.UserName==''" style="color: red;">&ngsp;(*)</span></label>
+                <div class="col-md-8">
+                  <input type="text" id="UserName" name="UserName" class="form-control" placeholder="" [(ngModel)]="Item.UserName" autocomplete="off" disabled="">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="file-input">Ảnh đại diện</label>
+                <div class="col-md-8">
+                  <input #file type="file" accept="image/*" (change)="upload(file.files)" />
+                  <br />
+                  <span style="font-weight:bold;color:green;">
+                    <img *ngIf="Item.Avata != undefined" src="{{ domainImage }}{{ Item.Avata }}" style="width:120px; height:90px; margin-top: 5px;" />
+                  </span>
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="EmailUser">Email</label>
+                <div class="col-md-8">
+                  <input type="text" id="EmailUser" name="EmailUser" class="form-control" placeholder="" [(ngModel)]="Item.Email" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="Address">Địa chỉ</label>
+                <div class="col-md-8">
+                  <input type="text" id="Address" name="Address" class="form-control" placeholder="" [(ngModel)]="Item.Address" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-md-2 col-form-label" for="Phone">Số điện thoại</label>
+                <div class="col-md-8">
+                  <input type="text" id="Phone" name="Phone" class="form-control" placeholder="" [(ngModel)]="Item.Phone" autocomplete="off">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-primary" (click)="SaveInfo()">Lưu</button>
+          <button type="button" class="btn btn-secondary" (click)="modalMyInfo.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

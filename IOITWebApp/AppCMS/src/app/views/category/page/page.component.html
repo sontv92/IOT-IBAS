@@ -1,0 +1,261 @@
+<div class="animated fadeIn cms-main">
+  <div class="card cms-content">
+    <div class="titleCat">
+      <h1 class="cms-heading-inline">Danh mục trang</h1>
+      <button class="cms-addnew" type="button" (click)="OpenCatePageModal(undefined, undefined)">&nbsp;Thêm mới</button>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <div class="row danhmuc-all">
+          <div class="col-sm-12 col-md-12">
+            <div class="cf nestable-lists" style="background: #fffaf6;display: inline-block;">
+              <div class="category-title ">
+                <span class="col-name-category">Tên</span>
+                <span class="col-image-category"><i class="fa fa-image"></i></span>
+                <span class="col-url-category">Đường dẫn</span>
+                <span class="col-des-category">Mô tả</span>
+              </div>
+              <div class="dd" id="nestable" style="padding-left: 10px;max-width: 100%;">
+                <ol [data]="listCatePage" [key]="key" [hasAction]="true" class="dd-list"></ol>
+              </div>
+            </div>
+            <textarea style="display:  none;" id="nestable-output"></textarea>
+            <textarea style="display:  none;" id="nestable2-output"></textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-12">
+            <div class="btn-category">
+              <button class="btn btn-block btn-success" type="button" (click)="SaveSortCategory()"><i class="fa fa-floppy-o"></i>&nbsp; Lưu cây danh mục</button>
+              <button class="btn btn-block btn-dark" type="button" (click)="ResetCurrentRouter()"><i class="fa fa-retweet"></i>&nbsp; Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div [config]="{backdrop: 'static',  keyboard: false}" bsModal #CatePageModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-big" role="document" style="max-width:1300px">
+		<form class="login-form">
+			<div class="modal-content">
+				<div class="modal-header">
+          <h4 class="modal-title" *ngIf="Item.CategoryId==undefined">Thêm mới trang</h4>
+          <h4 class="modal-title" *ngIf="Item.CategoryId!=undefined">Sửa thông tin trang</h4>
+					<button type="button" class="close" (click)="CatePageModal.hide()" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="">
+            <div class="card-body body-form-add-new">
+              <div class="row">
+                <div class="col-sm-12 col-md-9">
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="Code">Mã danh mục<span *ngIf="Item.Code==undefined || Item.Code==''" style="color: red;">&ngsp;(*)</span></label>
+                      <div class="col-md-12">
+                        <input type="text" id="Code" name="Code" class="form-control" placeholder="" [(ngModel)]="Item.Code" autocomplete="off">
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="Name">Tên danh mục<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                      <div class="col-md-12">
+                        <input type="text" id="Name" name="Name" class="form-control" placeholder="" [(ngModel)]="Item.Name" (ngModelChange)="ChangeTitle(1)" autocomplete="off">
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="Url">Đường dẫn</label>
+                      <div class="col-md-12">
+                        <input type="text" id="Url" name="Url" class="form-control" placeholder="" [(ngModel)]="Item.Url" autocomplete="off">
+                      </div>
+                    </div>
+
+                    <div class="form-group row custom-ckeditor">
+                      <label class="col-form-label col-md-12">Nội dung</label>
+                      <div class="col-md-12">
+                        <ckeditor name="myckeditor"
+                                  [(ngModel)]="Item.Contents"
+                                  [config]=""
+                                  [readonly]="false"
+                                  debounce="500">
+                        </ckeditor>
+                      </div>
+                    </div>
+
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="Description">Mô tả trang (<i>{{newDescription.value.length}}/300</i>)</label>
+                      <div class="col-md-12">
+                        <textarea id="Description" name="Description" maxlength="300" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.Description" (ngModelChange)="ChangeTitle(2)" #newDescription></textarea>
+                        
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="MetaTitle">Meta Title (<i>{{newMetaTitle.value.length}}/200</i>)</label>
+                      <div class="col-md-12">
+                        <textarea id="MetaTitle" name="MetaTitle" maxlength="200" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaTitle" #newMetaTitle></textarea>
+                        
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="MetaKeyword">Meta Keyword ( <i>{{newMetaKeyword.value.length}}/200</i>)</label>
+                      <div class="col-md-12">
+                        <textarea id="MetaKeyword" name="MetaKeyword" maxlength="200" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaKeyword" #newMetaKeyword></textarea>
+                       
+                      </div>
+                    </div>
+
+                      <div class="form-group row">
+                        <label class="col-md-12 col-form-label" for="MetaDescription">Meta Description (<i>{{newMetaDescription.value.length}}/300</i>)</label>
+                        <div class="col-md-12">
+                          <textarea id="MetaDescription" name="MetaDescription" maxlength="300" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaDescription" #newMetaDescription></textarea>
+                          
+                        </div>
+                      </div>
+
+                  </div>
+
+
+                </div>
+                <div class="col-sm-12 col-md-3 siderbar-product" style="margin-top:20px">
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="">Đăng trang</label>
+                      <div class="col-md-12 squaredcheck" style="display:flex; justify-content: space-between; margin-left: -4px; padding: 8px 20px;">
+                        <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveCatePage()">Lưu thông tin</button>
+                        <button type="button" class="btn btn-secondary" (click)="CatePageModal.hide()">Đóng</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="">Loại danh mục<span *ngIf="Item.TypeCategoryId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                      <div class="col-md-12" style="padding: 20px; margin-left: -11px;">
+                        <ng-select [items]="typeCategoryPage"
+                                   bindLabel="Name"
+                                   bindValue="Id"
+                                   groupBy="Group" placeholder="Chọn loại danh mục"
+                                   [(ngModel)]="Item.TypeCategoryId"
+                                   [ngModelOptions]="{standalone: true}">
+                        </ng-select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="">Danh mục cha</label>
+                      <div class="col-md-12" style="padding: 20px; margin-left: -11px;">
+                        <ng-select [items]="listCatePageParent"
+                                   bindLabel="Name"
+                                   bindValue="CategoryId"
+                                   placeholder="Chọn danh mục"
+                                   [(ngModel)]="Item.CategoryParentId"
+                                   [ngModelOptions]="{standalone: true}">
+                          <ng-template ng-label-tmp let-item="item">
+                            <span>{{item.Name}}</span>
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index">
+                            <span [innerHTML]="item.Space"></span><span>{{item.Name}}</span>
+                          </ng-template>
+                        </ng-select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row" [hidden]="true">
+                      <label class="col-md-12 col-form-label" for="Icon">Icon</label>
+                      <div class="col-md-12">
+                        <div class="circlecheck">
+                          <input type="radio" id="f-option" class="circle-1" name="selector" [value]='true' [(ngModel)]="Item.IconText" [ngModelOptions]="{standalone: true}">
+                          <label for="f-option">Nhập tên</label>
+                          <div class="outer-circle"></div>
+                        </div>
+                        <div class="col-md-12">
+                          <input type="text" id="Icon" name="Icon" class="form-control" placeholder="Icon" [(ngModel)]="Item.IconFa" [disabled]="Item.IconText==false || Item.IconText==undefined" autocomplete="off">
+                        </div>
+                      </div>
+                      <div class="col-md-5">
+                        <div class="circlecheck">
+                          <input type="radio" id="g-option" class="circle-2" name="selector" [value]='false' [(ngModel)]="Item.IconText" [ngModelOptions]="{standalone: true}">
+                          <label for="g-option">Up ảnh</label>
+                          <div class="outer-circle"></div>
+                        </div>
+                        <div class="col-md-8">
+                          <input #fileIcon id="IconImage" name="IconImage" type="file" (change)="upload(fileIcon.files, 4)" [disabled]="Item.IconText==true || Item.IconText==undefined" />
+                          <span style="font-weight:bold;color:green;" *ngIf="progressIcon > 0 && progressIcon < 100">
+                            {{progressIcon}}%
+                          </span>
+                          <span style="font-weight:bold;color:green;">
+                            <img class="image-upload" *ngIf="Item.CategoryId == undefined && Item.IconText == false && messageIcon" src="{{ domainImage }}{{ messageIcon }}" />
+                            <img class="image-upload" *ngIf="Item.CategoryId != undefined && Item.IconText == false && Item.Icon != undefined" src="{{ domainImage }}{{ Item.Icon }}" />
+                          </span>
+                          <i class="fa fa-trash icon-remove-image" style="right: 131px;" (click)="RemoveImage(4)" *ngIf="(Item.CategoryId == undefined && messageIcon && Item.IconText == false) || (Item.CategoryId != undefined && Item.Icon != undefined && Item.IconText == false)"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="file-input">Ảnh danh mục</label>
+                      <div class="col-md-12" style="padding: 20px;">
+                        <input #file type="file" (change)="upload(file.files, 5)" />
+                        <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                          {{progress}}%
+                        </span>
+                        <span style="font-weight:bold;color:green;">
+                          <img class="image-upload" *ngIf="Item.CategoryId == undefined && message" src="{{ domainImage }}{{ message }}" />
+                          <img class="image-upload" *ngIf="Item.CategoryId != undefined && Item.Image != undefined" src="{{ domainImage }}{{ Item.Image }}" />
+                        </span>
+                        <i class="fa fa-trash icon-remove-image" (click)="RemoveImage(5)" *ngIf="(Item.CategoryId == undefined && message) || (Item.CategoryId != undefined && Item.Image != undefined)"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row" [hidden]="listLanguage.length == 1">
+                      <label class="col-md-12 col-form-label" for="">Ngôn ngữ<span *ngIf="Item.LanguageId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                      <div class="col-md-12" style="padding: 20px; margin-left: -11px;">
+                        <ng-select [items]="listLanguage"
+                                   bindLabel="Name"
+                                   bindValue="LanguageId"
+                                   placeholder="Chọn ngôn ngữ"
+                                   [(ngModel)]="Item.LanguageId"
+                                   [ngModelOptions]="{standalone: true}">
+                        </ng-select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-12 col-md-12">
+                    <div class="form-group row">
+                      <label class="col-md-12 col-form-label" for="Location">Thứ tự hiển thị</label>
+                      <div class="col-md-12" style="padding: 20px">
+                        <input type="number" id="Location" name="Location" class="form-control" min="1" placeholder="" [(ngModel)]="Item.Location" onkeypress="return event.charCode >= 48 && event.charCode <= 57" autocomplete="off">
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+
+
+
+
+                </div>
+              </div>
+            </div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveCatePage()">Lưu thông tin</button>
+					<button type="button" class="btn btn-secondary" (click)="CatePageModal.hide()">Đóng</button>
+				</div>
+			</div>
+		</form>
+
+	</div>
+</div>

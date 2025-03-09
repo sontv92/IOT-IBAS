@@ -1,0 +1,58 @@
+  <div class="container-fluid conya">
+	  <div class="side-left">
+		<div class="sid-layy">
+		  <div class="row slid-roo" style="background-image: url('../../../assets/img/login2.jpg'); background-size: cover; background-position: top center; width: 100%; height: 100%; background-size: cover; background-position: 50% 50%; box-shadow: inset 0 0 0 1000px rgba(0, 109, 255, 0.8);">
+			<div style="width: 100%;
+		text-align: center; position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);">
+			  <h5 style="letter-spacing: 5px;"><strong>NAM  ĐẠI  PHÁT</strong></h5>
+			  <h1 style="letter-spacing: 40px; margin-left: 35px; font-size: 70px"><strong>CMIX</strong></h1>
+			  <p style="font-size:16px"><strong>TRUNG THỰC - HÀNH ĐỘNG VÌ    VẤN ĐỀ - XỬ LÝ DỮ LIỆU CHÍNH XÁC - PHỤC VỤ TẬN TÌNH - NÂNG CAO TRẢI NGHIỆM</strong></p>
+			</div>
+		  </div>
+		</div>
+		 <div class="copyco">
+			<p><strong>© Copyright 2023 - NAMDAIPHAT ENGINEERING AND TECHNOLOGY CO.,LTD. All rights reserved.</strong></p>
+		  </div>
+	  </div>
+	  <div class="side-right">
+      <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
+        <img class="logo" src="../../../assets/img/logo3.jpg" alt="">
+
+        <h2 style="color: black;
+        font-size: 20px; font-weight: bold;">Đăng nhập</h2>
+
+        <div class="form-row">
+          <label for="">Tên đăng nhập</label>
+          <input style="padding-left: 5px;" type="text" class="form-control" placeholder="" formControlName="username" autocomplete="username" required>
+          <div *ngIf="submitted && f.username.errors" class="help-block">
+            <span *ngIf="f.username.errors.required">Chưa nhập tài khoản</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="">Mật khẩu</label>
+          <input style="padding-left: 5px;" type="password" class="form-control" placeholder="" formControlName="password" autocomplete="current-password" required>
+          <div *ngIf="submitted && f.password.errors" class="help-block">
+            <span *ngIf="f.password.errors.required">Chưa nhập mật khẩu</span>
+          </div>
+        </div>
+
+        <div class="form-row row skjh">
+          <div class="col-7 left">
+          <input type="checkbox">    Ghi nhớ mật khẩu
+          </div>
+          <div class="col-5">
+          <!-- <span> <a href="">Quên mật khẩu ?</a></span> -->
+          </div>
+
+        </div>
+
+        <div class="form-row dfr">
+          <button type="submit" class="btn btn-sm btn-success">Đăng nhập</button>
+        </div>
+      </form>
+	  </div>
+</div>

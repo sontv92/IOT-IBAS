@@ -1,0 +1,654 @@
+<div class="animated fadeIn cms-main">
+  <div class="card cms-content">
+    <div class="titleCat">
+      <h1 class="cms-heading-inline">Danh sách sản phẩm</h1>
+      <!--<button class="cms-addnew" type="button" (click)="OpenCateProductModal(undefined)">&nbsp;Thêm mới</button>-->
+      <button class="cms-addnew" style="margin-right:10px" type="button" (click)="OpenOrderByModal()"><i class="fa fa-newspaper-o"></i>&nbsp;Chọn sản phẩm nổi bật</button>
+      <button class="cms-addnew" type="button" (click)="OpenProductModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        
+        <!--<div class="row">
+          <div class="col-sm-12 col-md-6">
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <div class="button-custom">
+              <button class="btn btn-block btn-primary" style="margin-top: 0.5rem; margin-left: 10px;" type="button" (click)="OpenOrderByModal()"><i class="fa fa-newspaper-o"></i>&nbsp;Chọn sản phẩm nổi bật</button>
+              <button class="btn btn-block btn-primary" type="button" (click)="OpenProductModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+            </div>
+          </div>
+        </div>-->
+        <div class="row cms-filter">
+          
+          <div class="col-sm-12 col-md-6" style="padding-left:0px; margin-left: -5px;    display: flex;">
+            <ul class="cms-subsubsub">
+              <li class="all"><a class="current" aria-current="page">Tất cả <span class="count">({{ paging.item_count }})</span></a> | </li>
+              <li class="publish"><a> Sản phẩm hiển thị <span class="count">({{ paging.item_count }})</span></a> </li>
+              <!--<li class="trash"><a> Sản phẩm ẩn <span class="count">(7) </span></a></li>-->
+            </ul>
+            <ng-select class="select-itembox" [items]="listManufacture"
+                       bindLabel="Name"
+                       bindValue="ManufacturerId"
+                       placeholder="Lọc theo nhà sản xuất"
+                       (change)="QueryChanged()"
+                       [(ngModel)]="q.ManufacturerId"
+                       [ngModelOptions]="{standalone: true}">
+            </ng-select>
+          </div>
+          <div class="col-sm-12 col-md-6" style="display: flex; justify-content: flex-end;align-items: flex-end;">
+            <label style="margin-right:10px;display: flex;align-items: center;">
+              <span style="width:200px">Tìm kiếm sản phẩm:</span>
+              <input type="text" class="form-control form-control-sm" placeholder="Nhập từ khóa cần tìm...." aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+            </label>
+
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListProduct()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+        </div>
+          <!--<div class="row">
+        <div class="col-md-3">
+          <ng-select [items]="listManufacture"
+                     bindLabel="Name"
+                     bindValue="ManufacturerId"
+                     placeholder="Chọn nhà sản xuất"
+                     (change)="QueryChanged()"
+                     [(ngModel)]="q.ManufacturerId"
+                     [ngModelOptions]="{standalone: true}">
+          </ng-select>
+        </div>
+         <div class="col-md-3">
+    <ng-select [items]="listTrademark"
+               bindLabel="Name"
+               bindValue="ManufacturerId"
+               placeholder="Chọn thương hiệu"
+               (change)="QueryChanged()"
+               [(ngModel)]="q.TrademarkId"
+               [ngModelOptions]="{standalone: true}">
+    </ng-select>
+  </div>
+
+      </div>-->
+          <div class="row">
+            <div class="col-sm-12">
+              <table class="table list-cat table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important; color: white;">
+                <thead>
+                  <tr role="row">
+                    <!--<th [ngClass]="GetClassSortTable('ProductId')" (click)="SortTable('ProductId')" style="width: 20px;">STT</th>-->
+                    <th class="column-thumb text-center"><i class="fa fa-image"></i></th>
+                    <th [ngClass]="GetClassSortTable('Name')" (click)="SortTable('Name')">
+                      Tên sản phẩm
+                    </th>
+                    <th>Giá</th>
+                    <th>Danh mục</th>
+                    <th class="column-rating">Đánh giá sản phẩm</th>
+                    <th style="text-align: center;">Lượt xem</th>
+                    <!--<th>Thao tác</th>-->
+                    <th class="column-hs text-center">Ẩn/Hiện</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of listProduct; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+
+                    <!--<td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>-->
+                    <td class="column-thumb">
+                      <img src="../../../../assets/img/no-image1.png" style="    border: 1px solid #ccc;" width="40" height="40" *ngIf="item.Image==undefined" />
+                      <img src="{{ domainImage }}{{item.Image}}" style="    border: 1px solid #ccc;" width="40" height="40" *ngIf="item.Image!=undefined" />
+                    </td>
+                    <td class="sorting_1 name-child column-name">
+                      {{ item.Name }}
+                      <ul class="cms-function">
+                        <li class="id-item">ID: {{item.ProductId}} | </li>
+                        <li (click)="OpenProductModal(item)">Chỉnh sửa | </li>
+                        <li (click)="ShowConfirmDelete(item.ProductId)" class="detete-item">Xóa</li>
+                      </ul>
+                    </td>
+                    <td class="column-price" *ngIf="item.Discount == null">
+                      <span class="price-new">{{item.PriceSpecial | number}} vnđ</span>
+                    </td>
+                    <td class="column-price" *ngIf="item.Discount != null">
+                      <span class="price-pri">{{item.PriceSale | number}} vnđ</span> - <span class="price-new">{{item.PriceSpecial | number}} vnđ</span>
+                    </td>
+
+
+                    <!-- <td>{{findTrademark(item.trademark)}}</td> -->
+
+                    <td class="name-parend column-name">
+                      <span *ngFor="let cate of item.listCategory">{{cate.Name}}, </span>
+                    </td>
+
+                    <td style="text-align: center;">
+                      <span class="IconCheck">
+                        <i style="color: green; cursor: pointer;font-size: 15px;" class="fa fa-star" (click)="ProductReviewsModal(item.ProductId, item.Name)" tooltip="Bảng đánh giá sản phẩm"></i>
+                      </span>
+                      <span>{{item.SumProductReviewInit}}/{{item.SumProductReview}}</span>
+                    </td>
+                    <td style="text-align: center;">
+                      {{item.ViewNumber}}
+                    </td>
+                    <td class="text-center">
+                      <label style="display: block; padding-top: 2px; margin: auto;" class="switch switch-label switch-pill switch-outline-primary-alt">
+                        <input (change)="ShowHide(item.ProductId, i)" type="checkbox" class="switch-input" [(ngModel)]="item.IsShow" [ngModelOptions]="{standalone: false}" />
+                        <span class="switch-slider" data-checked="&#x2713;" data-unchecked="&#x2715;"></span>
+                      </label>
+                    </td>
+                    <!--<td style="text-align: center;">
+              <a class="btn btn-info" href="javascript:void(0)" (click)="OpenProductModal(item)">
+                <i class="fa fa-edit"></i>
+              </a>
+              <a class="btn btn-danger" href="javascript:void(0)" (click)="ShowConfirmDelete(item.ProductId)">
+                <i class="fa fa-trash-o"></i>
+              </a>
+            </td>-->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="row cms-paging">
+            <div class="col-sm-12 col-md-5">
+              <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+                Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+              </div>
+            </div>
+            <div class="col-xs-12 col-md-7">
+              <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm"
+                          previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)" class="pull-right"></pagination>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div [config]="{backdrop: 'static',  keyboard: false}"  bsModal #ProductModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-big" role="document" style="max-width:1300px">
+    <form #f="ngForm" class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" *ngIf="Item.ProductId == undefined">Thêm mới sản phẩm</h4>
+          <h4 class="modal-title" *ngIf="Item.ProductId != undefined">Sửa thông tin sản phẩm</h4>
+          <button type="button" class="close" (click)="ProductModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="" style="border:0px">
+            <div class="card-body body-form-add-new">
+              
+                  <div class="row">
+                    <div class="col-sm-12 col-md-9">
+                      <div class=" col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="Name">Tên sản phẩm<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                          <div class="col-md-12">
+                            <input type="text" id="Name" name="Name" maxlength="1000" class="form-control" placeholder="" [(ngModel)]="Item.Name" (ngModelChange)="ChangeNameProduct(1)" autocomplete="off">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="Url">Đường dẫn<span *ngIf="Item.Url==undefined || Item.Url==''" style="color: red;">&ngsp;(*)</span></label>
+                          <div class="col-md-12">
+                            <input type="text" id="Url" name="Url" class="form-control" placeholder="" [(ngModel)]="Item.Url" autocomplete="off">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row custom-ckeditor">
+                          <label class="col-form-label col-sm-12 col-md-12">Nội dung</label>
+                          <div class=" col-sm-12 col-md-12">
+                            <ckeditor name="myckeditorContents"
+                                      [(ngModel)]="Item.Contents"
+                                      [config]=""
+                                      [readonly]="false"
+                                      debounce="500">
+                            </ckeditor>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row custom-ttsp">
+                          <label class="col-form-label col-sm-12 col-md-12" style="height: 50px; line-height: 50px; padding: 0px; padding-left: 15px; border-bottom: 1px solid #ccc;"> Thông tin sản phẩm</label>
+
+                          <tabset #tabset class="tab-content-detail">
+                            <tab heading=''>
+                              <ng-template tabHeading><i class="fa fa-asterisk"></i> Thông tin cơ bản</ng-template>
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="Code"> Mã sản phẩm</label>
+                                <div class="col-md-9">
+                                  <input type="text" id="Code" name="Code" maxlength="50" class="form-control" placeholder="" [(ngModel)]="Item.Code" autocomplete="off">
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="StockQuantity">Số lượng<span *ngIf="Item.StockQuantity==undefined" style="color: red;">&ngsp;(*)</span></label>
+                                <div class="col-md-9">
+                                  <input id="StockQuantity" name="StockQuantity" class="form-control" placeholder="" currencyMask [options]="StockQuantityMaskConfig" [(ngModel)]="Item.StockQuantity" min="0" onkeypress="return event.charCode >= 48" autocomplete="off">
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="PriceImport">Giá nhập (VNĐ)</label>
+                                <div class="col-md-9">
+                                  <input id="PriceImport" name="PriceImport" class="form-control" placeholder="" currencyMask [options]="PriceCurrencyMaskConfig" [(ngModel)]="Item.PriceImport" min="0" onkeypress="return event.charCode >= 48" autocomplete="off">
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="PriceSale">Giá bán (VNĐ)</label>
+                                <div class="col-md-9">
+                                  <input id="PriceSale" name="PriceSale" class="form-control" placeholder="" currencyMask [options]="PriceCurrencyMaskConfig" [(ngModel)]="Item.PriceSale" min="0" onkeypress="return event.charCode >= 48" autocomplete="off">
+                                </div>
+                              </div>
+
+
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="Discount">Giảm giá(%)</label>
+                                <div class="col-md-9">
+                                  <input type="number" id="Discount" name="Discount" class="form-control" placeholder="" min="0" max="100" [(ngModel)]="Item.Discount" onkeypress="return event.charCode >= 48 && event.charCode <= 57" autocomplete="off">
+                                </div>
+                              </div>
+
+                              <div class="form-group row">
+                                <label class="col-md-3 col-form-label" for="ProductNote">Xuất xứ</label>
+                                <div class="col-md-9">
+                                  <input type="text" id="ProductNote" name="ProductNote" class="form-control" placeholder="" [(ngModel)]="Item.ProductNote" autocomplete="off">
+                                </div>
+                              </div>
+                            </tab>
+                            <tab heading=''>
+                              <ng-template tabHeading><i class="fa fa-cubes"></i> Thông số kỹ thuật</ng-template>
+                              <div class="form-group row" *ngFor="let item of Item.listAttribute; let i = index" style="line-height: 1px;" [hidden]="item.Status==99">
+                                <label class="col-md-8 col-form-label" for="ProductNote">
+                                  <ng-select [items]="attribuites"
+                                             bindLabel="Name"
+                                             bindValue="AttribuiteId"
+                                             placeholder="Chọn thuộc tính"
+                                             [clearable]="false"
+                                             [disabled]="true"
+                                             [(ngModel)]="item.AttribuiteId"
+                                             [ngModelOptions]="{standalone: true}">
+                                  </ng-select>
+                                </label>
+                                <div class="col-md-4">
+                                  <input type="text" class="form-control" placeholder="" [(ngModel)]="item.Value" [ngModelOptions]="{standalone: true}" autocomplete="off">
+                                </div>
+
+                              </div>
+                            </tab>
+                            <tab heading=''>
+                              <ng-template tabHeading><i class="fa fa-th-large"></i> Sản phẩm gợi ý</ng-template>
+                              <table class="table sanphamgoiy fixed_header">
+                                <thead>
+                                  <tr>
+                                    <th>Hình ảnh</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Giá</th>
+                                    <th>Thao tác</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr *ngFor="let item of listSuggestProduct; let i = index" ng-class-odd='odd' ng-class-even='even'>
+                                    <td>
+                                      <img src="../../../../assets/img/no-image1.png" style="width:40px; display: inline-block; max-height: 40px;" *ngIf="item.Image==undefined" />
+                                      <img style="width:40px; display: inline-block; max-height: 40px;" *ngIf="item.Image != undefined" src="{{ domainImage }}{{item.Image}}" />
+                                    </td>
+
+                                    <td>{{ item.Name }}</td>
+                                    <td>
+                                      {{ item.PriceSpecial | number }} VNĐ
+                                    </td>
+                                    <td>
+                                      <div class=" squaredcheck" style="display: inline-block;width: inherit; vertical-align: top;">
+                                        <input type="checkbox" class="checkbox2" id="Check{{item.ProductId}}" name="Check{{item.ProductId}}" [(ngModel)]="item.Check">
+                                        <label style="top: 0px;" for="Check{{item.ProductId}}"></label>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </tab>
+                            <tab heading=''>
+                              <ng-template tabHeading><i class="fa fa-money"></i> Thông tin khuyến mại</ng-template>
+                              <div class="form-group row custom-ckeditor">
+                                <div class="" style="width:100%">
+                                  <ckeditor name="myckeditorNotePromotion"
+                                            [(ngModel)]="Item.NotePromotion"
+                                            [config]=""
+                                            [readonly]="false"
+                                            debounce="500">
+                                  </ckeditor>
+                                </div>
+                              </div>
+                            </tab>
+                          </tabset>
+                            </div>
+                       
+                      </div>
+
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group  ">
+                          <label class="col-form-label col-xs-12">Mô tả ngắn</label>
+                          <div class="col-xs-12" >
+                            <ckeditor name="myckeditorDes"
+                                      [(ngModel)]="Item.Description"
+                                      [config]=""
+                                      [readonly]="false"
+                                      debounce="500">
+                            </ckeditor>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="col-sm-12 col-md-3 siderbar-product" style="margin-top:20px">
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="">Đăng sản phẩm</label>
+                          <div class="col-md-12 squaredcheck" style="display:flex; justify-content: space-between; margin-left: -4px; padding: 8px 20px;">
+                            <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveProduct()" style="">Lưu thông tin</button>
+                            <button type="button" class="btn btn-secondary" (click)="ProductModal.hide()">Đóng</button>
+
+
+
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="">Sản phẩm bán chạy</label>
+                          <div class="col-md-12 squaredcheck">
+                            <input type="checkbox" value="None" class="checkbox1" id="IsSale" name="IsSale" value="" [value]="true" [(ngModel)]="Item.IsSale">
+
+
+                            <label for="IsSale"><span>Là sản phẩm bán chạy</span></label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="">Danh mục sản phẩm</label>
+                          <div class="col-md-12">
+                            <div style="border: 1px solid #e4e7ea;border-radius: 0.25rem;" class="danhmuc-sp">
+                              <div class="in-cat-product">
+                                <div *ngFor="let item of listCateNews;let i = index" [ngStyle]="{'margin-left.px': item.Level * 30}" class="col-md-12 squaredcheck">
+                                  <input type="checkbox" class="checkbox4" id="Cate{{item.CategoryId}}" name="Cate{{item.CategoryId}}" [(ngModel)]="item.Check" (click)="CheckCategory(item.CategoryId, item)">
+                                  <label for="Cate{{item.CategoryId}}"><span style="width: max-content;">{{ item.Name }}</span></label>
+                                </div>
+                                <!-- <div *ngFor="let item of listCateNews;let i = index" style="display: inline-block;" class="col-md-4 squaredcheck">
+              <input type="checkbox" class="checkbox4" id="Cate{{item.CategoryId}}" name="Cate{{item.CategoryId}}" [(ngModel)]="item.Check">
+              <label for="Cate{{item.CategoryId}}"><span style="width: max-content;">{{ item.Name }}</span></label>
+            </div> -->
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="">Nhà sản xuất</label>
+                          <div class="col-md-12" style="padding:20px;margin-left: -10px;">
+                            <ng-select [items]="listManufacture"
+                                       bindLabel="Name"
+                                       bindValue="ManufacturerId"
+                                       placeholder="Chọn nhà sản xuất"
+                                       [(ngModel)]="Item.ManufacturerId"
+                                       [ngModelOptions]="{standalone: true}">
+                            </ng-select>
+                          </div>
+                        </div>
+                      </div>
+
+
+                      <div class="col-sm-12 col-md-12">
+                        <div class="form-group row">
+                          <label class="col-md-12 col-form-label" for="file-input">Ảnh sản phẩm</label>
+                          <div class="col-md-12" style="padding-top: 20px; padding-bottom: 20px;">
+                            <input #file type="file" multiple (change)="upload(file.files)" />
+                            <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                              {{progress}}%
+                            </span>
+                            <div>
+                              <div *ngFor="let image of Item.listImage; let i = index" class="image-thumb-koi" [hidden]="image.Status!=1">
+                                <img src="{{ domainImage }}{{ image.Image }}" />
+                                <button class="btn btn-block btn-outline-primary" [ngClass]="image.IsImageMain == true ? 'active' : ''" type="button" aria-pressed="true" (click)="SetIsMain(i)">Ảnh chính</button>
+                                <button class="btn btn-block btn-outline-danger active" type="button" aria-pressed="true" (click)="RemoveImage(i)">Xóa</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+               
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveProduct()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="ProductModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div bsModal #OrderByModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Sắp xếp sản phẩm bán chạy</h4>
+          <button type="button" class="close" (click)="OrderByModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <div class="col-md-12">
+                    <ngx-sortable [items]="listOrderByProduct" [name]="'Danh sách các sản phẩm bán chạy'" [listStyle]="{width: '100%', height: '300px'}">
+                      <ng-template let-item>
+                        <div style="height: 30px; padding-left: 20px; padding-top: 3px; position: relative;" class="sortable-list-item" *ngIf="item.Status!=99">
+                          {{item.TargetName}}
+                          <i class="fa fa-times" style="position: absolute; top: 35%; right: 5px; font-size: 12px; color: #ccc; cursor: pointer;" aria-hidden="true" (click)="DeleteOrderBy(item)"></i>
+                        </div>
+                      </ng-template>
+                    </ngx-sortable>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveOrderBy()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="OrderByModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div bsModal #ProductReviewModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-big" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Đánh giá của người dùng với sản phẩm <strong>{{ ProductName }}</strong></h4>
+          <button type="button" class="close" (click)="ProductReviewModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <div class="col-md-12">
+
+                    <div class="row">
+                      <div class="col-md-3">
+                        <ng-select [items]="ProductReviewStatus"
+                                   bindLabel="Name"
+                                   bindValue="Id"
+                                   placeholder="Trạng thái đánh giá"
+                                   (change)="QueryReviewChanged()"
+                                   [(ngModel)]="qReview.Type"
+                                   [ngModelOptions]="{standalone: true}">
+                        </ng-select>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_01" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+                          <thead>
+                            <tr role="row" class="text-center">
+                              <th style="width: 20px;">STT</th>
+                              <th style="width: 60px;">
+                                Tên
+                              </th>
+                              <th style="width: 80px;">Email</th>
+                              <th style="width: 50px;">Trạng thái</th>
+                              <th style="width: 200px;">Nội dung</th>
+                              <th style="width: 50px;">Điểm đánh giá</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let item of listProductReview; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                              <td style="text-align: center;"><b>{{ (pagingReview.page - 1) * pagingReview.page_size + i + 1 }}</b></td>
+                              <td class="sorting_1">{{ item.Name }}</td>
+                              <td class="sorting_1">{{ item.Email }}</td>
+                              <td class="sorting_1">
+                                <ng-select [items]="ProductReviewStatus"
+                                           bindLabel="Name"
+                                           bindValue="Id"
+                                           placeholder="Trạng thái đánh giá"
+                                           [clearable]="false"
+                                           (change)="ChangeStatusProductReview(item.ProductReviewId, item.Status)"
+                                           [(ngModel)]="item.Status"
+                                           [ngModelOptions]="{standalone: true}">
+                                </ng-select>
+                              </td>
+                              <td class="sorting_1">{{ item.Contents }}</td>
+                              <td class="sorting_1">
+                                <fieldset class="rating">
+                                  <input type="radio" style="display: none;" name="five-stars-{{item.ProductReviewId}}" disabled="true" value="5" [checked]="item.NumberStar===5" />
+                                  <label title="5" for="five-stars-{{item.ProductReviewId}}">5 stars</label>
+
+                                  <input type="radio" style="display: none;" name="four-stars-{{item.ProductReviewId}}" disabled="true" value="4" [checked]="item.NumberStar===4" />
+                                  <label title="4" for="four-stars-{{item.ProductReviewId}}">4 stars</label>
+
+                                  <input type="radio" style="display: none;" name="three-stars-{{item.ProductReviewId}}" disabled="true" value="3" [checked]="item.NumberStar===3" />
+                                  <label title="3" for="three-stars-{{item.ProductReviewId}}">3 stars</label>
+
+                                  <input type="radio" style="display: none;" name="two-stars-{{item.ProductReviewId}}" disabled="true" value="2" [checked]="item.NumberStar===2" />
+                                  <label title="2" for="two-stars-{{item.ProductReviewId}}">2 stars</label>
+
+                                  <input type="radio" style="display: none;" name="one-star-{{item.ProductReviewId}}" disabled="true" value="1" [checked]="item.NumberStar===1" />
+                                  <label title="1" for="one-star-{{item.ProductReviewId}}">1 star</label>
+                                </fieldset>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+
+                    <div class="row">
+                      <div class="col-sm-12 col-md-5">
+                        <div *ngIf="pagingReview.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info1" role="status" aria-live="polite">
+                          Hiển thị <span>{{ (pagingReview.page - 1) * pagingReview.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ pagingReview.item_count < pagingReview.page * pagingReview.page_size ? pagingReview.item_count : pagingReview.page * pagingReview.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ pagingReview.item_count }}</span> bản ghi
+                        </div>
+                      </div>
+                      <div class="col-xs-12 col-md-7">
+                        <pagination [totalItems]="pagingReview.item_count" [(ngModel)]="pagingReview.page" [maxSize]="5" [itemsPerPage]="pagingReview.page_size" class="pagination-sm" [ngModelOptions]="{standalone: true}"
+                                    previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChangedReview($event)" class="pull-right"></pagination>
+                      </div>
+                    </div>
+
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="ProductReviewModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div bsModal #AttribuiteModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Thêm mới thuộc tính sản phẩm</h4>
+          <button type="button" class="close" (click)="AttribuiteModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Thuộc tính<span *ngIf="ItemAttribuite.AttribuiteId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-6">
+                    <ng-select [items]="attribuites"
+                               bindLabel="Name"
+                               bindValue="AttribuiteId"
+                               placeholder="Chọn thuộc tính"
+                               [(ngModel)]="ItemAttribuite.AttribuiteId"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Value">Giá trị<span *ngIf="ItemAttribuite.Value==undefined || ItemAttribuite.Value==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="Value" name="Value" maxlength="1000" class="form-control" placeholder="" [(ngModel)]="ItemAttribuite.Value" autocomplete="off">
+                  </div>
+                </div>
+
+
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LocationAtribuite">Thứ tự hiển thị<span *ngIf="ItemAttribuite.Location==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="number" id="LocationAtribuite" name="LocationAtribuite" class="form-control" min="1" placeholder="" [(ngModel)]="ItemAttribuite.Location" onkeypress="return event.charCode >= 48 && event.charCode <= 57" autocomplete="off">
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveAttribuite()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="AttribuiteModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

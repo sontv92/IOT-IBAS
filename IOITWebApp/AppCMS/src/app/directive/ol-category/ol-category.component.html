@@ -1,0 +1,15 @@
+<li *ngFor="let item of items; let i = index" class="dd-item" attr.data-id="{{ item.CategoryId }}" attr.data-Name="{{ item.Name }}">
+	<div class="dd-handle">
+		&nbsp;{{item.Name}}
+	</div>
+	<a *ngIf="hasAction" class="btn btn-info btn-sort" style="right: 76px;" href="javascript:void(0)" (click)="AddCate(item.CategoryId)">
+		<i class="fa fa-plus"></i>
+	</a>
+	<a *ngIf="hasAction" class="btn btn-secondary btn-sort" style="right: 39px;" href="javascript:void(0)" (click)="UpdateCate(item.CategoryId)">
+		<i class="fa fa-edit"></i>
+	</a>
+	<a *ngIf="hasAction" class="btn btn-danger btn-sort" style="right: 5px;" href="javascript:void(0)" (click)="DeleteCate(item.CategoryId)">
+		<i class="fa fa-trash-o"></i>
+	</a>
+<ol-category *ngIf="item[key].length" [key]="key" [data]="item[key]" [hasAction]="hasAction" [IsParent]="false" class="dd-list"></ol-category>
+</li>

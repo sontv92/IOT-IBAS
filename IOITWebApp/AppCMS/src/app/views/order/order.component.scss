@@ -1,0 +1,7 @@
+.header-custom > .table > thead > tr > th {
+  position: sticky !important;
+  top: -1px !important;
+  z-index: 99 !important;
+  color: white !important;
+  background: #3c8dbc !important;
+}

@@ -1,0 +1,283 @@
+<!-- Content Header (Page header) -->
+<div class="content-header" style="background-color: #007bff; color:white">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="m-0">QUẢN LÝ VẬT LIỆU</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          <li class="breadcrumb-item active">Báo cáo đơn hàng</li>
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<section class="content" style="padding:20px">
+  <div class="container-fluid">
+    <div id="DataTables_Table_0_wrapper">
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2" *ngIf="role == 1">
+          <ng-select [items]="listCompany"
+                     bindLabel="Name"
+                     bindValue="CompanyId"
+                     [multiple]="false"
+                     placeholder="Chọn công ty"
+                     [(ngModel)]="q.CompanyId"
+                     [ngModelOptions]="{standalone: true}" (change)="GetBranch()" style="margin-right: 15px;min-width: 150px;width:100%" id="listCompanySearchDropdown">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <ng-select [items]="listBranchSearch"
+                     bindLabel="Name"
+                     bindValue="BranchId"
+                     [multiple]="false"
+                     placeholder="Chọn trạm trộn"
+                     [(ngModel)]="q.Branchlist"
+                     [ngModelOptions]="{standalone: true}" style="margin-right: 15px;min-width: 150px;width:100%;" id="listBranchSearchDropdown">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <input type="date" id="exampleInput" style="width:100%" name="input" class="input-search" [(ngModel)]="q.fromdate"
+                 placeholder="yyyy/MM/dd" />
+
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <input type="date" id="exampleInput" style="width:100%" name="input" class="input-search" [(ngModel)]="q.todate"
+                 placeholder="yyyy/MM/dd" />
+
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2" style="display:none">
+          <ng-select [items]="listNV"
+                     bindLabel="Name"
+                     bindValue="Name"
+                     [multiple]="false"
+                     placeholder="Chọn kinh doanh"
+                     [(ngModel)]="q.TENNV"
+                     [ngModelOptions]="{standalone: true}" style="margin-right: 15px;min-width: 150px;width:100%">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2" style="display:none">
+          <input type="text" class="input-search" placeholder="Nhập từ khóa cần tìm...." style="width:100%" aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch">
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()">Tìm kiếm</button>
+          <button class="btn btn-success btn-sm" style="height: 36px; margin-left:10px" type="button" (click)="ExportExcel()">Xuất Excel</button>
+        </div>
+      </div>
+      <div class="row loc" style="margin-bottom: 20px;">
+        <div class="col-xs-12 col-md-2" style="background: #fff;padding: 10px;border-radius: 5px;">
+          <input type="checkbox" [(ngModel)]="kieudulieu1" /> Nhập kho<br />
+          <input type="checkbox" [(ngModel)]="kieudulieu2" /> Tịnh kho<br />
+        </div>
+        <div class="col-xs-12 col-md-10" style="background: #fff;padding: 10px;border-radius: 5px;">
+          <div class="row">
+            <div class="col-xs-12 col-md-3">
+              <input type="checkbox" [(ngModel)]="cuavatlieu1" (click)="TestChange(1)" /> Cát 1<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu2" (click)="TestChange(2)" /> Cát 2<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu3" (click)="TestChange(3)" /> Cát 3<br />
+            </div>
+            <div class="col-xs-12 col-md-3">
+              <input type="checkbox" [(ngModel)]="cuavatlieu4" (click)="TestChange(4)" /> Đá 1<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu5" (click)="TestChange(5)" /> Đá 2<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu6" (click)="TestChange(6)" /> Đá 3<br />
+            </div>
+            <div class="col-xs-12 col-md-3">
+              <input type="checkbox" [(ngModel)]="cuavatlieu7" (click)="TestChange(7)" /> Xi măng 1<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu8" (click)="TestChange(8)" /> Xi măng 2<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu9" (click)="TestChange(9)" /> Xi măng 3<br />
+            </div>
+            <div class="col-xs-12 col-md-3">
+              <input type="checkbox" [(ngModel)]="cuavatlieu10" (click)="TestChange(10)" /> Phụ gia 1<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu11" (click)="TestChange(11)" /> Phụ gia 2<br />
+              <input type="checkbox" [(ngModel)]="cuavatlieu12" (click)="TestChange(12)" /> Phụ gia 3<br />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row nguyenlieu" style="margin-bottom: 20px;">
+        <div class="col-xs-12 col-md-2">
+          <label>Cát 1</label>
+          <input type="text" value="{{Tonkho.CAT1  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Cát 2</label>
+          <input type="text" value="{{Tonkho.CAT2  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Cát 3</label>
+          <input type="text" value="{{Tonkho.CAT3  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Đá 1</label>
+          <input type="text" value="{{Tonkho.DA1  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Đá 2</label>
+          <input type="text" value="{{Tonkho.DA2  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Đá 3</label>
+          <input type="text" value="{{Tonkho.DA3  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Xi măng 1</label>
+          <input type="text" value="{{Tonkho.XIMANG1  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Xi măng 2</label>
+          <input type="text" value="{{Tonkho.XIMANG2  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Xi măng 3</label>
+          <input type="text" value="{{Tonkho.XIMANG2  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Phụ gia 1</label>
+          <input type="text" value="{{Tonkho.PHUGIA1  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Phụ gia 2</label>
+          <input type="text" value="{{Tonkho.PHUGIA2  | number}}" disabled />
+        </div>
+        <div class="col-xs-12 col-md-2">
+          <label>Phụ gia 3</label>
+          <input type="text" value="{{Tonkho.PHUGIA3  | number}}" disabled />
+        </div>
+      </div>
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-sm-12 col-md-1 mb-2">
+          Hiển thị
+          <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="input-search" [(ngModel)]="paging.page_size" (change)="GetListOrder()">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="table-responsive p-0">
+          <table class="table table-bordered text-nowrap" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+            <thead>
+              <tr>
+                <th style="text-align: center; width:50px">STT</th>
+                <th>
+                  Ngày
+                </th>
+                <th *ngIf="cuavatlieu1 == true">
+                  Cát 1
+                </th>
+                <th *ngIf="cuavatlieu2 == true">
+                  Cát 2
+                </th>
+                <th *ngIf="cuavatlieu3 == true">
+                  Cát 3
+                </th>
+                <th *ngIf="cuavatlieu4 == true">
+                  Đá 1
+                </th>
+                <th *ngIf="cuavatlieu5 == true">
+                  Đá 2
+                </th>
+                <th *ngIf="cuavatlieu6 == true">
+                  Đá 3
+                </th>
+                <th *ngIf="cuavatlieu7 == true">
+                  Xi măng 1
+                </th>
+                <th *ngIf="cuavatlieu8 == true">
+                  Xi măng 2
+                </th>
+                <th *ngIf="cuavatlieu9 == true">
+                  Xi măng 3
+                </th>
+                <th *ngIf="cuavatlieu10 == true">
+                  Phụ gia 1
+                </th>
+                <th *ngIf="cuavatlieu11 == true">
+                  Phụ gia 2
+                </th>
+                <th *ngIf="cuavatlieu12 == true">
+                  Phụ gia 3
+                </th>
+                <th>
+                  Trạng thái
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of listOrder; let i = index" role="row">
+                <td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>
+                <td>{{ item.NGAY | date:'dd/MM/yyyy hh:ss' }} </td>
+                <td *ngIf="cuavatlieu1 == true">{{ item.CAT1 | number }} </td>
+                <td *ngIf="cuavatlieu2 == true">{{ item.CAT2 | number }}</td>
+                <td *ngIf="cuavatlieu3 == true">{{ item.CAT3 | number}}</td>
+                <td *ngIf="cuavatlieu4 == true">{{ item.DA1 | number}}</td>
+                <td *ngIf="cuavatlieu5 == true">{{ item.DA2 | number}}</td>
+                <td *ngIf="cuavatlieu6 == true">{{ item.DA3 | number}}</td>
+                <td *ngIf="cuavatlieu7 == true">{{ item.XIMANG1 | number}}</td>
+                <td *ngIf="cuavatlieu8 == true">{{ item.XIMANG2 | number}}</td>
+                <td *ngIf="cuavatlieu9 == true">{{ item.XIMANG3 | number}}</td>
+                <td *ngIf="cuavatlieu10 == true">{{ item.PHUGIA1 | number}}</td>
+                <td *ngIf="cuavatlieu11 == true">{{ item.PHUGIA2 | number}}</td>
+                <td *ngIf="cuavatlieu12 == true">{{ item.PHUGIA3 | number}}</td>
+                <td>{{ item.TRANGTHAI}}</td>
+              </tr>
+              <tr role="row">
+                <td style="text-align: center;"><b>#</b></td>
+                <td><b></b></td>
+                <td *ngIf="cuavatlieu1 == true">
+                  <b> {{ dataSum.CAT1 | number }} </b>
+                </td>
+
+                <td *ngIf="cuavatlieu2 == true"><b>{{ dataSum.CAT2 | number }}</b></td>
+                <td *ngIf="cuavatlieu3 == true"><b>{{ dataSum.CAT3 | number}}</b></td>
+                <td *ngIf="cuavatlieu4 == true"><b>{{ dataSum.DA1 | number}}</b></td>
+                <td *ngIf="cuavatlieu5 == true"><b>{{ dataSum.DA2 | number}}</b></td>
+                <td *ngIf="cuavatlieu6 == true"><b>{{ dataSum.DA3 | number}}</b></td>
+                <td *ngIf="cuavatlieu7 == true"><b>{{ dataSum.XIMANG1 | number}}</b></td>
+                <td *ngIf="cuavatlieu8 == true"><b>{{ dataSum.XIMANG2 | number}}</b></td>
+                <td *ngIf="cuavatlieu9 == true"><b>{{ dataSum.XIMANG3 | number}}</b></td>
+                <td *ngIf="cuavatlieu10 == true"><b>{{ dataSum.PHUGIA1 | number}}</b></td>
+                <td *ngIf="cuavatlieu11 == true"><b>{{ dataSum.PHUGIA2 | number}}</b></td>
+                <td *ngIf="cuavatlieu12 == true"><b>{{ dataSum.PHUGIA3 | number}}</b></td>
+                <td> </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row" style="padding-left:15px;">
+        <div class="col-sm-12 col-md-5">
+          <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+            Hiển thị {{ (paging.page - 1) * paging.page_size + 1 }} đến {{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }} trong số {{ paging.item_count }} bản ghi
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-7">
+          <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination pagination-sm m-0 float-right"
+                      previousText="&lsaquo;" nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!--<table>
+    <thead>
+      <tr>
+        <ng-container *ngFor='let key of listCustomer'>
+          <th>{{key}}</th>
+        </ng-container>
+      </tr>
+    <thead>
+    <tbody>
+      <tr *ngFor="let item of listCustomer; let i = index" role="row">
+        <td *ngFor='let key of keys'>{{item[key]}}</td>
+      </tr>
+    </tbody>
+  </table>-->
+</section>
+
+
