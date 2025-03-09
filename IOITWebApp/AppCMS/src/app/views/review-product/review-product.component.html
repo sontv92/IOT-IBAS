@@ -1,0 +1,114 @@
+<div class="animated fadeIn cms-main">
+  <div class="card cms-content">
+    <div class="titleCat">
+      <h1 class="cms-heading-inline">Danh sách đánh giá</h1>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <div class="row cms-filter">
+          <div class="col-sm-12 col-md-6" style="padding-left:0px; margin-left: -5px;    display: flex;">
+            <ul class="cms-subsubsub">
+              <li class="all"><a class="current" aria-current="page">Tất cả <span class="count">({{ total?.Sum }})</span></a> | </li>
+              <li class="publish"><a> Được duyệt <span class="count">({{ total?.Approved }})</span></a> </li>
+              <li class="trash"><a> Không được duyệt <span class="count">({{ total?.NotApproved }}) </span></a></li>
+            </ul>
+            <ng-select class="select-itembox" [items]="ProductReviewStatus"
+                       bindLabel="Name"
+                       bindValue="Id"
+                       placeholder="Lọc theo trạng thái"
+                       (change)="QueryChanged()"
+                       [(ngModel)]="q.Type"
+                       [ngModelOptions]="{standalone: true}">
+            </ng-select>
+          </div>
+          <div class="col-sm-12 col-md-6" style="display: flex; justify-content: flex-end;align-items: flex-end;">
+            <label style="margin-right:10px;display: flex;align-items: center;">
+              <span style="width:200px">Tìm kiếm:</span>
+              <input type="text" class="form-control form-control-sm" placeholder="Nhập từ khóa cần tìm...." aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+            </label>
+
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListProductReviews()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+        </div>
+          <div class="row">
+            <div class="col-sm-12">
+              <table class="table list-cat table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+                <thead>
+                  <tr role="row">
+                    <th style="width: 100px;" [ngClass]="GetClassSortTable('Name')" (click)="SortTable('Name')">
+                      Tên
+                    </th>
+                    <th style="width: 100px;" [ngClass]="GetClassSortTable('Email')" (click)="SortTable('Email')">Email</th>
+                    <th style="width: 100px;">Trạng thái</th>
+                    <th style="width: 150px;">Nội dung</th>
+                    <th style="width: 100px;">Sản phẩm</th>
+                    <th style="width: 60px;" [ngClass]="GetClassSortTable('NumberStar')" (click)="SortTable('NumberStar')">Điểm đánh giá</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of listProductReviews; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                    <td class="sorting_1">{{ item.Name }}</td>
+                    <td class="sorting_1">{{ item.Email }}</td>
+                    <td class="sorting_1">
+                      <ng-select [items]="ProductReviewStatus"
+                      bindLabel="Name"
+                      bindValue="Id"
+                      placeholder="Trạng thái đánh giá"
+                      [clearable]="false"
+                      (change)="ChangeStatusProductReview(item.ProductReviewId, item.Status)"
+                      [(ngModel)]="item.Status"
+                      [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </td>
+                  <td class="sorting_1">
+                    <span tooltip="{{ item.Contents }}">{{ item.Contents | truncate:[5]}}</span>
+                  </td>
+                  <td class="sorting_1">{{ item.ProductName }}</td>
+                  <td class="sorting_1">
+                    <fieldset class="rating">
+                      <input type="radio" style="display: none;" name="five-stars-{{item.ProductReviewId}}" disabled="true" value="5" [checked]="item.NumberStar===5" />
+                      <label title="5" for="five-stars-{{item.ProductReviewId}}">5 stars</label>
+
+                      <input type="radio" style="display: none;" name="four-stars-{{item.ProductReviewId}}" disabled="true" value="4" [checked]="item.NumberStar===4" />
+                      <label title="4" for="four-stars-{{item.ProductReviewId}}">4 stars</label>
+
+                      <input type="radio" style="display: none;" name="three-stars-{{item.ProductReviewId}}" disabled="true" value="3" [checked]="item.NumberStar===3" />
+                      <label title="3" for="three-stars-{{item.ProductReviewId}}">3 stars</label>
+
+                      <input type="radio" style="display: none;" name="two-stars-{{item.ProductReviewId}}" disabled="true" value="2" [checked]="item.NumberStar===2" />
+                      <label title="2" for="two-stars-{{item.ProductReviewId}}">2 stars</label>
+
+                      <input type="radio" style="display: none;" name="one-star-{{item.ProductReviewId}}" disabled="true" value="1" [checked]="item.NumberStar===1" />
+                      <label title="1" for="one-star-{{item.ProductReviewId}}">1 star</label>
+                    </fieldset>
+                  </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="row cms-paging">
+            <div class="col-sm-12 col-md-5">
+              <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+                Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+              </div>
+            </div>
+            <div class="col-xs-12 col-md-7">
+              <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm"
+                          previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)" class="pull-right"></pagination>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,414 @@
+<!-- Content Header (Page header) -->
+<div class="content-header" style="background-color: #2f00ff; color:white">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="m-0">BÁO CÁO XUẤT KHO</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          <li class="breadcrumb-item active">Báo cáo đơn hàng</li>
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<ng4-loading-spinner [timeout]="600000" [zIndex]="100000"> </ng4-loading-spinner>
+
+<!-- <ngx-spinner bdColor = "rgba(0, 0, 0, 0.8)" size = "medium" color = "#fff" type = "square-jelly-box" [fullScreen] = "true"><p style="color: white" > Loading... </p></ngx-spinner> -->
+<section class="content" style="padding:20px">
+  <div class="container-fluid">
+    <div class="card card-default">
+      <div class="card-header">
+        <h3 class="card-title">Lọc tìm kiếm</h3>
+
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body" style="display: block;">
+        <div class="form-group row">
+          <label for="inputCat1" class="col-sm-2 col-form-label">Từ ngày</label>
+          <div class="col-sm-2">
+            <input type="date" id="exampleInput" style="width:100%" name="inputtungay" class="input-search"
+              [(ngModel)]="q.tungay" (change)="changeTuNgay()" placeholder="yyyy/MM/dd" />
+          </div>
+          <div class="col-sm-2">
+            <input type="time" id="exampleInput" style="width:100%" name="inputtungay" class="input-search"
+              [(ngModel)]="q.timetungay" placeholder="yyyy/MM/dd" />
+          </div>
+          <label for="inputCat2" class="col-sm-2 col-form-label">Đến ngày</label>
+          <div class="col-sm-2">
+            <input type="date" id="exampleInput" style="width:100%" name="inputdenngay" class="input-search"
+              [(ngModel)]="q.denngay" [disabled]="disableDenNgay" placeholder="dd/MM/yyyy" />
+          </div>
+          <div class="col-sm-2">
+            <input type="time" id="exampleInput" style="width:100%" name="inputdenngay" class="input-search"
+              [(ngModel)]="q.timedenngay" placeholder="dd/MM/yyyy" />
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat3" class="col-sm-2 col-form-label" *ngIf="role == 1">Công ty<span
+              style="color: red;">&ngsp;(*)</span></label>
+          <div class="col-sm-4" *ngIf="role == 1">
+            <ng-select [items]="listCompany" bindLabel="Name" bindValue="CompanyId" [multiple]="false"
+              placeholder="Chọn công ty" [(ngModel)]="q.CompanyId" [ngModelOptions]="{standalone: true}"
+              (change)="GetBranch()" style="margin-right: 15px;width:100%" id="listCompanySearchDropdown">
+            </ng-select>
+          </div>
+          <label for="inputCat4" class="col-sm-2 col-form-label">Trạm trộn<span
+              style="color: red;">&ngsp;(*)</span></label>
+          <div class="col-sm-4">
+            <ng-select [items]="listBranchSearch" bindLabel="Name" bindValue="BranchId" [multiple]="false"
+              placeholder="Chọn trạm trộn" [(ngModel)]="q.Branchlist" (change)="changeFn(q.Branchlist)"
+              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;"
+              id="listBranchSearchDropdown">
+            </ng-select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat6" class="col-sm-2 col-form-label">Mã liên kết khách hàng</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listMaLienKetKH" bindLabel="MALIENKET" bindValue="MALIENKET" [multiple]="false"
+              placeholder="Tất cả" [(ngModel)]="q.MALIENKETKH" [disabled]="disable"
+              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
+            </ng-select>
+          </div>
+          <label for="inputCat7" class="col-sm-2 col-form-label">Mã liên kết Mác</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listMaLienKetMac" bindLabel="MALIENKET" bindValue="MALIENKET" [multiple]="false"
+              placeholder="Tất cả" [(ngModel)]="q.MALIENKETMAC" [disabled]="disable"
+              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat10" class="col-sm-2 col-form-label">Cửa vật liệu</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listCuaVL" bindLabel="TENCUAVL" bindValue="TENCUAVL" [multiple]="false"
+              placeholder="Tất cả" [(ngModel)]="q.CVL" [disabled]="disable" [ngModelOptions]="{standalone: true}"
+              style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+          <label for="inputCat10" class="col-sm-2 col-form-label">Nhóm theo</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listGroup" bindLabel="name" bindValue="value" [multiple]="false"
+              placeholder="Người nhận hàng" [(ngModel)]="q.GroupBy" [disabled]="disable"
+              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat10" class="col-sm-2 col-form-label">Mã ĐVCS</label>
+          <div class="col-sm-4 ">
+            <input type="text" class="form-control" placeholder="Nhập Mã ĐVCS..." [(ngModel)]="q.MADVCS">
+          </div>
+          <label for="inputCat10" class="col-sm-2 col-form-label">Mã giao dịch</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" placeholder="Nhập Mã Mã giao dịch..." [(ngModel)]="q.MAGD">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat10" class="col-sm-2 col-form-label">Quyển c.từ</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" placeholder="Nhập Mã Quyển c.từ..." [(ngModel)]="q.QUYEN">
+          </div>
+          <label for="inputCat10" class="col-sm-2 col-form-label">Mã kho</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" placeholder="Nhập Mã kho..." [(ngModel)]="q.MAKHO">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat10" class="col-sm-2 col-form-label">Tk nợ</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" placeholder="Nhập Tk nợ..." [(ngModel)]="q.TKNO">
+          </div>
+          <label for="inputCat10" class="col-sm-2 col-form-label">Tk có</label>
+          <div class="col-sm-4">
+            <input type="text" class="form-control" placeholder="Nhập Tk có..." [(ngModel)]="q.TKCO">
+          </div>
+        </div>
+        <div class="row" style="margin-bottom: 20px;">
+          <div class="col-xs-12 col-sm-4 col-md-4 mb-2">
+            <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()"><i
+                class="fa fa-filter"></i>Tìm kiếm</button>
+            <button *ngIf="actionExport" class="btn btn-success btn-sm" style="height: 36px; margin-left:10px"
+              type="button" (click)="ExportExcel()"><i class="fa fa-file-excel"></i>Xuất Excel</button>
+          </div>
+        </div>
+        <!-- /.row -->
+        <!-- /.row -->
+      </div>
+      <!-- /.card-body -->
+
+    </div>
+
+    <div id="DataTables_Table_0_wrapper">
+
+
+      <div class="row">
+        <div class="table-responsive p-0 header-custom" style="max-height: 600px;" [innerHTML]="querytable">
+        </div>
+      </div>
+
+    </div>
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <div class="card card-primary">
+          <div class="card-header" style="background-color: #0022ff !important;">
+            <h3 class="card-title"><i class="fas fa-server" style="margin-right:5px"></i> Thống kê chi tiết</h3>
+          </div>
+          <div class="card-body p-3" style="display: block;">
+            <div class="row">
+              <div class="table-responsive p-0" style="height: 700px;">
+                <table class="table table-bordered text-nowrap header-fixed" id="DataTables_Table_0" role="grid"
+                  aria-describedby="DataTables_Table_0_info">
+                  <thead style="position: sticky; top: 0; z-index: 1; background-color: #007bff;">
+                    <!-- <th >{{row.header}}</th> -->
+                    <th style="min-width:100px; text-align: center;">
+                      Mã ĐVCS <br>
+                      (ma_dvcs)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã giao dịch <br>
+                      (ma_gd)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã khách hàng <br>
+                      (ma_kh)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Người nhận hàng <br>
+                      (ong_ba)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Diễn giải <br>
+                      (dien_giai)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Ngày chứng từ <br>
+                      (ngay_ct)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Quyển c.từ <br>
+                      (ma_qs)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Số chứng từ <br>
+                      (so_ct)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã vật tư <br>
+                      (ma_vt)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã kho <br>
+                      (ma_kho_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Số lượng:Q <br>
+                      (so_luong)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Giá n.tệ:P1 <br>
+                      (gia_nt)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Tiền n.tệ:N1 <br>
+                      (tien_nt)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã n.tệ <br>
+                      (ma_nt)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Tỷ giá:R <br>
+                      (ty_gia)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Giá:P0 <br>
+                      (gia)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Tiền:N0 <br>
+                      (ma_nx_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Tk nợ <br>
+                      (ma_nx_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Tk có <br>
+                      (tk_vt)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã dự án <br>
+                      (ma_vv_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã phí <br>
+                      (ma_phi_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã sản phẩm <br>
+                      (ma_sp)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã bpht <br>
+                      (ma_bpht_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Số lsx <br>
+                      (so_lsx_i)
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Mã Trạm
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Khối Lượng Trộn
+                    </th>
+                    <th style="min-width:100px; text-align: center;">
+                      Khối Lượng Giao
+                    </th>
+                  </thead>
+                  <tbody>
+                    <ng-template ngFor let-item [ngForOf]="listBaoCaoXuatKho">
+                      <tr>
+                        <td colspan="27">
+                          <i *ngIf="!item.expanded" class="fas fa-plus-square" (click)="item.expanded = !item.expanded"
+                            type="button"></i>
+                          <i *ngIf="item.expanded" class="fas fa-minus-square" (click)="item.expanded = !item.expanded"
+                            type="button"></i>
+                          <b> {{item.Key}}</b>
+                        </td>
+                      </tr>
+                      <ng-template ngFor let-itemData [ngForOf]="item.Data">
+                        <tr *ngIf="item.expanded">
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MADVCS}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MAGD}}
+                          </td>
+                          <td style="min-width:200px; text-align: center;">
+                            {{itemData.MAKHACHHANG}}
+                          </td>
+                          <td style="min-width:200px; text-align: center;">
+                            {{itemData.MANGUOINHAN}}
+                          </td>
+                          <td style="min-width:200px; text-align: center;">
+                            {{itemData.DIENGIAI}}
+                          </td>
+                          <td style="min-width:200px; text-align: center;">
+                            {{itemData.NGAYTRON}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MAQUYENSO}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.SOCHUNGTU}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MAVATTU}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MAKHO}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{RoundData(itemData.SOLUONG)}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.GIANGOAITE}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.TIENNGOAITE}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MANGOAITE}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.TYGIA}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.GIA}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.TIEN}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.TKNO}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.TKCO}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MADUAN}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MAPHI}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MASANPHAM}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MABPHT}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.SOLSX}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.MATRAM}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.KLTRON}}
+                          </td>
+                          <td style="min-width:100px; text-align: center;">
+                            {{itemData.KLGIAO}}
+                          </td>
+                        </tr>
+                      </ng-template>
+                      <!-- <tr *ngIf="item.expanded">
+                        <td colspan="10" style="text-align: center;">
+                          <b>Tổng:</b>
+                        </td>
+                        <td style="min-width:100px">
+                          <b>{{RoundData(item.TotalSOLUONG)}}</b>
+                        </td>
+                        <td colspan="16">
+                        </td>
+                      </tr> -->
+                    </ng-template>
+                    <tr *ngIf="paging.item_count == 0">
+                      <td colspan="27" style="text-align: center;">
+                        <p>Không có dữ liệu</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="row" style="padding-left:15px;">
+            </div>
+            <div class="row">
+              <div class="table-responsive p-0">
+                <table class="table table-bordered text-nowrap header-fixed" id="DataTables_Table_0" role="grid"
+                  aria-describedby="DataTables_Table_0_info">
+                  <span *ngFor="let row of tableMockDataTong; let i = index">
+                    <thead style="background-color: #007bff; color: white;;">
+                      <th>{{row.header}}</th>
+                    </thead>
+                    <tr *ngFor="let rowdata of row.rows;">
+                      <td>{{rowdata}}</td>
+                    </tr>
+                  </span>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

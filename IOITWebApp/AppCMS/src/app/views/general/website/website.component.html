@@ -1,0 +1,552 @@
+<div class="animated fadeIn">
+  <div class="card">
+    <div class="card-header">
+      <i class="fa fa-edit"></i> Danh sách Website
+      <div class="card-header-actions">
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <div class="button-custom">
+              <button class="btn btn-block btn-primary" type="button" (click)="OpenWebsiteModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListWebsite()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <div id="DataTables_Table_0_filter" class="dataTables_filter">
+              <label>
+                Tìm kiếm:
+                <input type="text" class="form-control form-control-sm" placeholder="" aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12">
+            <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+              <thead>
+                <tr role="row" class="text-center">
+                  <th [ngClass]="GetClassSortTable('WebsiteId')" (click)="SortTable('WebsiteId')" style="width: 50px;">STT</th>
+                  <th style="width: 1px;">Logo</th>
+                  <th [ngClass]="GetClassSortTable('Name')" (click)="SortTable('Name')" style="width: 235px;">
+                    Tên Website
+                  </th>
+                  <th style="width: 201px;">
+                    Website cha
+                  </th>
+                  <th [ngClass]="GetClassSortTable('Hotline')" (click)="SortTable('Hotline')" style="width: 88px;">
+                    Hotline
+                  </th>
+                  <th [ngClass]="GetClassSortTable('Hotmail')" (click)="SortTable('Hotmail')" style="width: 88px;">
+                    Hotmail
+                  </th>
+                  <th style="width: 100px;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of listWebsite; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                  <td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>
+                  <td>
+                    <img src="../../../../assets/img/no-image1.png" width="70" height="70" *ngIf="item.LogoHeader==undefined" />
+                    <img src="{{ domainImage }}/Uploads/Images/{{item.LogoHeader}}" width="110" height="70" *ngIf="item.LogoHeader!=undefined" />
+                  </td>
+                  <td class="sorting_1">{{ item.Name }}</td>
+                  <td>{{ findParent(item.websiteParent) }}</td>
+                  <td>{{ item.Hotline }}</td>
+                  <td>{{ item.Hotmail }}</td>
+                  <td style="text-align: center;">
+                    <a class="btn btn-info" href="javascript:void(0)" (click)="OpenWebsiteModal(item)">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a class="btn btn-danger" href="javascript:void(0)" (click)="ShowConfirmDelete(item.WebsiteId)">
+                      <i class="fa fa-trash-o"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-5">
+            <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+              Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm"
+                        previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)" class="pull-right"></pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div [config]="{backdrop: 'static',  keyboard: false}" bsModal #WebsiteModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-big" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" *ngIf="Item.WebsiteId == undefined">Thêm mới Website</h4>
+          <h4 class="modal-title" *ngIf="Item.WebsiteId != undefined">Cập nhật thông tin Website</h4>
+          <button type="button" class="close" (click)="WebsiteModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Name">Tên Website<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="Name" name="Name" class="form-control" placeholder="" [(ngModel)]="Item.Name" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Url">Đường dẫn<span *ngIf="Item.Url==undefined || Item.Url==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="Url" name="Url" class="form-control" placeholder="" [(ngModel)]="Item.Url" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row" [hidden]="listLanguage.length == 1">
+                  <label class="col-md-4 col-form-label" for="">Ngôn ngữ<span *ngIf="Item.LanguageId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listLanguage"
+                               bindLabel="Name"
+                               bindValue="LanguageId"
+                               placeholder="Chọn ngôn ngữ"
+                               [(ngModel)]="Item.LanguageId"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Website cha</label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listWebsiteParent"
+                               bindLabel="Name"
+                               bindValue="WebsiteId"
+                               placeholder="Chọn website cha"
+                               [(ngModel)]="Item.WebsiteParentId"
+                               [ngModelOptions]="{standalone: true}">
+                      <ng-template ng-label-tmp let-item="item">
+                        <span>{{item.Name}}</span>
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index">
+                        <span [innerHTML]="item.Space"></span><span>{{item.Name}}</span>
+                      </ng-template>
+                    </ng-select>
+                  </div>
+                </div>
+                <!---->
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Hotline">Hotline</label>
+                  <div class="col-md-8">
+                    <input type="text" id="Hotline" name="Hotline" class="form-control" placeholder="" [(ngModel)]="Item.Hotline" onkeypress="return ((event.charCode >= 48 && event.charCode <= 57) || event.charCode == 32)" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="TechNiQuePhone">Số điện thoại kỹ thuật</label>
+                  <div class="col-md-8">
+                    <input type="text" id="TechNiQuePhone" name="TechNiQuePhone" class="form-control" placeholder="" [(ngModel)]="Item.TechNiQuePhone" onkeypress="return ((event.charCode >= 48 && event.charCode <= 57) || event.charCode == 32)" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="GuaRanTeePhone">Số điện thoại bảo hành</label>
+                  <div class="col-md-8">
+                    <input type="text" id="GuaRanTeePhone" name="GuaRanTeePhone" class="form-control" placeholder="" [(ngModel)]="Item.GuaRanTeePhone" onkeypress="return ((event.charCode >= 48 && event.charCode <= 57) || event.charCode == 32)" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Hotmail">Hotmail</label>
+                  <div class="col-md-8">
+                    <input type="text" id="Hotmail" name="Hotmail" class="form-control" placeholder="" [(ngModel)]="Item.Hotmail" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="Address">Địa chỉ</label>
+                  <div class="col-md-8">
+                    <input type="text" id="Address" name="Address" class="form-control" placeholder="" [(ngModel)]="Item.Address" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="GoogleAnalitics">Google Analitics</label>
+                  <div class="col-md-8">
+                    <input type="text" id="GoogleAnalitics" name="GoogleAnalitics" class="form-control" placeholder="" [(ngModel)]="Item.GoogleAnalitics" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlus">Link GooglePlus</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkGooglePlus" name="LinkGooglePlus" class="form-control" placeholder="" [(ngModel)]="Item.LinkGooglePlus" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="file-input">Ảnh header</label>
+                  <div class="col-md-8">
+                    <input #fileHeader type="file" (change)="upload(fileHeader.files, 1)" value="" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progressHeader > 0 && progressHeader < 100">
+                      {{progressHeader}}%
+                    </span>
+                    <span style="font-weight:bold;color:green;">
+                      <img class="image-upload" *ngIf="Item.WebsiteId == undefined && messageHeader" src="{{ domainImage }}{{ messageHeader }}" />
+                      <img class="image-upload" *ngIf="Item.WebsiteId != undefined && Item.LogoHeader != undefined" src="{{ domainImage }}{{ Item.LogoHeader }}" />
+                    </span>
+                    <i class="fa fa-trash icon-remove-image" (click)="RemoveImage(1)" *ngIf="(Item.WebsiteId == undefined && messageHeader) || (Item.WebsiteId != undefined && Item.LogoHeader != undefined)"></i>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="file-input">Ảnh banner</label>
+                  <div class="col-md-8">
+                    <input #fileBanner type="file" (change)="upload(fileBanner.files, 3)" value="" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progressBanner > 0 && progressBanner < 100">
+                      {{progressBanner}}%
+                    </span>
+                    <span style="font-weight:bold;color:green;">
+                      <img class="image-upload" *ngIf="Item.WebsiteId == undefined && messageBanner" src="{{ domainImage }}{{ messageBanner }}" />
+                      <img class="image-upload" *ngIf="Item.WebsiteId != undefined && Item.Banner != undefined" src="{{ domainImage }}{{ Item.Banner }}" />
+                    </span>
+                    <i class="fa fa-trash icon-remove-image" (click)="RemoveImage(3)" *ngIf="(Item.WebsiteId == undefined && messageBanner) || (Item.WebsiteId != undefined && Item.Banner != undefined)"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkFacebookPage">Link FacebookPage</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkFacebookPage" name="LinkFacebookPage" class="form-control" placeholder="" [(ngModel)]="Item.LinkFacebookPage" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkTwitter">Link Twitter</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkTwitter" name="LinkTwitter" class="form-control" placeholder="" [(ngModel)]="Item.LinkTwitter" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlus">Link Youtube</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkYoutube" name="LinkYoutube" class="form-control" placeholder="" [(ngModel)]="Item.LinkYoutube" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlus">Link Instagram</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkInstagram" name="LinkInstagram" class="form-control" placeholder="" [(ngModel)]="Item.LinkInstagram" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkLinkedIn">Link LinkedIn</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkLinkedIn" name="LinkLinkedIn" class="form-control" placeholder="" [(ngModel)]="Item.LinkLinkedIn" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther1">Link bộ công thương</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther1" name="LinkOther1" class="form-control" placeholder="" [(ngModel)]="Item.LinkOther1" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther2">Link khuyến mãi đặc biệt</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther2" name="LinkOther2" class="form-control" placeholder="" [(ngModel)]="Item.LinkOther2" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther3">Link Khác</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther3" name="LinkOther3" class="form-control" placeholder="" [(ngModel)]="Item.LinkOther3" autocomplete="off">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="file-input">Ảnh footer</label>
+                  <div class="col-md-8">
+                    <input #fileFooter type="file" (change)="upload(fileFooter.files, 2)" value="" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progressFooter > 0 && progressFooter < 100">
+                      {{progressFooter}}%
+                    </span>
+                    <span style="font-weight:bold;color:green;">
+                      <img class="image-upload" *ngIf="Item.WebsiteId == undefined && messageFooter" src="{{ domainImage }}{{ messageFooter }}" />
+                      <img class="image-upload" *ngIf="Item.WebsiteId != undefined && Item.LogoFooter != undefined" src="{{ domainImage }}{{ Item.LogoFooter }}" />
+                    </span>
+                    <i class="fa fa-trash icon-remove-image" (click)="RemoveImage(2)" *ngIf="(Item.WebsiteId == undefined && messageFooter) || (Item.WebsiteId != undefined && Item.LogoFooter != undefined)"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="MetaTitle">Meta Title</label>
+                  <div class="col-md-8">
+                    <textarea id="MetaTitle" name="MetaTitle" maxlength="100" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaTitle" #newMetaTitle></textarea>
+                    <i>{{newMetaTitle.value.length}}/100</i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="MetaKeyword">Meta Keyword</label>
+                  <div class="col-md-8">
+                    <textarea id="MetaKeyword" name="MetaKeyword" maxlength="100" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaKeyword" #newMetaKeyword></textarea>
+                    <i>{{newMetaKeyword.value.length}}/100</i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="MetaDescription">Meta Description</label>
+                  <div class="col col-md-10">
+                    <textarea id="MetaDescription" name="MetaDescription" maxlength="300" cols="50" rows="3" class="form-control" placeholder="" [(ngModel)]="Item.MetaDescription" #newMetaDescription></textarea>
+                    <i>{{newMetaDescription.value.length}}/300</i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="SaveWebsite()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="WebsiteModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- <div bsModal #EditModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-big" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Cập nhật thông tin Website</h4>
+          <button type="button" class="close" (click)="EditModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="NameE">Tên Website<span *ngIf="editItem.Name==undefined || editItem.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="NameE" name="NameE" class="form-control" placeholder="" [(ngModel)]="editItem.Name">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="UrlE">Đường dẫn<span *ngIf="editItem.Url==undefined || editItem.Url==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="UrlE" name="UrlE" class="form-control" placeholder="" [(ngModel)]="editItem.Url">
+                  </div>
+                </div>
+                <div class="form-group row" *ngIf="show">
+                  <label class="col-md-4 col-form-label" for="">Ngôn ngữ<span *ngIf="editItem.LanguageId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listLanguage"
+                               bindLabel="Name"
+                               bindValue="LanguageId"
+                               placeholder="Chọn ngôn ngữ"
+                               [(ngModel)]="editItem.LanguageId"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Website cha</label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listWebsiteParent"
+                               bindLabel="Name"
+                               bindValue="WebsiteId"
+                               placeholder="Chọn website cha"
+                               [(ngModel)]="editItem.WebsiteParentId"
+                               [ngModelOptions]="{standalone: true}">
+                      <ng-template ng-label-tmp let-item="item">
+                        <span>{{item.Name}}</span>
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index">
+                        <span [innerHTML]="item.Space"></span><span>{{item.Name}}</span>
+                      </ng-template>
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="HotlineE">Hotline</label>
+                  <div class="col-md-8">
+                    <input type="text" id="HotlineE" name="HotlineE" class="form-control" placeholder="" [(ngModel)]="editItem.Hotline" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="HotmailE">Hotmail</label>
+                  <div class="col-md-8">
+                    <input type="text" id="HotmailE" name="HotmailE" class="form-control" placeholder="" [(ngModel)]="editItem.Hotmail">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="AddressE">Địa chỉ</label>
+                  <div class="col-md-8">
+                    <input type="text" id="AddressE" name="AddressE" class="form-control" placeholder="" [(ngModel)]="editItem.Address">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="GoogleAnaliticsE">Google Analitics</label>
+                  <div class="col-md-8">
+                    <input type="text" id="GoogleAnaliticsE" name="GoogleAnaliticsE" class="form-control" placeholder="" [(ngModel)]="newItem.GoogleAnalitics">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlusE">Link GooglePlus</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkGooglePlusE" name="LinkGooglePlusE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkGooglePlus">
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkFacebookPageE">Link FacebookPage</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkFacebookPageE" name="LinkFacebookPageE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkFacebookPage">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkTwitterE">Link Twitter</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkTwitterE" name="LinkTwitterE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkTwitter">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlusE">Link Youtube</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkYoutubeE" name="LinkYoutubeE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkYoutube">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkGooglePlusE">Link Instagram</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkInstagramE" name="LinkInstagramE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkInstagram">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkLinkedInE">Link LinkedIn</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkLinkedInE" name="LinkLinkedInE" class="form-control" placeholder="" [(ngModel)]="editItem.LinkLinkedIn">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther1E">Link bộ công thương</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther1E" name="LinkOther1E" class="form-control" placeholder="" [(ngModel)]="editItem.LinkOther1">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther2E">Link khác</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther2E" name="LinkOther2E" class="form-control" placeholder="" [(ngModel)]="editItem.LinkOther2">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="LinkOther3E">Link khác</label>
+                  <div class="col-md-8">
+                    <input type="text" id="LinkOther3E" name="LinkOther3E" class="form-control" placeholder="" [(ngModel)]="editItem.LinkOther3">
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="file-input">Ảnh header</label>
+                  <div class="col-md-4">
+                    <input #fileE type="file" (change)="upload(fileE.files, false, 1)" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                      {{progress}}%
+                    </span><br />
+                    <span style="font-weight:bold;color:green;" *ngIf="editItem.LogoHeader">
+                      <img src="{{ domainImage }}/Uploads/Images/{{ editItem.LogoHeader }}" style="width:120px; height:80px;" />
+                    </span>
+                    <i style="font-size: 18px; color: red; position: absolute; background-color: lightgray; top: 27px; right: 206px; border-radius: 5px; cursor: pointer;" class="fa fa-remove" (click)="RemoveImage(false, 1)" *ngIf="showRemoveh"></i>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="file-input">Ảnh footer</label>
+                  <div class="col-md-4">
+                    <input #fileEf type="file" (change)="upload(fileEf.files, false, 2)" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                      {{progress}}%
+                    </span><br />
+                    <span style="font-weight:bold;color:green;" *ngIf="editItem.LogoFooter">
+                      <img src="{{ domainImage }}/Uploads/Images/{{ editItem.LogoFooter }}" style="width:120px; height:80px;" />
+                    </span>
+                    <i style="font-size: 18px; color: red; position: absolute;background-color: lightgray; top: 27px; right: 206px; border-radius: 5px; cursor: pointer;" class="fa fa-remove" (click)="RemoveImage(false, 2)" *ngIf="showRemovef"></i>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="file-input">Ảnh banner</label>
+                  <div class="col-md-4">
+                    <input #fileEb type="file" (change)="upload(fileEb.files, false, 3)" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                      {{progress}}%
+                    </span><br />
+                    <span style="font-weight:bold;color:green;" *ngIf="editItem.Banner">
+                      <img src="{{ domainImage }}/Uploads/Images/{{ editItem.Banner }}" style="width:120px; height:80px;" />
+                    </span>
+                    <i style="font-size: 18px; color: red; position: absolute; background-color:lightgray; top: 27px; right: 206px; border-radius: 5px; cursor: pointer;" class="fa fa-remove" (click)="RemoveImage(false, 3)" *ngIf="showRemoveb"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="MetaTitleE">Meta Title</label>
+                  <div class="col-md-8">
+                    <textarea id="MetaTitleE" name="MetaTitleE" maxlength="100" rows="3" class="form-control" placeholder="" [(ngModel)]="editItem.MetaTitle" #editMetaTitle></textarea>
+                    <i>{{editMetaTitle.value.length}}/100</i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="MetaKeywordE">Meta Keyword</label>
+                  <div class="col-md-8">
+                    <textarea id="MetaKeywordE" name="MetaKeywordE" maxlength="100" rows="3" class="form-control" placeholder="" [(ngModel)]="editItem.MetaKeyword" #editMetaKeyword></textarea>
+                    <i>{{editMetaKeyword.value.length}}/100</i>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="MetaDescriptionE">Meta Description</label>
+                  <div class="col col-md-10">
+                    <textarea id="MetaDescriptionE" name="MetaDescriptionE" maxlength="300" cols="50" rows="3" class="form-control" placeholder="" [(ngModel)]="editItem.MetaDescription" #editMetaDescription></textarea>
+                    <i>{{editMetaDescription.value.length}}/300</i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="EditWebsiteFunc()">Cập nhật</button>
+          <button type="button" class="btn btn-secondary" (click)="EditModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+ -->

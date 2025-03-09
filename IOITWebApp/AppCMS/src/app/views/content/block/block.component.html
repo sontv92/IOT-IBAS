@@ -1,0 +1,201 @@
+<div class="animated fadeIn cms-main">
+  <div class="card cms-content">
+    <div class="titleCat">
+      <h1 class="cms-heading-inline">Danh sách khối nội dung</h1>
+      <button class="cms-addnew" type="button" (click)="OpenBlockModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+
+        <div class="row cms-filter">
+          <div class="col-sm-12 col-md-6" style="padding-left:0px; margin-left: -5px;    display: flex;">
+            <ul class="cms-subsubsub">
+              <li class="all"><a class="current" aria-current="page">Tất cả <span class="count">({{ paging.item_count }})</span></a> | </li>
+              <li class="publish"><a> Khối nội dung hiển thị<span class="count">({{ paging.item_count }})</span></a> </li>
+            </ul>
+          </div>
+          <div class="col-sm-12 col-md-6" style="display: flex; justify-content: flex-end;align-items: flex-end;">
+
+            <label style="margin-right:10px;display: flex;align-items: center;">
+              <span style="width:250px">Tìm kiếm khối nội dung:</span>
+              <input type="text" class="form-control form-control-sm" placeholder="Nhập từ khóa cần tìm...." aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+            </label>
+
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListBlock()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-12">
+            <table class="table list-cat table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+              <thead>
+                <tr role="row">
+                  <!-- <th [ngClass]="GetClassSortTable('BlockId')" (click)="SortTable('BlockId')" style="width: 3%;">STT</th> -->
+                  <th [ngClass]="GetClassSortTable('Code')" (click)="SortTable('Code')" style="width: 90px;">
+                    Mã
+                  </th>
+                  <th [ngClass]="GetClassSortTable('Name')" (click)="SortTable('Name')" style="width: 201px;">
+                    Tên
+                  </th>
+                  <th style="width: 100px;">Icon</th>
+                  <th style="width: 150px;">Người tạo</th>
+                  <!-- <th style="width: 100px;">Thao tác</th> -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of listBlock; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                  <!-- <td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td> -->
+                  <td class="sorting_1">{{ item.Code }}</td>
+                  <td class="sorting_1 name-child column-name">
+                    {{ item.Name }}
+                    <ul class="cms-function">
+                        <li class="id-item">ID: {{item.BlockId}} | </li>
+                        <li (click)="OpenBlockModal(item)">Chỉnh sửa | </li>
+                        <li (click)="ShowConfirmDelete(item.BlockId)" class="detete-item">Xóa</li>
+                      </ul>
+                  </td>
+                  <td>
+                    <img src="../../../../assets/img/no-image1.png" width="70" height="70" *ngIf="item.Icon==undefined" />
+                    <img src="{{ domainImage }}{{item.Icon}}" width="80" height="60" *ngIf="item.Icon!=undefined" />
+                  </td>
+                  <td>{{ findAuthor(item.author) }}</td>
+                  <!-- <td style="text-align: center;">
+                    <a class="btn btn-info" href="javascript:void(0)" (click)="OpenBlockModal(item)" tooltip="Sửa">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a class="btn btn-danger" href="javascript:void(0)" (click)="ShowConfirmDelete(item.BlockId)" tooltip="Xóa">
+                      <i class="fa fa-trash-o"></i>
+                    </a>
+                  </td> -->
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-5">
+            <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+              Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm"
+                        previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)" class="pull-right"></pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div [config]="{backdrop: 'static',  keyboard: false}" bsModal #BlockModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document" style="max-width:1000px">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" *ngIf="Item.BlockId==undefined">Thêm mới khối nội dung</h4>
+          <h4 class="modal-title" *ngIf="Item.BlockId!=undefined">Sửa thông tin khối nội dung</h4>
+          <button type="button" class="close" (click)="BlockModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="row" style="margin:20px 0px">
+                <div class="col-sm-12 col-md-12">
+                  <div class="form-group row">
+                    <label class="col-md-12 col-form-label" for="Code">Mã<span *ngIf="Item.Code==undefined || Item.Code==''" style="color: red;">&ngsp;(*)</span></label>
+                    <div class="col-md-12">
+                      <input type="text" id="Code" name="Code" class="form-control" placeholder="" [(ngModel)]="Item.Code" autocomplete="off">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-12">
+                  <div class="form-group row">
+                    <label class="col-md-12 col-form-label" for="Name">Tên<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                    <div class="col-md-12">
+                      <input type="text" id="Name" name="Name" maxlength="100" class="form-control" placeholder="" [(ngModel)]="Item.Name" autocomplete="off">
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-12">
+                  <div class="form-group row" [hidden]="listLanguage.length == 1">
+                    <label class="col-md-2 col-form-label" for="">Ngôn ngữ<span *ngIf="Item.LanguageId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                    <div class="col-md-10">
+                      <ng-select [items]="listLanguage"
+                                 bindLabel="Name"
+                                 bindValue="LanguageId"
+                                 placeholder="Chọn ngôn ngữ"
+                                 [(ngModel)]="Item.LanguageId"
+                                 [ngModelOptions]="{standalone: true}">
+                      </ng-select>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label class="col-md-2 col-form-label" for="Icon">Icon</label>
+                    <div class="col-md-5">
+                      <div class="circlecheck" style="width: 80%;">
+                        <input type="radio" id="f-option" class="circle-1" name="selector" [value]='true' [(ngModel)]="Item.IconText" [ngModelOptions]="{standalone: true}">
+                        <label for="f-option">Nhập tên</label>
+                        <div class="outer-circle"></div>
+                      </div>
+                      <div class="col-md-12">
+                        <input type="text" id="Icon" name="Icon" class="form-control" placeholder="Icon" [(ngModel)]="Item.Icon" [disabled]="Item.IconText==false || Item.IconText==undefined" autocomplete="off">
+                      </div>
+                    </div>
+                    <div class="col-md-5">
+                      <div class="circlecheck" style="width: 80%;">
+                        <input type="radio" id="g-option" class="circle-2" name="selector" [value]='false' [(ngModel)]="Item.IconText" [ngModelOptions]="{standalone: true}">
+                        <label for="g-option">Up ảnh</label>
+                        <div class="outer-circle"></div>
+                      </div>
+                      <div class="col-md-8">
+                        <input #file id="IconImage" name="IconImage" type="file" (change)="upload(file.files)" [disabled]="Item.IconText==true || Item.IconText==undefined" />
+                        <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                          {{progress}}%
+                        </span>
+                        <span style="font-weight:bold;color:green;">
+                          <img class="image-upload" *ngIf="Item.BlockId == undefined && Item.IconText == false && message" src="{{ domainImage }}{{ message }}" />
+                          <img class="image-upload" *ngIf="Item.BlockId != undefined && Item.IconText == false && Item.Icon != undefined" src="{{ domainImage }}{{ Item.Icon }}" />
+                        </span>
+                        <i class="fa fa-trash icon-remove-image" style="right: 48px;" (click)="RemoveImage()" *ngIf="(Item.BlockId == undefined && message && Item.IconText == false) || (Item.BlockId != undefined && Item.Icon != undefined && Item.IconText == false)"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+                <div class="col-sm-12 col-md-12">
+                  <div class="form-group row custom-ckeditor">
+                    <label class="col-form-label col-md-12">Nội dung<span *ngIf="Item.Contents==''" style="color: red;">&ngsp;(*)</span></label>
+                    <div class="col-md-12">
+                      <ckeditor name="myckeditor"
+                                [(ngModel)]="Item.Contents"
+                                [config]=""
+                                [readonly]="false"
+                                debounce="500">
+                      </ckeditor>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveBlock()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="BlockModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

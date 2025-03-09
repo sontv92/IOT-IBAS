@@ -1,0 +1,242 @@
+<div class="animated fadeIn">
+  <div class="card">
+    <div class="card-header">
+      <i class="fa fa-edit"></i> Danh sách danh mục giá vật liệu
+      <div class="card-header-actions">
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+          </div>
+          <div class="col-sm-12 col-md-6">
+            <div class="button-custom">
+              <button class="btn btn-block btn-primary" type="button" (click)="OpenAddModal()"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-6">
+            <div class="dataTables_length" id="DataTables_Table_0_length">
+              <label>
+                Xem&nbsp;
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="custom-select custom-select-sm form-control form-control-sm" [(ngModel)]="paging.page_size" (change)="GetListMaterial()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>&nbsp;bản ghi
+              </label>
+            </div>
+          </div>
+          <!---->
+          <div class="col-sm-12 col-md-6">
+            <div id="DataTables_Table_0_filter" class="dataTables_filter">
+              <label>
+                Tìm kiếm:
+                <input type="text" class="form-control form-control-sm" placeholder="" aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()">
+              </label>
+            </div>
+          </div>
+        </div>
+        <!--<div class="row">
+          <div class="col-md-3">
+            <ng-select [items]="listTypeNews"
+                       bindLabel="Name"
+                       bindValue="Id"
+                       [multiple]="false"
+                       placeholder="Chọn loại tin"
+                       (change)="Filter()"
+                       [(ngModel)]="q.type"
+                       [ngModelOptions]="{standalone: true}">
+            </ng-select>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <ng-select [items]="listCateNews"
+                       bindLabel="Name"
+                       bindValue="listCateNews.CategoryId"
+                       [multiple]="false"
+                       placeholder="Chọn danh mục"
+                       (change)="Filter()"
+                       [(ngModel)]="q.cate"
+                       [ngModelOptions]="{standalone: true}">
+            </ng-select>
+          </div>
+        </div>-->
+        <div class="row">
+          <div class="col-sm-12">
+            <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+              <thead>
+                <tr role="row" class="text-center">
+                  <th class="" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Role: activate to sorlistCatePaget column ascending" style="width: 30px;">STT</th>
+                  <!--<th class="" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Role: activate to sorlistCatePaget column ascending" style="width: 1px;">Ảnh</th>-->
+                  <th class="" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Name: activate to sort column descending" style="width: 235px;">
+                    <i class="fa fa-caret-up" style="float:right" *ngIf="showSort[0]" (click)="Sort( false, 'Title', 0)"></i>
+                    <i class="fa fa-caret-down" style="float:right" *ngIf="showSort[0]==false" (click)="Sort(true,'Title', 0)"></i>
+                    Danh mục VLXD
+                  </th>
+                  <th class="" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Date registered: activate to sort column ascending" style="width: 70px;">
+                    <i class="fa fa-caret-up" style="float:right" *ngIf="showSort[1]" (click)="Sort( false, 'UserId', 1)"></i>
+                    <i class="fa fa-caret-down" style="float:right" *ngIf="showSort[1]==false" (click)="Sort(true,'UserId', 1)"></i>
+                    Vị trí cung cấp
+                  </th>
+                  <th class="" style="width: 70px;">Đơn vị tính</th>
+                  <th class="" style="width: 70px;">Đơn giá</th>
+                  <th class="" style="width: 100px;">
+                    <i class="fa fa-caret-up" style="float:right" *ngIf="showSort[2]" (click)="Sort( false, 'ViewNumber', 2)"></i>
+                    <i class="fa fa-caret-down" style="float:right" *ngIf="showSort[2]==false" (click)="Sort(true,'ViewNumber', 2)"></i>
+                    Tỉnh/TP
+                  </th>
+                  <th class="" style="width: 100px;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of listMaterial; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                  <td style="text-align: center; width:30px"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>
+                  <td>{{ findName(item.categoryMaterial) }}</td>
+                  <td>{{ findName(item.locationProvider) }}</td>
+                  <td>
+                    {{ findName(item.unitCalculate) }}
+                  </td>
+                  <td>
+                    {{ item.UnitPrice }}
+                  </td>
+                  <td>{{ findName(item.province) }}</td>
+                  <td style="text-align: center;">
+                    <a class="btn btn-info" href="javascript:void(0)" (click)="OpenEditModal(item)" tooltip="Sửa">
+                      <i class="fa fa-edit"></i>
+                    </a>
+                    <a class="btn btn-danger" href="javascript:void(0)" (click)="ShowConfirmDelete(item.NewsId)" tooltip="Xóa">
+                      <i class="fa fa-trash-o"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-md-5">
+            <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+              Hiển thị <span>{{ (paging.page - 1) * paging.page_size + 1 }}</span> <i class="fas fa-long-arrow-alt-right"></i>  <span>{{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }}</span>&nbsp;<i class="fa fa-ellipsis-v"></i>&nbsp;<span>{{ paging.item_count }}</span> bản ghi
+            </div>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination-sm pull-right"
+                        previousText="&lsaquo;" nextText="&rsaquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Create-->
+<div bsModal [config]="{backdrop: 'static',  keyboard: false}" #AddModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-big" role="document">
+    <form class="login-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Thêm mới DMVLXD</h4>
+          <button type="button" class="close" (click)="AddModal.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body body-form-add-new">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Tình/Thành phố<span *ngIf="newItem.ProvinceId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listProvince"
+                               bindLabel="Name"
+                               bindValue="ProvinceId"
+                               placeholder="Chọn Tỉnh/Thành phố"
+                               [(ngModel)]="newItem.ProvinceId"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="file-input">Upload File</label>
+                  <div class="col-md-4">
+                    <input #file type="file" (change)="upload(file.files, true)" />
+                    <span style="font-weight:bold;color:green;" *ngIf="progress > 0 && progress < 100">
+                      {{progress}}%
+                    </span><br />
+                    <!--<span style="font-weight:bold;color:green;" *ngIf="message">
+          <img src="{{ domainImage }}/Uploads/Images/{{ message }}" style="width:120px; height:90px;" />
+        </span>
+        <i style="font-size: 18px; color: red; position: absolute; background-color: lightgray; top: 27px; right: 206px; border-radius: 5px; cursor: pointer;" class="fa fa-remove" (click)="RemoveImage(true)" *ngIf="showRemove"></i>-->
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Năm<span *ngIf="newItem.Year==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listYear"
+                               bindLabel="Name"
+                               bindValue="YearId"
+                               placeholder="Chọn Năm"
+                               [(ngModel)]="newItem.Year"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Tháng<span *ngIf="newItem.Month==undefined" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <ng-select [items]="listMonth"
+                               bindLabel="Name"
+                               bindValue="MonthId"
+                               placeholder="Chọn Tháng"
+                               [(ngModel)]="newItem.Month"
+                               [ngModelOptions]="{standalone: true}">
+                    </ng-select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12">
+                  <table class="table table-striped table-bordered datatable dataTable no-footer" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info" style="border-collapse: collapse !important">
+                    <thead>
+                      <tr role="row">
+                        <th class="" style="width: 50px;">STT</th>
+                        <th class="" style="width: 235px;">Tên danh mục VLXD</th>
+                        <th class="" style="width: 201px;">Vị trí cung cấp</th>
+                        <th class="" style="width: 201px;">Đơn vị tính</th>
+                        <th class="" style="width: 201px;">Đơn giá</th>
+                        <th class="" style="width: 100px;">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of this.newItem.listMaterialImportExcelChild; let i = index" role="row" ng-class-odd='odd' ng-class-even='even'>
+                        <td style="text-align: center;"><b>{{ item.STT }}</b></td>
+                        <td>{{ item.Name }}</td>
+                        <td>{{ item.LocaltionName }}</td>
+                        <td>{{ item.UnitCalculate }}</td>
+                        <td>{{ item.PriceSale }}</td>
+                        <td style="text-align: center;">
+                          <a class="btn btn-danger" href="javascript:void(0)" (click)="DeleteItem(i, true)">
+                            <i class="fa fa-trash-o"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="AddNew()">Thêm mới</button>
+          <button type="button" class="btn btn-secondary" (click)="AddModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

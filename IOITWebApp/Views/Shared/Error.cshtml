@@ -1,0 +1,26 @@
+﻿@*<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Error</title>
+</head>
+<body>
+    <div class="error404" style="position: absolute; top: 40%; transform: translateY(-40%); width: 100%; text-align: center;">
+        <span style="display: block;width: 100%; text-align: center; font-size: 100px; font-weight: bold;color: #63c2de;">404</span>
+        <span style="display: block;width: 100%; text-align: center; font-size: 40px; font-weight: bold;color: #63c2de; text-transform: uppercase;">Not found</span>
+        <span style="display: block;width: 100%; text-align: center; font-size: 20px; font-weight: bold; color:#555555;  font-family:'Arial'; margin-top: 20px;">Trang không tồn tại!</span>
+        <a href="/" title="" style="width: 200px; height: 40px; line-height: 40px; margin:auto; text-align: center; background: #63c2de; color: #ffffff; display: block; margin-top: 30px; font-size: 18px; text-decoration: none;"><font style="font-size: 13px;"><<</font> Quay về trang chủ</a>
+    </div>
+</body>
+</html>*@
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="error404" style="width: 100%; text-align: center;">
+    <span style="display: block;width: 100%; text-align: center; font-size: 100px; font-weight: bold;color: #63c2de;">404</span>
+    <span style="display: block;width: 100%; text-align: center; font-size: 40px; font-weight: bold;color: #63c2de; text-transform: uppercase;">Not found</span>
+    <span style="display: block;width: 100%; text-align: center; font-size: 20px; font-weight: bold; color:#555555;  font-family:'Arial'; margin-top: 20px;">Trang không tồn tại!</span>
+    <a href="/" title="" style="width: 200px; height: 40px; line-height: 40px; margin:auto; text-align: center; background: #63c2de; color: #ffffff; display: block; margin-top: 30px; font-size: 18px; text-decoration: none;margin-bottom: 30px;"><font style="font-size: 13px;"><<</font> Quay về trang chủ</a>
+</div>

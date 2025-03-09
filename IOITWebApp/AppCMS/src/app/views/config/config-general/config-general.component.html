@@ -1,0 +1,169 @@
+<div class="animated fadeIn">
+  <div class="card">
+    <div class="card-header">
+      <i class="fa fa-edit"></i> Cấu hình chung
+      <div class="card-header-actions">
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap4 no-footer">
+        <tabset>
+          <tab heading="Cấu hình chung">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Website<span *ngIf="updateItem.Website==undefined || updateItem.Website==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="Website" name="Website" class="form-control" placeholder="" [(ngModel)]="updateItem.Website" style="width:80%" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Hotline<span *ngIf="updateItem.Phone==undefined || updateItem.Phone==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="Phone" name="Phone" class="form-control" placeholder="" [(ngModel)]="updateItem.Phone" style="width:80%" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </tab>
+          <tab heading="Cấu hình Email">
+            <div class="row">
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Host<span *ngIf="updateItem.EmailHost==undefined || updateItem.EmailHost==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="EmailHost" name="EmailHost" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailHost" style="width:80%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Tên người gửi mail<span *ngIf="updateItem.EmailSender==undefined || updateItem.EmailSender==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="EmailSender" name="EmailSender" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailSender" style="width:80%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label"></label>
+                  <div class="col-md-8 squaredcheck">
+                    <input type="checkbox" value="None" class="checkbox1" id="EmailEnableSSL" name="EmailEnableSSL" value="" [value]="true" [(ngModel)]="updateItem.EmailEnableSsl" autocomplete="off">
+                    <label for="EmailEnableSSL"><span>Enable SSL</span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6">
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Email<span *ngIf="updateItem.EmailUserName==undefined || updateItem.EmailUserName==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="EmailUserName" name="EmailUserName" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailUserName" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Password Hash<span *ngIf="updateItem.EmailPasswordHash==undefined || updateItem.EmailPasswordHash==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="EmailPasswordHash" name="EmailPasswordHash" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailPasswordHash" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-4 col-form-label" for="">Port<span *ngIf="updateItem.EmailPort==undefined || updateItem.EmailPort <= 0" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-8">
+                    <input type="text" id="EmailPort" name="EmailPort" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailPort" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="EmailLogo">Logo Email<span *ngIf="updateItem.EmailLogo==undefined || updateItem.EmailLogo==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-10">
+                    <input type="text" id="EmailLogo" name="EmailLogo" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailLogo" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="EmailColorHeader">EmailColorHeader<span *ngIf="updateItem.EmailColorHeader==undefined || updateItem.EmailColorHeader==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-10">
+                    <textarea id="EmailColorHeader" name="EmailColorHeader" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailColorHeader" rows="5">
+                    </textarea>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="EmailColorBody">EmailColorBody<span *ngIf="updateItem.EmailColorHeader==undefined || updateItem.EmailColorBody==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-10">
+                    <textarea id="EmailColorBody" name="EmailColorBody" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailColorBody" rows="5">
+                    </textarea>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label" for="EmailColorFooter">EmailColorFooter<span *ngIf="updateItem.EmailColorFooter==undefined || updateItem.EmailColorFooter==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-10">
+                    <textarea id="EmailColorFooter" name="EmailColorFooter" class="form-control" placeholder="" [(ngModel)]="updateItem.EmailColorFooter" rows="5">
+                    </textarea>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </tab>
+          <tab heading="Cấu hình Thanh toán">
+            <div class="row">
+              <div class="col-sm-12 col-md-12">
+                <div class="form-group row">
+                  <label class="col-md-2 col-form-label"></label>
+                  <div class="col-md-6 squaredcheck">
+                    <input type="checkbox" value="None" class="checkbox1" id="IsOnePay" name="IsOnePay" value="" [value]="true" [(ngModel)]="updateItem.IsOnePay" autocomplete="off">
+                    <label for="IsOnePay"><span>Thanh toán OnePay</span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6" *ngIf="updateItem.IsOnePay==true">
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Merchant ID<span *ngIf="updateItem.OpMerchant==undefined || updateItem.OpMerchant==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="OpMerchant" name="OpMerchant" class="form-control" placeholder="" [(ngModel)]="updateItem.OpMerchant" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Access code<span *ngIf="updateItem.OpAccessCode==undefined || updateItem.OpAccessCode==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="OpAccessCode" name="OpAccessCode" class="form-control" placeholder="" [(ngModel)]="updateItem.OpAccessCode" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Hash Key<span *ngIf="updateItem.OpKey==undefined || updateItem.OpKey==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="OpKey" name="OpKey" class="form-control" placeholder="" [(ngModel)]="updateItem.OpKey" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-12 col-md-6" *ngIf="updateItem.IsOnePay==true">
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">User<span *ngIf="updateItem.OpUser==undefined || updateItem.OpUser==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="OpUser" name="OpUser" class="form-control" placeholder="" [(ngModel)]="updateItem.OpUser" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Password<span *ngIf="updateItem.OpPassword==undefined || updateItem.OpPassword==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="OpPassword" name="OpPassword" class="form-control" placeholder="" [(ngModel)]="updateItem.OpPassword" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label" for="">Exchang Rate<span *ngIf="updateItem.ExchangRate==undefined || updateItem.ExchangRate==''" style="color: red;">&ngsp;(*)</span></label>
+                  <div class="col-md-9">
+                    <input type="text" id="ExchangRate" name="ExchangRate" class="form-control" placeholder="" [(ngModel)]="updateItem.ExchangRate" style="width:100%" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </tab>
+        </tabset>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="Update()">Cập nhật</button>
+    </div>
+  </div>
+</div>

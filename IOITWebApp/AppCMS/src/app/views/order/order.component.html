@@ -1,0 +1,260 @@
+<!-- Content Header (Page header) -->
+<div class="content-header" style="background-color: #007bff; color:white">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="m-0">BÁO CÁO ĐƠN HÀNG</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          <li class="breadcrumb-item active">Báo cáo đơn hàng</li>
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+
+<section class="content" style="padding:20px">
+  <div class="container-fluid">
+    <div class="card card-default">
+      <div class="card-header">
+        <h3 class="card-title">Tìm kiếm</h3>
+
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-remove"></i></button>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body" style="display: block;">
+        <div class="form-group row">
+
+          <label for="inputCat2"  class="col-sm-2 col-form-label">Trạm trộn</label>
+          <div class="col-sm-2">
+            <input type="number" #inputCat2 class="form-control" id="inputCat2"  placeholder="Cát 2">
+          </div>
+          <label for="inputCat3" class="col-sm-2 col-form-label">Cát 3</label>
+          <div class="col-sm-2">
+            <input type="number" class="form-control" id="inputCat3" placeholder="Cát 3" [(ngModel)]="Item.CAT3" name="c3" (change)="sum()">
+          </div>
+        </div>
+        <!-- /.row -->
+
+        <h5>Custom Color Variants</h5>
+        <div class="row">
+          <div class="col-12 col-sm-6">
+            <div class="form-group">
+              <label>Minimal (.select2-danger)</label>
+              <select class="form-control select2 select2-danger select2-hidden-accessible" data-dropdown-css-class="select2-danger" style="width: 100%;" data-select2-id="12" tabindex="-1" aria-hidden="true">
+                <option selected="selected" data-select2-id="14">Alabama</option>
+                <option>Alaska</option>
+                <option>California</option>
+                <option>Delaware</option>
+                <option>Tennessee</option>
+                <option>Texas</option>
+                <option>Washington</option>
+              </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="13" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-5s8j-container"><span class="select2-selection__rendered" id="select2-5s8j-container" role="textbox" aria-readonly="true" title="Alabama">Alabama</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+            </div>
+            <!-- /.form-group -->
+          </div>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6">
+            <div class="form-group">
+              <label>Multiple (.select2-purple)</label>
+              <div class="select2-purple">
+                <select class="select2 select2-hidden-accessible" multiple="" data-placeholder="Select a State" data-dropdown-css-class="select2-purple" style="width: 100%;" data-select2-id="15" tabindex="-1" aria-hidden="true">
+                  <option>Alabama</option>
+                  <option>Alaska</option>
+                  <option>California</option>
+                  <option>Delaware</option>
+                  <option>Tennessee</option>
+                  <option>Texas</option>
+                  <option>Washington</option>
+                </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="16" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--multiple" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="-1" aria-disabled="false"><ul class="select2-selection__rendered"><li class="select2-search select2-search--inline"><input class="select2-search__field" type="search" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="searchbox" aria-autocomplete="list" placeholder="Select a State" style="width: 492.5px;"></li></ul></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+              </div>
+            </div>
+            <!-- /.form-group -->
+          </div>
+          <!-- /.col -->
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.card-body -->
+      <div class="card-footer" style="display: block;">
+        Visit <a href="https://select2.github.io/">Select2 documentation</a> for more examples and information about
+        the plugin.
+      </div>
+    </div>
+
+
+
+    <div id="DataTables_Table_0_wrapper">
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2" >
+          <ng-select [items]="listCompany"
+                     bindLabel="Name"
+                     bindValue="CompanyId"
+                     [multiple]="false"
+                     placeholder="Chọn công ty"
+                     [(ngModel)]="q.CompanyId"
+                     [ngModelOptions]="{standalone: true}" (change)="GetBranch()" style="margin-right: 15px;min-width: 150px;width:100%" id="listCompanySearchDropdown">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <ng-select [items]="listBranchSearch"
+                     bindLabel="Name"
+                     bindValue="BranchId"
+                     [multiple]="false"
+                     placeholder="Chọn trạm trộn"
+                     [(ngModel)]="q.Branchlist"
+                     [ngModelOptions]="{standalone: true}" style="margin-right: 15px;min-width: 150px;width:100%;" id="listBranchSearchDropdown">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <input type="date" id="exampleInput" style="width:100%" name="input" class="input-search" [(ngModel)]="q.fromdate"
+                 placeholder="yyyy/MM/dd" />
+
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <input type="date" id="exampleInput" style="width:100%" name="input" class="input-search" [(ngModel)]="q.todate"
+                 placeholder="yyyy/MM/dd" />
+
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <ng-select [items]="listNV"
+                     bindLabel="Name"
+                     bindValue="Name"
+                     [multiple]="false"
+                     placeholder="Chọn kinh doanh"
+                     [(ngModel)]="q.TENNV"
+                     [ngModelOptions]="{standalone: true}" style="margin-right: 15px;min-width: 150px;width:100%">
+          </ng-select>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <input type="text" class="input-search" placeholder="Nhập từ khóa cần tìm...." style="width:100%" aria-controls="DataTables_Table_0" [(ngModel)]="q.txtSearch">
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 mb-2">
+          <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()">Tìm kiếm</button>
+          <button class="btn btn-success btn-sm" style="height: 36px; margin-left:10px" type="button" (click)="ExportExcel()">Xuất Excel</button>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-sm-12 col-md-1 mb-2">
+          Hiển thị
+          <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="input-search" [(ngModel)]="paging.page_size" (change)="GetListOrder()">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="table-responsive p-0 header-custom" style="max-height: 600px;">
+          <table class="table table-bordered text-nowrap" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+            <thead>
+              <tr>
+                <th style="text-align: center; width:50px">STT</th>
+                <th (click)="SortTable('TENKHACHHANG')">
+                  Khách hàng
+                </th>
+                <th (click)="SortTable('TENDUAN')">
+                  Dự án
+                </th>
+                <th (click)="SortTable('TENMACBETONG')">
+                  Mác bê tông
+                </th>
+                <th (click)="SortTable('METKHOIDATHANG')">
+                  Đặt hàng
+                </th>
+                <th (click)="SortTable('METKHOITICHLUY')">
+                  Sản xuất
+                </th>
+                <th (click)="SortTable('Name')">
+                  Số trạm
+                </th>
+                <th (click)="SortTable('NGAYDATHANG')" style="width:90px">
+                  Ngày đặt
+                </th>
+                <th (click)="SortTable('TENNV')" style="width:90px">
+                  Tên kinh doanh
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of listOrder; let i = index" role="row">
+                <td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>
+                <td style="color: #0073aa; font-weight:600">
+                  {{ item.TENKHACHHANG }}
+                </td>
+                <td>{{ item.TENDUAN }}</td>
+                <td>{{ item.TENMACBETONG }}</td>
+                <td>{{ item.METKHOIDATHANG | number:'1.0-1'}}</td>
+                <td>{{ item.METKHOITICHLUY | number:'1.0-1'}}</td>
+                <td>{{ item.Name }}</td>
+                <td>{{ item.NGAYDATHANGTITLE}}</td>
+                <td>{{ item.TENNV}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row" style="padding-left:15px;">
+        <div class="col-sm-12 col-md-5">
+          <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+            Hiển thị {{ (paging.page - 1) * paging.page_size + 1 }} đến {{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }} trong số {{ paging.item_count }} bản ghi
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-7">
+          <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination pagination-sm m-0 float-right"
+                      previousText="&lsaquo;" nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col-md-8">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-server" style="margin-right:5px"></i> Chi tiết phân bổ đặt hàng</h3>
+            <!-- /.card-tools -->
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body p-3" style="display: block;">
+            <div class="row">
+              <div class="col-sm-12 col-md-4 mb-2" *ngFor="let item of listOrderBranch; let i = index">
+                <div style="border: 2px solid #007bff;border-radius: .25rem;padding: 10px;">
+                  <p><b>{{ item.Name }}</b></p>
+                  <p><i class="fas fa-shopping-cart"></i> {{ item.METKHOIDATHANG | number:'1.0-1' }} m3</p>
+                  <p><i class="fas fa-check-square"></i> {{ item.METKHOITICHLUY | number:'1.0-1' }} m3</p>
+                </div>
+              </div>
+            </div>
+            <p>
+
+            </p>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+      <div class="col-md-4">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h3 class="card-title"> <i class="far fa-clipboard" style="margin-right:5px"></i>Tổng</h3>
+            <!-- /.card-tools -->
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body p-4" style="display: block;">
+            <p><b>Đặt hàng: </b> {{ totalMETKHOIDATHANG | number:'1.0-1' }} m3</p>
+            <p><b>Sản xuất: </b> {{ totalMETKHOITICHLUY | number:'1.0-1' }} m3</p>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </div>
+  </div>
+</section>
+
+

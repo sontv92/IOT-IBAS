@@ -1,0 +1,208 @@
+<!-- Content Header (Page header) -->
+<div class="content-header" style="background-color: #2f00ff; color:white">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="m-0">QUẢN LÝ TRẠM</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          <li class="breadcrumb-item active">QUẢN LÝ TRẠM</li>
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+<section class="content" style="padding:20px">
+  <div class="container-fluid">
+
+    <div class="card card-default">
+      <div class="card-header">
+        <h3 class="card-title">Lọc tìm kiếm</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="card-body" style="display: block;">
+        <div class="form-group row">
+          <label for="inputCat1" class="col-sm-2 col-form-label" *ngIf="role == 1" >Công ty</label>
+          <div class="col-sm-4" *ngIf="role == 1">
+            <ng-select [items]="listCompany"
+                       bindLabel="Name"
+                       bindValue="CompanyId"
+                       [multiple]="false"
+                       placeholder="Chọn công ty"
+                       [(ngModel)]="q.CompanyId"
+                       [ngModelOptions]="{standalone: true}" (change)="QueryChanged()" style="margin-right: 15px;min-width: 150px;">
+            </ng-select>
+          </div>
+          <label for="inputCat4" class="col-sm-2 col-form-label">Tên trạm</label>
+          <div class="col-sm-4 ">
+            <input type="text" class="form-control" placeholder="Nhập tên trạm..."  [(ngModel)]="q.txtSearch" (keyup.enter)="QueryChanged()" >
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-sm-2 ">
+            <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()"><i class="fa fa-filter"></i>Tìm kiếm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="DataTables_Table_0_wrapper">
+      <div class="row" style="margin-bottom: 20px;">
+        <div class="col-sm-12">
+          <button *ngIf="role == 1 || actionUpdate" class="btn btn-primary btn-sm" style="float: left;" type="button" (click)="OpenBranchModal(undefined)"><i class="fa fa-plus"></i>&nbsp;Thêm mới</button>
+          <button class="btn btn-warning btn-sm" style="float: right;" type="button" (click)="QueryChanged()"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="table-responsive p-0 header-custom" style="max-height: 600px;">
+          <table class="table table-bordered text-nowrap" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+            <thead style="background-color: #007bff; color: white; !important; color: white;">
+              <tr role="row">
+                <th style="width: 50px;text-align: center;">STT</th>
+                <th (click)="SortTable('Name')">
+                  Tên chi nhánh
+                </th>
+                <th (click)="SortTable('Phone')" style="width: 90px;">
+                  Số điện thoại
+                </th>
+                <th (click)="SortTable('Email')">
+                  Email
+                </th>
+                <th (click)="SortTable('Address')">
+                  Địa chỉ
+                </th>
+                <th style="width: 120px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of listBranch; let i = index" role="row">
+                <td style="text-align: center;"><b>{{ (paging.page - 1) * paging.page_size + i + 1 }}</b></td>
+                <td>{{ item.Name }}</td>
+                <td>{{ item.Phone }}</td>
+                <td>
+                  {{ item.Email }}
+                </td>
+                <td>
+                  {{ item.Address }}
+                </td>
+                <td style="text-align: center;">
+                  <a *ngIf="actionUpdate" class="btn btn-info btn-sm" href="javascript:void(0)" (click)="OpenBranchModal(item)" tooltip="Sửa" style="margin-right: 5px;">
+                    <i class="fas fa-pencil-alt">
+                    </i>
+                    Sửa
+                  </a>
+                  <a class="btn btn-danger btn-sm" *ngIf="role == 1 || actionDelete" href="javascript:void(0)" (click)="ShowConfirmDelete(item.BranchId)" tooltip="Xóa">
+                    <i class="fas fa-trash">
+                    </i>
+                    Xóa
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row" style="padding-left:15px;">
+        <div class="col-sm-12 col-md-3">
+          Hiển thị
+          <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="input-search" [(ngModel)]="paging.page_size" (change)="QueryChanged()">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div class="col-sm-12 col-md-4">
+          <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+            Hiển thị {{ (paging.page - 1) * paging.page_size + 1 }} đến {{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }} trong số {{ paging.item_count }} bản ghi
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-5">
+          <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination pagination-sm m-0 float-right"
+                      previousText="&lsaquo;" nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div bsModal #BranchModal="bs-modal" class="modal fade show" [config]="{backdrop: 'static',  keyboard: false}"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <form class="login-form">
+      <div class="modal-content card card-primary">
+        <div class="card-header" style="background-color: #2f00ff !important;">
+          <h4 class="card-title" *ngIf="Item.BranchId == undefined">Thêm mới trạm trộn</h4>
+          <h4 class="card-title" *ngIf="Item.BranchId != undefined">Cập nhật thông tin trạm trộn</h4>
+          <button type="button" class="close" (click)="BranchModal.hide()" aria-label="Close" style="color: white;margin-top:-5px">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="form-group">
+                <label for="Code">Mã chi nhánh<span *ngIf="Item.Code==undefined || Item.Code==''" style="color: red;">&ngsp;(*)</span></label>
+                <input type="text" id="Code" name="Code" maxlength="500" class="form-control" placeholder="" [(ngModel)]="Item.Code" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="Name">Tên chi nhánh<span *ngIf="Item.Name==undefined || Item.Name==''" style="color: red;">&ngsp;(*)</span></label>
+                <input type="text" id="Name" name="Name" maxlength="500" class="form-control" placeholder="" [(ngModel)]="Item.Name" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="Email">Email<span *ngIf="Item.Email==undefined || Item.Email==''" style="color: red;">&ngsp;(*)</span></label>
+                <input type="email" id="Email" name="Email" maxlength="500" class="form-control" placeholder="" pattern=".+@example.com" [(ngModel)]="Item.Email" autocomplete="off" required>
+              </div>
+              <div class="form-group">
+                <label for="Phone">Số điện thoại<span *ngIf="Item.Phone==undefined || Item.Phone==''" style="color: red;">&ngsp;(*)</span></label>
+                <input type="text" id="Phone" maxlength="50" name="Phone" class="form-control" placeholder="" [(ngModel)]="Item.Phone" onkeypress="return event.charCode >= 48 && event.charCode <= 57" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="Address">Địa chỉ</label>
+                <input type="text" id="Address" name="Address" class="form-control" placeholder="" [(ngModel)]="Item.Address" autocomplete="off">
+              </div>
+              <div class="form-group" *ngIf="role == 1">
+                <label for="">Công ty<span *ngIf="Item.CompanyId==undefined" style="color: red;">&ngsp;(*)</span></label>
+                <ng-select [items]="listCompany"
+                           bindLabel="Name"
+                           bindValue="CompanyId"
+                           [multiple]="false"
+                           placeholder="Chọn công ty"
+                           [(ngModel)]="Item.CompanyId"
+                           [ngModelOptions]="{standalone: true}">
+                </ng-select>
+              </div>
+              <div class="form-group">
+                <label for="Username">Tài khoản</label>
+                <input type="text" [disabled]="isdisabled" id="Username" name="Username" class="form-control" placeholder="" [(ngModel)]="Item.Username" autocomplete="off">
+                <p style="color:red">* Tên cơ sở dữ liệu là tên tài khoản + "_online"</p>
+              </div>
+              <div class="form-group">
+                <label for="Password">Mật khẩu</label>
+                <input type="password" id="Password" name="Password" class="form-control" placeholder="" [(ngModel)]="Item.Password" autocomplete="off">
+                <p style="color:red">* Mật khẩu yêu cầu chứa tất cả chữ thường a-z, chữ hoa A-Z, số 0-9, kí tự đặc biệt @#$%</p>
+              </div>
+              <div class="form-group">
+                <label for="PMQLXe">Phần mềm quản lý xe</label>
+                <input type="text" id="PMQLXe" name="PMQLXe" maxlength="500" class="form-control" placeholder="" [(ngModel)]="Item.PMQLXe" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="QLCamera">Quản lý Camera</label>
+                <input type="text" id="QLCamera" name="QLCamera" maxlength="500" class="form-control" placeholder="" [(ngModel)]="Item.QLCamera" autocomplete="off" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" appNoDblClickMat (click)="SaveBranch()">Lưu thông tin</button>
+          <button type="button" class="btn btn-secondary" (click)="BranchModal.hide()">Đóng</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

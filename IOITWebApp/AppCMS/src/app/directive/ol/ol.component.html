@@ -1,0 +1,36 @@
+<li *ngFor="let item of items; let i = index" class="dd-item" attr.data-id="{{ item.CategoryId }}" attr.data-Name="{{ item.Name }}">
+  <div class="dd-handle" style="position: relative;">
+    <div class="category-move-btn">
+      <i class="fa fa-bars" aria-hidden="true"></i>
+    </div>
+  </div>
+  <div class="col-name-category">
+      {{ item.Name }}
+      <div class="category-action">
+        <span class="id-item">ID: {{item.CategoryId}} | </span>
+        <span class="add-item" (click)="AddCate(item.CategoryId)">Thêm mới | </span>
+        <span class="update-item" (click)="UpdateCate(item.CategoryId)">Chỉnh sửa | </span>
+        <span class="delete-item" (click)="DeleteCate(item.CategoryId)">Xóa</span>
+      </div>
+    </div>
+    <div class="col-image-category">
+      <img src="../../../assets/img/no-image1.png" *ngIf="item.Image==undefined" />
+      <img src="{{ domainImage }}{{item.Image}}" *ngIf="item.Image!=undefined" />
+    </div>
+    <div class="col-url-category">
+      {{ item.Url }}
+    </div>
+    <div class="col-des-category">
+      {{ item.Descriptions != undefined ? (item.Descriptions | truncate:[15]) : '—' }}
+    </div>
+  <!-- <a *ngIf="hasAction == true" class="btn btn-info btn-sort" style="right: 76px;" href="javascript:void(0)" (click)="AddCate(item.CategoryId)">
+    <i class="fa fa-plus"></i>
+  </a>
+  <a *ngIf="hasAction == true" class="btn btn-secondary btn-sort" style="right: 39px;" href="javascript:void(0)" (click)="UpdateCate(item.CategoryId)">
+    <i class="fa fa-edit"></i>
+  </a>
+  <a *ngIf="hasAction == true" class="btn btn-danger btn-sort" style="right: 5px;" href="javascript:void(0)" (click)="DeleteCate(item.CategoryId)">
+    <i class="fa fa-trash-o"></i>
+  </a> -->
+  <ol *ngIf="item[key].length" [key]="key" [data]="item[key]" [hasAction]="hasAction" class="dd-list"></ol>
+</li>

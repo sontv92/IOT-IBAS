@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\Working\Tung\Deploy-ThaoAnh</_PublishTargetUrl>
+    <History>True|2023-03-22T17:11:41.7976253Z;True|2022-08-08T21:42:41.1708688+07:00;True|2022-07-11T00:17:21.7217594+07:00;True|2022-07-06T00:49:51.3344943+07:00;True|2022-07-04T22:30:00.8234497+07:00;True|2022-07-03T12:11:34.6956510+07:00;True|2022-07-03T01:47:21.3703876+07:00;True|2022-07-02T21:55:37.1461380+07:00;True|2022-07-02T21:25:48.7479771+07:00;True|2022-06-30T00:17:49.1105057+07:00;True|2022-06-28T22:44:40.1752343+07:00;True|2022-06-26T22:17:07.9618631+07:00;True|2022-06-26T09:26:45.9735849+07:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>
