@@ -509,7 +509,8 @@ namespace IOITWebApp.Controllers.ApiBravo
                             Detail vatLieu = new Detail()
                             {
                                 KhoiLuong = (decimal)((result[itemCuaVL] is DBNull) ? 0 : Math.Round((Double)result[itemCuaVL], 2)),
-                                MaVatTu = TenCuaVL[i - 1].MACUAVL
+                                MaVatTu = TenCuaVL[i - 1].MACUAVL,
+                                TenVatTu = TenCuaVL[i - 1].TENCUAVL
                             };
                             item.Details.Add(vatLieu);
                         }

@@ -580,8 +580,7 @@ public lineChartColors: Color[] = [
   //lấy dữ liệu tỷ lệ đã trộn/ chưa trộn
   GetTyLeDaTron(){
     if (this.q.tungay != undefined  && this.q.tungay != '' ) {
-      var _tungay = this.datepipe.transform(this.q.tungay, 'yyyy-MM-dd');
-      
+      var _tungay = this.datepipe.transform(this.q.tungay, 'yyyy-MM-dd HH:mm:ss');
     }
     this.barChartLabels= [];
     this.barChartData = [];

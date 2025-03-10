@@ -1,8 +1,10 @@
-﻿namespace IOITWebApp.Models.Station
+﻿using System;
+
+namespace IOITWebApp.Models.Station
 {
     public class CuaVL
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string MACUAVL { get; set; }
         public string TENCUAVL { get; set; }
         public string TENLOAIVL { get; set; }

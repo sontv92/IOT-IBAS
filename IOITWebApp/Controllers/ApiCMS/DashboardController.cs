@@ -414,7 +414,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     Branch branch = context.Branch.Where(c => c.BranchId == Convert.ToInt32(item)).Where(x => x.Status != (int)Const.Status.DELETED).FirstOrDefault();
                                     if (branch != null)
                                     {
-
+                                        log.Error("bbbb" + branch.BranchId);
 
                                         String subQuerySumTyLeTron = string.Format("select CASE WHEN(SUM(METKHOIDATHANG) - SUM(METKHOITICHLUY)) < 0 THEN 0 ELSE (SUM(METKHOIDATHANG) - SUM(METKHOITICHLUY)) END as CHUATRON, SUM(METKHOITICHLUY) as DATRON   from [" + branch.Dataname + "].[dbo].DATHANG WHERE '{0}' <= NGAYDATHANG AND NGAYDATHANG <= '{1}' \n",
                                         CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau),
@@ -502,15 +502,21 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         }
                                         def.tongTheTichTheoNgayTron = tongTheTichTheoNgayTron;
 
+                                        string dateString = paging.tungay.ToString();
+                                        DateTime parsedDate = DateTime.ParseExact(dateString, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+
+                                        // Format thành "08/03/2025 00:00:00.000"
+                                        string formattedDate = parsedDate.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
                                         // Vật liệu theo ngày
                                         String sqlVatLieuTheoNgay = String.Format("SELECT D.TENCUAVL TENCUAVL, D.MALOAIVL LOAIVL, SUM(ISNULL(D.SOLUONGTD,0)) + SUM(ISNULL(D.SOLUONGTAY,0)) SUMSOLUONG " +
                                                                                     "FROM [" + branch.Dataname + "].[dbo].LSTRON A INNER JOIN [" + branch.Dataname + "].[dbo].LSCHITIETMETRON B ON A.MALSTRON = B.MALSTRON " +
                                                                                     "INNER JOIN [" + branch.Dataname + "].[dbo].GIAMSATTRON C ON C.ID = B.GIAMSATTRONID   \n" +
                                                                                     "INNER JOIN [" + branch.Dataname + "].[dbo].GIAMSATSOLUONG D ON D.STTGIAMSATTRON = C.STT   \n" +
                                                                                     "LEFT JOIN [" + branch.Dataname + "].[dbo].CUAVL F ON F.STTCUAVL = D.STTCUAVL " +
-                                                                                    "WHERE A.NGAYTRON = '" + paging.tungay + "' AND F.TRANGTHAI = 'True' " +
+                                                                                    "WHERE A.NGAYTRON = '" + formattedDate + "' AND F.TRANGTHAI = 'True' " +
                                                                                     "GROUP BY D.TENCUAVL, D.STTCUAVL, D.MALOAIVL");
-
+                                        log.Error("aaaaa" + sqlVatLieuTheoNgay);
                                         DataTable dtvatlieutheongay = CommonLib.GetDataBySql(sqlVatLieuTheoNgay.ToString());
                                         VatLieuTheoNgay vatLieuTheoNgay = new VatLieuTheoNgay();
                                         vatLieuTheoNgay.dataPoints = new List<DataPoint>();

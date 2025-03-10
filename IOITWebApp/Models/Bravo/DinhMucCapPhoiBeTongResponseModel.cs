@@ -12,6 +12,7 @@ namespace IOITWebApp.Models.Bravo
     public class Detail
     {
         public int MaVatTu { get; set; }
+        public string TenVatTu { get; set; }
         public decimal KhoiLuong { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO.Compression;
 using System.Linq;
@@ -65,6 +66,10 @@ namespace IOITWebApp
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
+
+            //var cultureInfo = new CultureInfo("en-US");
+            //CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            //CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
             services.AddSpaStaticFiles(configuration =>
             {
@@ -203,6 +208,25 @@ namespace IOITWebApp
                     ctx.Context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.CacheControl] =
                         "public,max-age=" + durationInSeconds;
                 }
+            });
+
+            app.Use(async (context, next) =>
+            {
+                var culture = new CultureInfo("en-US")
+                {
+                    DateTimeFormat =
+                    {
+                        ShortDatePattern = "dd/MM/yyyy",
+                        LongDatePattern = "dd/MM/yyyy hh:mm:ss tt",
+                        ShortTimePattern = "hh:mm:ss tt",
+                        LongTimePattern = "hh:mm:ss tt"
+                    }
+                };
+
+                CultureInfo.CurrentCulture = culture;
+                CultureInfo.CurrentUICulture = culture;
+
+                await next();
             });
 
             app.UseWebOptimizer();
