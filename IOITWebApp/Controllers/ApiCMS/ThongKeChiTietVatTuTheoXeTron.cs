@@ -872,7 +872,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                                         using (var package = new ExcelPackage())
                                         {
-                                            var alphabet = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z";
+                                            var alphabet = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB";
                                             var arrAlphabet = alphabet.Split(",");
                                             var lastAlphabet = string.Empty;
                                             lastAlphabet = arrAlphabet[dtSource.Columns.Count - 1];
