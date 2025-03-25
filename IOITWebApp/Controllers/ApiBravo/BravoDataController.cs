@@ -205,8 +205,12 @@ namespace IOITWebApp.Controllers.ApiBravo
                                 expires: expires,
                                 signingCredentials: creds
                             );
-                            userLogin.access_token = new JwtSecurityTokenHandler().WriteToken(token);
-                            def.data = userLogin;
+                            var response = new LoginResponseModel() { 
+                                access_token = new JwtSecurityTokenHandler().WriteToken(token),
+                                access_key = null
+                            };
+
+                            def.data = response;
                             def.meta = new Meta(200, "success");
                             return Ok(def);
                         }
