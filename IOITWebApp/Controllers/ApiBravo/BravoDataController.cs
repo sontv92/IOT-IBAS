@@ -3,6 +3,7 @@ using IOITWebApp;
 using IOITWebApp.Helper;
 using IOITWebApp.Models;
 using IOITWebApp.Models.Bravo;
+using IOITWebApp.Models.Common;
 using IOITWebApp.Models.Data;
 using IOITWebApp.Models.EF;
 using IOITWebApp.Models.Security;
@@ -71,10 +72,10 @@ namespace IOITWebApp.Controllers.ApiBravo
                                          {
                                              userId = person.UserId,
                                              userName = person.UserName,
-                                             email = person.Email,
+                                             //email = person.Email,
                                              fullName = person.FullName,
-                                             password = person.Password,
-                                             phone = person.Phone,
+                                             //password = person.Password,
+                                             // phone = person.Phone,
                                              status = person.Status,
                                              isRoleGroup = person.IsRoleGroup != null ? (bool)person.IsRoleGroup : true,
                                          }
@@ -182,15 +183,15 @@ namespace IOITWebApp.Controllers.ApiBravo
                                 access_key = access_key + listFunctionRole[count - 1].Code + ":" + listFunctionRole[count - 1].ActiveKey;
                             }
 
-                            userLogin.access_key = access_key;
+                            //userLogin.access_key = access_key;
                             var claims = new List<Claim>
                                 {
-                                    new Claim(JwtRegisteredClaimNames.Email, userLogin.email),
+                                    //new Claim(JwtRegisteredClaimNames.Email, userLogin.email),
                                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                                    new Claim(ClaimTypes.NameIdentifier, userLogin.userId.ToString()),
+                                    //new Claim(ClaimTypes.NameIdentifier, userLogin.userId.ToString()),
                                     new Claim(ClaimTypes.Name, userLogin.fullName),
-                                        new Claim("UserId", userLogin.userId != null ? userLogin.userId.ToString() : ""),
-                                        new Claim("AccessKey", access_key != null ? access_key : ""),
+                                        //new Claim("UserId", userLogin.userId != null ? userLogin.userId.ToString() : ""),
+                                     new Claim("AccessKey", access_key != null ? access_key : ""),
                                 };
 
                             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
@@ -239,365 +240,349 @@ namespace IOITWebApp.Controllers.ApiBravo
                 return Ok(def);
             }
         }
+
         [Authorize]
-        [HttpGet("dmvattucapphoi")]
-        public IActionResult GetDmVatTuCapPhoi(int? branchId)
+        [HttpPost("dmvattu")]
+        public IActionResult PostVatTu([FromBody] DanhMucVatTuRequestModel pg)
         {
-            string functionCode = "dmvattucapphoi";
+            string functionCode = "dmvattu";
             var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            List<VatuCapPhoiResponseModel> data = new List<VatuCapPhoiResponseModel>();
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
-            // Lấy danh sách vật liệu
-            var qrVL = $"SELECT * FROM [{branch.FirstOrDefault().Dataname}].[dbo].[CUAVL]";
-            var lstVL = DapperHepper.Query<CuaVL>(LocalSettings.ConnectString, qrVL);
-
-            var qrLoaiVL = $"SELECT * FROM [{branch.FirstOrDefault().Dataname}].[dbo].[LOAIVL]";
-            var lstLoaiVL = DapperHepper.Query<LoaiVL>(LocalSettings.ConnectString, qrLoaiVL);
-            if (lstVL != null && lstVL.Any())
-            {
-                foreach (var vt in lstVL)
-                {
-                    data.Add(new VatuCapPhoiResponseModel()
-                    {
-                        MaVatTu = vt.MACUAVL,
-                        TenVatu = vt.TENCUAVL,
-                        NhomVatTu = lstLoaiVL?.FirstOrDefault(x => x.ID == vt.MALOAIVL).TENLOAIVL
-                    });
-                }
-            }
-            res.data = data;
-            res.meta = new Meta(200, "Success");
-            return Ok(res);
-        }
-        [Authorize]
-        [HttpGet("dmduan")]
-        public IActionResult GetDmDuAn(int? branchId)
-        {
-            string functionCode = "dmduan";
-            var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
-            // Lấy danh sách dự án
-            var qrDa = $"SELECT Ma, TENDUAN FROM [{branch.FirstOrDefault().Dataname}].[dbo].[DUAN]";
-            var lstVL = DapperHepper.Query<DuAnResponseModel>(LocalSettings.ConnectString, qrDa);
-            res.data = lstVL;
-            res.meta = new Meta(200, "Success");
-            return Ok(res);
-        }
-        [Authorize]
-        [HttpGet("dmkhachhang")]
-        public IActionResult GetDmKhachHang(int? branchId)
-        {
-            string functionCode = "dmkhachhang";
-            var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
-            // Lấy danh sách dự án
-            var qrDa = $"SELECT Ma, TENKHACHHANG FROM [{branch.FirstOrDefault().Dataname}].[dbo].[KHACHHANG]";
-            var lstVL = DapperHepper.Query<KhachHangResponseModel>(LocalSettings.ConnectString, qrDa);
-            res.data = lstVL;
-            res.meta = new Meta(200, "Success");
-            return Ok(res);
-        }
-        [Authorize]
-        [HttpGet("dmsanpham")]
-        public IActionResult GetDmSanPham(int? branchId)
-        {
-            string functionCode = "dmsanpham";
-            var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
-            List<SanPhamResponseModel> data = new List<SanPhamResponseModel>();
-            var qrMacBetong = $"select Ma, TENMACBETONG FROM [{branch.FirstOrDefault().Dataname}].[dbo].MACBETONG";
-            var lstSp = DapperHepper.Query<MacBeTongDTO>(LocalSettings.ConnectString, qrMacBetong);
-            foreach (var item in lstSp)
-            {
-                data.Add(new SanPhamResponseModel()
-                {
-                    Ma = item.Ma,
-                    Ten = item.TENMACBETONG
-                });
-            }
-            res.data = data;
-            res.meta = new Meta(200, "Success");
-            return Ok(res);
-        }
-        [Authorize]
-        [HttpGet("dinhmuccapphoibt")]
-        public IActionResult GetDinhMucCapPhoiBeTong(int? branchId)
-        {
-            string functionCode = "dinhmuccapphoibt";
-            var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            List<VatuCapPhoiResponseModel> data = new List<VatuCapPhoiResponseModel>();
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
-            using (var context = new CNTTVNWebContext())
-            using (var command = context.Database.GetDbConnection().CreateCommand())
-            {
-                List<DinhMucCapPhoiBeTongResponseModel> capphoi = new List<DinhMucCapPhoiBeTongResponseModel>();
-                var count = 0;
-
-                command.CommandText = "SELECT COUNT(*) as COUNT FROM [" + branch.FirstOrDefault().Dataname + "].[dbo].CUAVL";
-                context.Database.OpenConnection();
-                var resultCount = command.ExecuteReader();
-                resultCount.Read();
-                count = resultCount.GetInt32(0);
-                context.Database.CloseConnection();
-
-                command.CommandText = string.Empty;
-                command.CommandText += "IF(OBJECT_ID('tempdb..#TempTable') IS NOT NULL) BEGIN DROP TABLE  [" + branch.FirstOrDefault().Dataname + "].[dbo].#TempTable END; ";
-                command.CommandText += "SELECT * INTO [" + branch.FirstOrDefault().Dataname + "].[dbo].#TempTable FROM ( SELECT [MACBETONGID], [MACUAVL], [SOLUONG] FROM [" + branch.FirstOrDefault().Dataname + "].[dbo].SOLUONGVL ) SOLUONGVLResults ";
-                command.CommandText += "PIVOT (SUM([SOLUONG]) FOR [MACUAVL] IN (";
-                for (int k = 1; k <= count; k++)
-                {
-                    if (k < count)
-                        command.CommandText += "[" + k + "],";
-                    else
-                        command.CommandText += "[" + k + "]))";
-                }
-                command.CommandText += "AS PivotTable;";
-                command.CommandText += " SELECT COUNT(*) AS COUNTS FROM #TempTable ;";
-                command.CommandText += "select [MACBETONGID],mbt.Ma,mbt.MaLK,mbt.TENMACBETONG,mbt.CUONGDO, mbt.COTLIEUMAX, mbt.DOSUT,mbt.LASTUPDATED,";
-                for (int k = 1; k <= count; k++)
-                {
-                    if (k < count)
-                        command.CommandText += "[" + k + "],";
-                    else
-                        command.CommandText += "[" + k + "] ";
-                }
-                command.CommandText += "from  [" + branch.FirstOrDefault().Dataname + "].[dbo].#TempTable tmp INNER JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].MACBETONG mbt ON tmp.MACBETONGID = mbt.ID";
-                command.CommandText += " ORDER BY Ma DESC";
-                command.CommandText += " DROP TABLE #TempTable; ";
-
-
-                List<VatLieuDTO> TenCuaVL = new List<VatLieuDTO>();
-                using (var command2 = context.Database.GetDbConnection().CreateCommand())
-                {
-                    for (int i = 1; i <= count; i++)
-                    {
-                        context.Database.OpenConnection();
-                        command2.CommandText = "SELECT cuavl.TENCUAVL, cuavl.MACUAVL, cuavl.TRANGTHAI FROM [" + branch.FirstOrDefault().Dataname + "].[dbo].CUAVL as cuavl WHERE MACUAVL = " + i;
-                        var resultCount1 = command2.ExecuteReader();
-                        resultCount1.Read();
-                        TenCuaVL.Add(new VatLieuDTO()
-                        {
-                            TENCUAVL = resultCount1.GetString(0),
-                            MACUAVL = resultCount1.GetInt32(1),
-                            TRANGTHAI = resultCount1.GetBoolean(2)
-                        });
-                        context.Database.CloseConnection();
-                    }
-                }
-                context.Database.OpenConnection();
-                using (var result = command.ExecuteReader())
-                {
-                    result.Read();
-                    result.NextResult();
-                    while (result.Read())
-                    {
-                        DinhMucCapPhoiBeTongResponseModel item = new DinhMucCapPhoiBeTongResponseModel();
-                        item.MaCapPhoi = result["Ma"] == null ? string.Empty : (string)result["Ma"];
-                        item.TenCapPhoi = (result["TENMACBETONG"] is DBNull) ? String.Empty : (string)result["TENMACBETONG"];
-
-                        item.DoSut = (result["DOSUT"] is DBNull) ? String.Empty : (string)result["DOSUT"];
-
-                        item.Details = new List<Detail>();
-                        for (int i = 1; i <= count; i++)
-                        {
-                            var itemCuaVL = i.ToString();
-                            Detail vatLieu = new Detail()
-                            {
-                                KhoiLuong = (decimal)((result[itemCuaVL] is DBNull) ? 0 : Math.Round((Double)result[itemCuaVL], 2)),
-                                MaVatTu = TenCuaVL[i - 1].MACUAVL,
-                                TenVatTu = TenCuaVL[i - 1].TENCUAVL
-                            };
-                            item.Details.Add(vatLieu);
-                        }
-
-                        capphoi.Add(item);
-                    }
-                    res.data = capphoi;
-                }
-                res.meta = new Meta(200, "Success");
-                return Ok(res);
-            }
-        }
-        [Authorize]
-        [HttpGet("lenhsanxuat")]
-        public IActionResult GetLenhSanXuat(int? branchId)
-        {
-            string functionCode = "lenhsanxuat";
-            var res = new APIResponseData();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                res.meta = new Meta(401, "No permission");
-                return Ok(res);
-            }
-
-            if (branchId == null)
-            {
-                res.meta = new Meta(400, "Mã trạm là bắt buộc");
-                return Ok(res);
-            }
-            List<LenhSanXuatResponseModel> data = new List<LenhSanXuatResponseModel>();
-            var qrBranch = $"SELECT * FROM Branch WHERE BranchId = {branchId}";
-
-            var branch = DapperHepper.Query<Branch>(LocalSettings.ConnectString, qrBranch);
-            if (branch == null)
-            {
-                res.meta = new Meta(404, "Không tìm thấy trạm tương ứng");
-                return Ok(res);
-            }
             try
             {
+                if (pg == null)
+                {
+                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
+                //check role
+                var identity = (ClaimsIdentity)User.Identity;
+                if (identity == null)
+                {
+                    res.meta = new Meta(401, "Unauthorized");
+                    return Ok(res);
+                }
+                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
+                {
+                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
                 using (var context = new CNTTVNWebContext())
                 using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
+                    if (pg.BranchId != 0)
+                    {
+                        Branch branch = context.Branch.Find(Convert.ToInt32(pg.BranchId));
+                        if (branch == null)
+                        {
+                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+                        //sinh ID tu dong
+                        var id = CustomGuid.NewSequentialId();
 
-                    command.CommandText = " SELECT KHACHHANGID,NHANVIENID,DUANID,MACBETONGID, ID, Ma,MAKHACHHANG, TENKHACHHANG,MADUAN,TENDUAN,TONGSOPHIEU,METKHOIDATHANG,METKHOITICHLUY,NGAYDATHANG,TENMACBETONG, MAMACBETONG,NGAYDATHANGTITLE,TENNV,LASTUPDATED INTO #Result FROM ";
-                    command.CommandText += "(";
-                    command.CommandText += "SELECT sa.KHACHHANGID,sa.NHANVIENID,sa.DUANID,sa.MACBETONGID, sa.MAKHACHHANG as MAKHACHHANG, kh.TENKHACHHANG as TENKHACHHANG,sa.MADUAN as MADUAN, da.TENDUAN as TENDUAN ,sa.ID,sa.Ma, CASE WHEN sa.TONGSOPHIEU > ISNULL(sa.TONGSOPHIEU_TEMP, 0) THEN sa.TONGSOPHIEU ELSE ISNULL(sa.TONGSOPHIEU_TEMP, 0) END AS TONGSOPHIEU, sa.[METKHOIDATHANG], ROUND((ISNULL(sa.METKHOITICHLUY, 0) + ISNULL(sa.METKHOITICHLUY_TEMP, 0) + SUM(ISNULL(te.METKHOITICHLUY_BUTRU,0))),2) AS METKHOITICHLUY, sa.[NGAYDATHANG],mac.TENMACBETONG as TENMACBETONG, mac.Ma as MAMACBETONG, FORMAT(sa.[NGAYDATHANG], 'dd/MM/yyyy HH:mm:ss') as NGAYDATHANGTITLE, nv1.TENNV as TENNV, sa.LASTUPDATED FROM [" + branch.FirstOrDefault().Dataname + "].[dbo].[DATHANG] sa LEFT JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].[NHANVIEN] nv1 ON nv1.ID = sa.NHANVIENID LEFT JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].[KHACHHANG] kh ON kh.ID = sa.KHACHHANGID LEFT JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].[DUAN] da ON da.ID = sa.DUANID  LEFT JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].[MACBETONG] mac ON mac.ID = sa.MACBETONGID LEFT JOIN [" + branch.FirstOrDefault().Dataname + "].[dbo].[DATHANG_TEMP] te ON sa.ID = te.DATHANGID ";
-                    command.CommandText += "GROUP BY sa.KHACHHANGID,sa.NHANVIENID,sa.DUANID,sa.MACBETONGID, kh.TENKHACHHANG, \r\n da.TENDUAN,sa.ID,sa.Ma,sa.METKHOITICHLUY,sa.METKHOITICHLUY_TEMP,sa.TONGSOPHIEU,\r\n sa.TONGSOPHIEU_TEMP,sa.[METKHOIDATHANG], sa.[NGAYDATHANG],mac.TENMACBETONG,nv1.TENNV, sa.MAKHACHHANG, sa.MADUAN,\r\n sa.LASTUPDATED, mac.Ma";
-                    command.CommandText += ") nv";
-                    command.CommandText += " WHERE Ma NOT LIKE N'%DH2%'";
-                    command.CommandText += " SELECT COUNT(*) AS COUNTS FROM #Result ;";
-                    command.CommandText += " SELECT * FROM #Result ";
-                    command.CommandText += " ORDER BY NGAYDATHANG DESC";
+                        //Chỉ sinh mã cho các trạm khác Minh Đức
+                        if (branch.CompanyId != 3061)
+                        {
+                            pg.MaVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_", branch.Dataname);
+                        }
 
-                    command.CommandText += " DROP TABLE #Result; ";
+                        // Check mã vật tư đã tồn tại chưa
+                        var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE Ma = {pg.MaVatTu}";
+                        var vattu = DapperHepper.Query<PhuGiaDTO>(LocalSettings.ConnectString, qrCheck);
+                        if (!vattu.Any() && vattu != null)
+                        {
+                            res.meta = new Meta(400, "Mã vật tư đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+
+                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[PHUGIA] ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [LASTUPDATED]) ";
+                        command.CommandText += "VALUES (@paramID,@paramMa,@paramTENPG,@paramNHACUNGCAP, @paramMaLoaiVL, @paramTenLoaiVL, @paramHeSoQuyDoi, @paramDonViQuyDoi,Getdate())";
+                        //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
+                        var paramID = command.CreateParameter();
+                        paramID.ParameterName = "@paramID";
+                        paramID.Value = id;
+                        command.Parameters.Add(paramID);
+
+                        var paramMa = command.CreateParameter();
+                        paramMa.ParameterName = "@paramMa";
+                        paramMa.Value = pg.MaVatTu;
+                        command.Parameters.Add(paramMa);
+
+                        var paramTENPG = command.CreateParameter();
+                        paramTENPG.ParameterName = "@paramTENPG";
+                        paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
+                        command.Parameters.Add(paramTENPG);
+
+                        var paramNHACUNGCAP = command.CreateParameter();
+                        paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
+                        paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
+                        command.Parameters.Add(paramNHACUNGCAP);
+
+                        var paramMaLoaiVL = command.CreateParameter();
+                        paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
+                        paramMaLoaiVL.Value = pg.MaLoaiVL;
+                        command.Parameters.Add(paramMaLoaiVL);
+
+                        var paramTenLoaiVL = command.CreateParameter();
+                        paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
+                        paramTenLoaiVL.Value = pg.TenLoaiVL;
+                        command.Parameters.Add(paramTenLoaiVL);
+
+                        var paramHeSoQuyDoi = command.CreateParameter();
+                        paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
+                        paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
+                        command.Parameters.Add(paramHeSoQuyDoi);
+
+                        var paramDonViQuyDoi = command.CreateParameter();
+                        paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
+                        paramDonViQuyDoi.Value = pg.DonViQuyDoi;
+                        command.Parameters.Add(paramDonViQuyDoi);
+
+                    }
+                    else
+                    {
+                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
+                        return Ok(res);
+                    }
                     context.Database.OpenConnection();
                     using (var result = command.ExecuteReader())
                     {
                         result.Read();
-                        result.NextResult();
-                        while (result.Read())
-                        {
-
-                            data.Add(new LenhSanXuatResponseModel()
-                            {
-                                KhoiLuong = Math.Round((Single)result["METKHOIDATHANG"], 1),
-                                MaCapPhoi = (result["MAMACBETONG"] is DBNull) ? String.Empty : (string)result["MAMACBETONG"],
-                                MaDA = (result["MADUAN"] is DBNull) ? String.Empty : (string)result["MADUAN"],
-                                MaKH = (result["MAKHACHHANG"] is DBNull) ? String.Empty : (string)result["MAKHACHHANG"],
-                                MaLenhSanXuat = (result["Ma"] is DBNull) ? String.Empty : (string)result["Ma"],
-                                ThoiGianBatDau = (DateTime)result["NGAYDATHANG"],
-                                MetKhoiDaTron = (double)result["METKHOITICHLUY"],
-                            });
-                        }
-
-                        res.data = data;
+                        res.meta = new Meta(200, "Thêm mới thành công");
+                        return Ok(res);
                     }
-                    res.meta = new Meta(200, "Success");
-                    return Ok(res);
                 }
             }
             catch (Exception ex)
             {
-                res.meta = new Meta(500, "Đã có lỗi xảy ra");
+                log.Error("Error:" + ex);
+                res.meta = new Meta(500, "Lỗi máy chủ!");
+                return Ok(res);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("dmmacbetong")]
+        public IActionResult PostMacBeTong([FromBody] DanhMucMacRequestModel capphoi)
+        {
+            string functionCode = "dmmacbetong";
+            var res = new APIResponseData();
+            try
+            {
+                if (capphoi == null)
+                {
+                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
+                //check role
+                var identity = (ClaimsIdentity)User.Identity;
+                if (identity == null)
+                {
+                    res.meta = new Meta(401, "Unauthorized");
+                    return Ok(res);
+                }
+                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
+                {
+                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
+                using (var context = new CNTTVNWebContext())
+                using (var command = context.Database.GetDbConnection().CreateCommand())
+                {
+                    if (capphoi.BranchId != 0)
+                    {
+                        Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                        if (branch == null)
+                        {
+                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+                        //sinh ID tu dong
+                        var id = CustomGuid.NewSequentialId();
+
+                        //Chỉ sinh mã cho các trạm khác Minh Đức
+                        if (branch.CompanyId != 3061)
+                        {
+                            capphoi.MaMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                        }
+
+                        // Check mã vật tư đã tồn tại chưa
+                        var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
+                        var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
+                        if (macBT.Any() && macBT != null)
+                        {
+                            res.meta = new Meta(400, "Mã mác bê tông đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+
+                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT],[LASTUPDATED]) ";
+                        command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT,Getdate());";
+                        var paramMACBETONGID = command.CreateParameter();
+                        paramMACBETONGID.ParameterName = "@paramMACBETONGID";
+                        paramMACBETONGID.Value = id;
+                        command.Parameters.Add(paramMACBETONGID);
+
+                        var paramMa = command.CreateParameter();
+                        paramMa.ParameterName = "@paramMa";
+                        paramMa.Value = capphoi.MaMac;
+                        command.Parameters.Add(paramMa);
+
+                        var paramTenMacBeTong = command.CreateParameter();
+                        paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
+                        paramTenMacBeTong.Value = capphoi.TenMac;
+                        command.Parameters.Add(paramTenMacBeTong);
+
+                        var paramCUONGDO = command.CreateParameter();
+                        paramCUONGDO.ParameterName = "@paramCUONGDO";
+                        paramCUONGDO.Value = capphoi.CuongDo;
+                        command.Parameters.Add(paramCUONGDO);
+
+                        var paramCOTLIEUMAX = command.CreateParameter();
+                        paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
+                        paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
+                        command.Parameters.Add(paramCOTLIEUMAX);
+
+                        var paramDOSUT = command.CreateParameter();
+                        paramDOSUT.ParameterName = "@paramDOSUT";
+                        paramDOSUT.Value = capphoi.DoSut;
+                        command.Parameters.Add(paramDOSUT);
+
+                    }
+                    else
+                    {
+                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
+                        return Ok(res);
+                    }
+                    context.Database.OpenConnection();
+                    using (var result = command.ExecuteReader())
+                    {
+                        result.Read();
+                        res.meta = new Meta(200, "Thêm mới thành công");
+                        return Ok(res);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error:" + ex);
+                res.meta = new Meta(500, "Lỗi máy chủ!");
+                return Ok(res);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("dmcapphoibetong")]
+        public IActionResult PostSoLuongVL([FromBody] DanhMucCapPhoiBeTongRequestModel capphoi)
+        {
+            string functionCode = "dmmacbetong";
+            var res = new APIResponseData();
+            try
+            {
+                if (capphoi == null)
+                {
+                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
+                //check role
+                var identity = (ClaimsIdentity)User.Identity;
+                if (identity == null)
+                {
+                    res.meta = new Meta(401, "Unauthorized");
+                    return Ok(res);
+                }
+                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
+                {
+                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
+                    return Ok(res);
+                }
+                using (var context = new CNTTVNWebContext())
+                using (var command = context.Database.GetDbConnection().CreateCommand())
+                {
+                    if (capphoi.BranchId != 0)
+                    {
+                        Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                        if (branch == null)
+                        {
+                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+                        //sinh ID tu dong
+                        var id = CustomGuid.NewSequentialId();
+
+                        // Lấy thông tin mác bê tông theo mã Mác
+                        var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
+                        var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
+                        if (!macBT.Any() && macBT == null)
+                        {
+                            res.meta = new Meta(400, "Mã mác bê tông không tồn tại, vui lòng kiểm tra lại!");
+                            return Ok(res);
+                        }
+
+                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [Ma],[MAMAC], [MAVL], [TENVL],[LASTUPDATED]) VALUES";
+                        command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMa, @paramMaMac, @paramMaVL, @paramTenVL,Getdate()),";
+
+                        var paramMACBETONGID = command.CreateParameter();
+                        paramMACBETONGID.ParameterName = "@paramMACBETONGID";
+                        paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
+                        command.Parameters.Add(paramMACBETONGID);
+
+                        var paramMaCuaVL = command.CreateParameter();
+                        paramMaCuaVL.ParameterName = "@paramMaCuaVL";
+                        paramMaCuaVL.Value = capphoi.MaCuaVL;
+                        command.Parameters.Add(paramMaCuaVL);
+
+                        var paramMaSOLUONGVL = command.CreateParameter();
+                        paramMaSOLUONGVL.ParameterName = "@paramMaSOLUONGVL";
+                        paramMaSOLUONGVL.Value = capphoi.SoLuong;
+                        command.Parameters.Add(paramMaSOLUONGVL);
+
+                        var paramID = command.CreateParameter();
+                        paramID.ParameterName = "@paramID";
+                        paramID.Value = id;
+                        command.Parameters.Add(paramID);
+
+                        var paramMa = command.CreateParameter();
+                        paramMa.ParameterName = "@paramMa";
+                        paramMa.Value = capphoi.Ma;
+                        command.Parameters.Add(paramMa);
+
+                        var paramMaMac = command.CreateParameter();
+                        paramMaMac.ParameterName = "@paramMaMac";
+                        paramMaMac.Value = macBT.FirstOrDefault().Ma;
+                        command.Parameters.Add(paramMaMac);
+
+                        var paramMaVL = command.CreateParameter();
+                        paramMaVL.ParameterName = "@paramMaVL";
+                        paramMaVL.Value = capphoi.MaVatLieu;
+                        command.Parameters.Add(paramMaVL);
+
+                        var paramTenVL = command.CreateParameter();
+                        paramTenVL.ParameterName = "@paramTenVL";
+                        paramTenVL.Value = capphoi.TenVatLieu;
+                        command.Parameters.Add(paramTenVL);
+
+                    }
+                    else
+                    {
+                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
+                        return Ok(res);
+                    }
+                    context.Database.OpenConnection();
+                    using (var result = command.ExecuteReader())
+                    {
+                        result.Read();
+                        res.meta = new Meta(200, "Thêm mới thành công");
+                        return Ok(res);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error:" + ex);
+                res.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(res);
             }
         }
