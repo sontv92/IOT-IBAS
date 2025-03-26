@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using IOITWebApp;
 using IOITWebApp.Helper;
 using IOITWebApp.Models;
@@ -296,52 +297,109 @@ namespace IOITWebApp.Controllers.ApiBravo
                         var vattu = DapperHepper.Query<PhuGiaDTO>(LocalSettings.ConnectString, qrCheck);
                         if (!vattu.Any() && vattu != null)
                         {
-                            res.meta = new Meta(400, "Mã vật tư đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
-                            return Ok(res);
+                            //res.meta = new Meta(400, "Mã vật tư đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
+                            //return Ok(res);
+
+                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[PHUGIA] SET [TENPG]= @paramTENPG ,[NHACUNGCAP] = @paramNHACUNGCAP, [MALOAIVL] = @paramMaLoaiVL, [TENLOAIVL] = @paramTenLoaiVL, [HESOQUYDOI] = @paramHeSoQuyDoi, [DONVIQUYDOI] = @paramDonViQuyDoi, [LASTUPDATED] = Getdate()  WHERE ID = @paramID";
+
+                            //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
+                            var paramID = command.CreateParameter();
+                            paramID.ParameterName = "@paramID";
+                            paramID.Value = vattu.FirstOrDefault().ID;
+                            command.Parameters.Add(paramID);
+
+
+                            var paramTENPG = command.CreateParameter();
+                            paramTENPG.ParameterName = "@paramTENPG";
+                            paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
+                            command.Parameters.Add(paramTENPG);
+
+                            var paramNHACUNGCAP = command.CreateParameter();
+                            paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
+                            paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
+                            command.Parameters.Add(paramNHACUNGCAP);
+
+                            var paramMaLoaiVL = command.CreateParameter();
+                            paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
+                            paramMaLoaiVL.Value = pg.MaLoaiVL;
+                            command.Parameters.Add(paramMaLoaiVL);
+
+                            var paramTenLoaiVL = command.CreateParameter();
+                            paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
+                            paramTenLoaiVL.Value = pg.TenLoaiVL;
+                            command.Parameters.Add(paramTenLoaiVL);
+
+                            var paramHeSoQuyDoi = command.CreateParameter();
+                            paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
+                            paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
+                            command.Parameters.Add(paramHeSoQuyDoi);
+
+                            var paramDonViQuyDoi = command.CreateParameter();
+                            paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
+                            paramDonViQuyDoi.Value = pg.DonViQuyDoi;
+                            command.Parameters.Add(paramDonViQuyDoi);
+
+                            context.Database.OpenConnection();
+                            using (var result = command.ExecuteReader())
+                            {
+                                result.Read();
+                                res.meta = new Meta(200, "Cập nhật thành công");
+                                return Ok(res);
+                            }
                         }
+                        else
+                        {
+                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[PHUGIA] ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [LASTUPDATED]) ";
+                            command.CommandText += "VALUES (@paramID,@paramMa,@paramTENPG,@paramNHACUNGCAP, @paramMaLoaiVL, @paramTenLoaiVL, @paramHeSoQuyDoi, @paramDonViQuyDoi,Getdate())";
+                            //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
+                            var paramID = command.CreateParameter();
+                            paramID.ParameterName = "@paramID";
+                            paramID.Value = id;
+                            command.Parameters.Add(paramID);
 
-                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[PHUGIA] ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [LASTUPDATED]) ";
-                        command.CommandText += "VALUES (@paramID,@paramMa,@paramTENPG,@paramNHACUNGCAP, @paramMaLoaiVL, @paramTenLoaiVL, @paramHeSoQuyDoi, @paramDonViQuyDoi,Getdate())";
-                        //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
-                        var paramID = command.CreateParameter();
-                        paramID.ParameterName = "@paramID";
-                        paramID.Value = id;
-                        command.Parameters.Add(paramID);
+                            var paramMa = command.CreateParameter();
+                            paramMa.ParameterName = "@paramMa";
+                            paramMa.Value = pg.MaVatTu;
+                            command.Parameters.Add(paramMa);
 
-                        var paramMa = command.CreateParameter();
-                        paramMa.ParameterName = "@paramMa";
-                        paramMa.Value = pg.MaVatTu;
-                        command.Parameters.Add(paramMa);
+                            var paramTENPG = command.CreateParameter();
+                            paramTENPG.ParameterName = "@paramTENPG";
+                            paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
+                            command.Parameters.Add(paramTENPG);
 
-                        var paramTENPG = command.CreateParameter();
-                        paramTENPG.ParameterName = "@paramTENPG";
-                        paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
-                        command.Parameters.Add(paramTENPG);
+                            var paramNHACUNGCAP = command.CreateParameter();
+                            paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
+                            paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
+                            command.Parameters.Add(paramNHACUNGCAP);
 
-                        var paramNHACUNGCAP = command.CreateParameter();
-                        paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
-                        paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
-                        command.Parameters.Add(paramNHACUNGCAP);
+                            var paramMaLoaiVL = command.CreateParameter();
+                            paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
+                            paramMaLoaiVL.Value = pg.MaLoaiVL;
+                            command.Parameters.Add(paramMaLoaiVL);
 
-                        var paramMaLoaiVL = command.CreateParameter();
-                        paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
-                        paramMaLoaiVL.Value = pg.MaLoaiVL;
-                        command.Parameters.Add(paramMaLoaiVL);
+                            var paramTenLoaiVL = command.CreateParameter();
+                            paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
+                            paramTenLoaiVL.Value = pg.TenLoaiVL;
+                            command.Parameters.Add(paramTenLoaiVL);
 
-                        var paramTenLoaiVL = command.CreateParameter();
-                        paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
-                        paramTenLoaiVL.Value = pg.TenLoaiVL;
-                        command.Parameters.Add(paramTenLoaiVL);
+                            var paramHeSoQuyDoi = command.CreateParameter();
+                            paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
+                            paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
+                            command.Parameters.Add(paramHeSoQuyDoi);
 
-                        var paramHeSoQuyDoi = command.CreateParameter();
-                        paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
-                        paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
-                        command.Parameters.Add(paramHeSoQuyDoi);
+                            var paramDonViQuyDoi = command.CreateParameter();
+                            paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
+                            paramDonViQuyDoi.Value = pg.DonViQuyDoi;
+                            command.Parameters.Add(paramDonViQuyDoi);
 
-                        var paramDonViQuyDoi = command.CreateParameter();
-                        paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
-                        paramDonViQuyDoi.Value = pg.DonViQuyDoi;
-                        command.Parameters.Add(paramDonViQuyDoi);
+                            context.Database.OpenConnection();
+                            using (var result = command.ExecuteReader())
+                            {
+                                result.Read();
+                                res.meta = new Meta(200, "Thêm mới thành công");
+                                return Ok(res);
+                            }
+                        }
 
                     }
                     else
@@ -349,13 +407,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
                         return Ok(res);
                     }
-                    context.Database.OpenConnection();
-                    using (var result = command.ExecuteReader())
-                    {
-                        result.Read();
-                        res.meta = new Meta(200, "Thêm mới thành công");
-                        return Ok(res);
-                    }
+                    
                 }
             }
             catch (Exception ex)
@@ -417,55 +469,97 @@ namespace IOITWebApp.Controllers.ApiBravo
                         var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
                         if (macBT.Any() && macBT != null)
                         {
-                            res.meta = new Meta(400, "Mã mác bê tông đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
-                            return Ok(res);
+                            //res.meta = new Meta(400, "Mã mác bê tông đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
+                            //return Ok(res);
+
+                            //Cap nhat du lieu tren bang MACBETONG
+                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[MACBETONG] SET [TENMACBETONG]= @paramTenMacBeTong ,[CUONGDO] = @paramCUONGDO ,[COTLIEUMAX]= @paramCOTLIEUMAX,[DOSUT]=@paramDOSUT, [LASTUPDATED]= Getdate()  WHERE ID = @paramMACBETONGID;";
+
+
+                            var paramMACBETONGID = command.CreateParameter();
+                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
+                            paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
+                            command.Parameters.Add(paramMACBETONGID);
+
+
+                            var paramTenMacBeTong = command.CreateParameter();
+                            paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
+                            paramTenMacBeTong.Value = capphoi.TenMac;
+                            command.Parameters.Add(paramTenMacBeTong);
+
+                            var paramCUONGDO = command.CreateParameter();
+                            paramCUONGDO.ParameterName = "@paramCUONGDO";
+                            paramCUONGDO.Value = capphoi.CuongDo;
+                            command.Parameters.Add(paramCUONGDO);
+
+                            var paramCOTLIEUMAX = command.CreateParameter();
+                            paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
+                            paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
+                            command.Parameters.Add(paramCOTLIEUMAX);
+
+                            var paramDOSUT = command.CreateParameter();
+                            paramDOSUT.ParameterName = "@paramDOSUT";
+                            paramDOSUT.Value = capphoi.DoSut;
+                            command.Parameters.Add(paramDOSUT);
+
+                            context.Database.OpenConnection();
+                            using (var result = command.ExecuteReader())
+                            {
+                                result.Read();
+                                res.meta = new Meta(200, "Cập nhật thành công");
+                                return Ok(res);
+                            }
+
                         }
+                        else
+                        {
+                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT],[LASTUPDATED]) ";
+                            command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT,Getdate());";
+                            var paramMACBETONGID = command.CreateParameter();
+                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
+                            paramMACBETONGID.Value = id;
+                            command.Parameters.Add(paramMACBETONGID);
 
-                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT],[LASTUPDATED]) ";
-                        command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT,Getdate());";
-                        var paramMACBETONGID = command.CreateParameter();
-                        paramMACBETONGID.ParameterName = "@paramMACBETONGID";
-                        paramMACBETONGID.Value = id;
-                        command.Parameters.Add(paramMACBETONGID);
+                            var paramMa = command.CreateParameter();
+                            paramMa.ParameterName = "@paramMa";
+                            paramMa.Value = capphoi.MaMac;
+                            command.Parameters.Add(paramMa);
 
-                        var paramMa = command.CreateParameter();
-                        paramMa.ParameterName = "@paramMa";
-                        paramMa.Value = capphoi.MaMac;
-                        command.Parameters.Add(paramMa);
+                            var paramTenMacBeTong = command.CreateParameter();
+                            paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
+                            paramTenMacBeTong.Value = capphoi.TenMac;
+                            command.Parameters.Add(paramTenMacBeTong);
 
-                        var paramTenMacBeTong = command.CreateParameter();
-                        paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
-                        paramTenMacBeTong.Value = capphoi.TenMac;
-                        command.Parameters.Add(paramTenMacBeTong);
+                            var paramCUONGDO = command.CreateParameter();
+                            paramCUONGDO.ParameterName = "@paramCUONGDO";
+                            paramCUONGDO.Value = capphoi.CuongDo;
+                            command.Parameters.Add(paramCUONGDO);
 
-                        var paramCUONGDO = command.CreateParameter();
-                        paramCUONGDO.ParameterName = "@paramCUONGDO";
-                        paramCUONGDO.Value = capphoi.CuongDo;
-                        command.Parameters.Add(paramCUONGDO);
+                            var paramCOTLIEUMAX = command.CreateParameter();
+                            paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
+                            paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
+                            command.Parameters.Add(paramCOTLIEUMAX);
 
-                        var paramCOTLIEUMAX = command.CreateParameter();
-                        paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
-                        paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
-                        command.Parameters.Add(paramCOTLIEUMAX);
+                            var paramDOSUT = command.CreateParameter();
+                            paramDOSUT.ParameterName = "@paramDOSUT";
+                            paramDOSUT.Value = capphoi.DoSut;
+                            command.Parameters.Add(paramDOSUT);
 
-                        var paramDOSUT = command.CreateParameter();
-                        paramDOSUT.ParameterName = "@paramDOSUT";
-                        paramDOSUT.Value = capphoi.DoSut;
-                        command.Parameters.Add(paramDOSUT);
-
+                            context.Database.OpenConnection();
+                            using (var result = command.ExecuteReader())
+                            {
+                                result.Read();
+                                res.meta = new Meta(200, "Thêm mới thành công");
+                                return Ok(res);
+                            }
+                        }
                     }
                     else
                     {
                         res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
                         return Ok(res);
                     }
-                    context.Database.OpenConnection();
-                    using (var result = command.ExecuteReader())
-                    {
-                        result.Read();
-                        res.meta = new Meta(200, "Thêm mới thành công");
-                        return Ok(res);
-                    }
+                    
                 }
             }
             catch (Exception ex)
@@ -516,7 +610,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         //sinh ID tu dong
                         var id = CustomGuid.NewSequentialId();
 
-                        // Lấy thông tin mác bê tông theo mã Mác
+                        // Lấy thông tin số lượng VL theo mã Mác
                         var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
                         var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
                         if (!macBT.Any() && macBT == null)
