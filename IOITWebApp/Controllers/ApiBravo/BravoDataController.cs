@@ -289,13 +289,13 @@ namespace IOITWebApp.Controllers.ApiBravo
                         //Chỉ sinh mã cho các trạm khác Minh Đức
                         if (branch.CompanyId != 3061)
                         {
-                            pg.MaVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_", branch.Dataname);
+                            pg.MaVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
                         }
 
                         // Check mã vật tư đã tồn tại chưa
                         var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE Ma = {pg.MaVatTu}";
                         var vattu = DapperHepper.Query<PhuGiaDTO>(LocalSettings.ConnectString, qrCheck);
-                        if (!vattu.Any() && vattu != null)
+                        if (vattu != null && vattu.Any())
                         {
                             //res.meta = new Meta(400, "Mã vật tư đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
                             //return Ok(res);
@@ -467,7 +467,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         // Check mã vật tư đã tồn tại chưa
                         var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
                         var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
-                        if (macBT.Any() && macBT != null)
+                        if (macBT != null && macBT.Any())
                         {
                             //res.meta = new Meta(400, "Mã mác bê tông đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
                             //return Ok(res);
@@ -613,7 +613,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         // Lấy thông tin số lượng VL theo mã Mác
                         var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
                         var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
-                        if (!macBT.Any() && macBT == null)
+                        if (macBT == null && !macBT.Any())
                         {
                             res.meta = new Meta(400, "Mã mác bê tông không tồn tại, vui lòng kiểm tra lại!");
                             return Ok(res);
