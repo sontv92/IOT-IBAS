@@ -473,7 +473,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                             //return Ok(res);
 
                             //Cap nhat du lieu tren bang MACBETONG
-                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[MACBETONG] SET [TENMACBETONG]= @paramTenMacBeTong ,[CUONGDO] = @paramCUONGDO ,[COTLIEUMAX]= @paramCOTLIEUMAX,[DOSUT]=@paramDOSUT, [LASTUPDATED]= Getdate()  WHERE ID = @paramMACBETONGID;";
+                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[MACBETONG] SET [TENMACBETONG]= @paramTenMacBeTong ,[CUONGDO] = @paramCUONGDO ,[COTLIEUMAX]= @paramCOTLIEUMAX,[DOSUT]=@paramDOSUT, [GhiChu]=@paramGhiChu, [DONVIQUYDOI]=@paramDONVIQUYDOI, [LASTUPDATED]= Getdate()  WHERE ID = @paramMACBETONGID;";
 
 
                             var paramMACBETONGID = command.CreateParameter();
@@ -502,6 +502,17 @@ namespace IOITWebApp.Controllers.ApiBravo
                             paramDOSUT.Value = capphoi.DoSut;
                             command.Parameters.Add(paramDOSUT);
 
+                            var paramGhiChu = command.CreateParameter();
+                            paramGhiChu.ParameterName = "@paramGhiChu";
+                            paramGhiChu.Value = capphoi.GhiChu;
+                            command.Parameters.Add(paramGhiChu);
+
+
+                            var paramDONVIQUYDOI = command.CreateParameter();
+                            paramDONVIQUYDOI.ParameterName = "@paramDONVIQUYDOI";
+                            paramDONVIQUYDOI.Value = capphoi.DonViTinh;
+                            command.Parameters.Add(paramDONVIQUYDOI);
+
                             context.Database.OpenConnection();
                             using (var result = command.ExecuteReader())
                             {
@@ -513,8 +524,8 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
                         else
                         {
-                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT],[LASTUPDATED]) ";
-                            command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT,Getdate());";
+                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], [GhiChu], [DONVIQUYDOI],[LASTUPDATED]) ";
+                            command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI,Getdate());";
                             var paramMACBETONGID = command.CreateParameter();
                             paramMACBETONGID.ParameterName = "@paramMACBETONGID";
                             paramMACBETONGID.Value = id;
@@ -544,6 +555,16 @@ namespace IOITWebApp.Controllers.ApiBravo
                             paramDOSUT.ParameterName = "@paramDOSUT";
                             paramDOSUT.Value = capphoi.DoSut;
                             command.Parameters.Add(paramDOSUT);
+
+                            var paramGhiChu = command.CreateParameter();
+                            paramGhiChu.ParameterName = "@paramGhiChu";
+                            paramGhiChu.Value = capphoi.GhiChu;
+                            command.Parameters.Add(paramGhiChu);
+
+                            var paramDONVIQUYDOI = command.CreateParameter();
+                            paramDONVIQUYDOI.ParameterName = "@paramDONVIQUYDOI";
+                            paramDONVIQUYDOI.Value = capphoi.DonViTinh;
+                            command.Parameters.Add(paramDONVIQUYDOI);
 
                             context.Database.OpenConnection();
                             using (var result = command.ExecuteReader())
@@ -620,7 +641,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
 
                         command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [Ma],[MAMAC], [MAVL], [TENVL],[LASTUPDATED]) VALUES";
-                        command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMa, @paramMaMac, @paramMaVL, @paramTenVL,Getdate()),";
+                        command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMa, @paramMaMac, @paramMaVL, @paramTenVL,@paramTimeChange),";
 
                         var paramMACBETONGID = command.CreateParameter();
                         paramMACBETONGID.ParameterName = "@paramMACBETONGID";
@@ -661,6 +682,11 @@ namespace IOITWebApp.Controllers.ApiBravo
                         paramTenVL.ParameterName = "@paramTenVL";
                         paramTenVL.Value = capphoi.TenVatLieu;
                         command.Parameters.Add(paramTenVL);
+
+                        var paramTimeChange = command.CreateParameter();
+                        paramTimeChange.ParameterName = "@paramTimeChange";
+                        paramTimeChange.Value = capphoi.TimeChange;
+                        command.Parameters.Add(paramTimeChange);
 
                     }
                     else
