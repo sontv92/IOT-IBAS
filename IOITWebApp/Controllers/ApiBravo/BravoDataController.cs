@@ -287,10 +287,10 @@ namespace IOITWebApp.Controllers.ApiBravo
                         var id = CustomGuid.NewSequentialId();
 
                         //Chỉ sinh mã cho các trạm khác Minh Đức
-                        if (branch.CompanyId != 3061)
-                        {
-                            pg.MaVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
-                        }
+                        //if (branch.CompanyId != 3061)
+                        //{
+                        //    pg.MaVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                        //}
 
                         // Check mã vật tư đã tồn tại chưa
                         var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE Ma = {pg.MaVatTu}";
@@ -459,10 +459,10 @@ namespace IOITWebApp.Controllers.ApiBravo
                         var id = CustomGuid.NewSequentialId();
 
                         //Chỉ sinh mã cho các trạm khác Minh Đức
-                        if (branch.CompanyId != 3061)
-                        {
-                            capphoi.MaMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
-                        }
+                        //if (branch.CompanyId != 3061)
+                        //{
+                        //    capphoi.MaMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                        //}
 
                         // Check mã vật tư đã tồn tại chưa
                         var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
@@ -524,7 +524,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
                         else
                         {
-                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [MaLK], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], [GhiChu], [DONVIQUYDOI],[LASTUPDATED]) ";
+                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], [GhiChu], [DONVIQUYDOI],[LASTUPDATED]) ";
                             command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI,Getdate());";
                             var paramMACBETONGID = command.CreateParameter();
                             paramMACBETONGID.ParameterName = "@paramMACBETONGID";
@@ -543,7 +543,7 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                             var paramCUONGDO = command.CreateParameter();
                             paramCUONGDO.ParameterName = "@paramCUONGDO";
-                            paramCUONGDO.Value = capphoi.CuongDo;
+                            paramCUONGDO.Value = capphoi.CuongDo ?? (object)DBNull.Value;
                             command.Parameters.Add(paramCUONGDO);
 
                             var paramCOTLIEUMAX = command.CreateParameter();
@@ -553,17 +553,17 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                             var paramDOSUT = command.CreateParameter();
                             paramDOSUT.ParameterName = "@paramDOSUT";
-                            paramDOSUT.Value = capphoi.DoSut;
+                            paramDOSUT.Value = capphoi.DoSut ?? (object)DBNull.Value;
                             command.Parameters.Add(paramDOSUT);
 
                             var paramGhiChu = command.CreateParameter();
                             paramGhiChu.ParameterName = "@paramGhiChu";
-                            paramGhiChu.Value = capphoi.GhiChu;
+                            paramGhiChu.Value = capphoi.GhiChu ?? (object)DBNull.Value;
                             command.Parameters.Add(paramGhiChu);
 
                             var paramDONVIQUYDOI = command.CreateParameter();
                             paramDONVIQUYDOI.ParameterName = "@paramDONVIQUYDOI";
-                            paramDONVIQUYDOI.Value = capphoi.DonViTinh;
+                            paramDONVIQUYDOI.Value = capphoi.DonViTinh ?? (object)DBNull.Value;
                             command.Parameters.Add(paramDONVIQUYDOI);
 
                             context.Database.OpenConnection();

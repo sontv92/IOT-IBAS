@@ -11,7 +11,7 @@ namespace IOITWebApp.Models.Bravo
         public string MaMac { get; set; }
         public string TenMac { get; set; }
         public string CuongDo { get; set; }
-        public int CotLieuMax { get; set; }
+        public decimal CotLieuMax { get; set; }
         public string DoSut { get; set; }
         public string DonViTinh{ get; set; }
         public string GhiChu { get; set; }
