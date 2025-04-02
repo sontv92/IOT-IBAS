@@ -8,6 +8,10 @@ namespace IOITWebApp.Models.Bravo
     public class DanhMucCapPhoiBeTongRequestModel
     {
         public int BranchId { get; set; }
+        public List<DanhMucCapPhoiBeTongItemRequestModel> Items { get; set; }
+    }
+    public class DanhMucCapPhoiBeTongItemRequestModel
+    {
         public string MaMac { get; set; }
         public int MaCuaVL { get; set; }
         public string Ma { get; set; }

@@ -630,65 +630,69 @@ namespace IOITWebApp.Controllers.ApiBravo
                             res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
                             return Ok(res);
                         }
-                        //sinh ID tu dong
-                        var id = CustomGuid.NewSequentialId();
-
-                        // Lấy thông tin số lượng VL theo mã Mác
-                        var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {capphoi.MaMac}";
-                        var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
-                        if (macBT == null && !macBT.Any())
+                        foreach (var item in capphoi.Items)
                         {
-                            res.meta = new Meta(400, "Mã mác bê tông không tồn tại, vui lòng kiểm tra lại!");
-                            return Ok(res);
+                            //sinh ID tu dong
+                            var id = CustomGuid.NewSequentialId();
+
+                            // Lấy thông tin số lượng VL theo mã Mác
+                            var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {item.MaMac}";
+                            var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
+                            if (macBT == null && !macBT.Any())
+                            {
+                                res.meta = new Meta(400, "Mã mác bê tông không tồn tại, vui lòng kiểm tra lại!");
+                                return Ok(res);
+                            }
+
+                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaBravo],[LASTUPDATED]) VALUES";
+                            command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMaMac, @paramMaVL, @paramTenVL, @paramMaBravo, @paramTimeChange),";
+
+                            var paramMACBETONGID = command.CreateParameter();
+                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
+                            paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
+                            command.Parameters.Add(paramMACBETONGID);
+
+                            var paramMaCuaVL = command.CreateParameter();
+                            paramMaCuaVL.ParameterName = "@paramMaCuaVL";
+                            paramMaCuaVL.Value = item.MaCuaVL;
+                            command.Parameters.Add(paramMaCuaVL);
+
+                            var paramMaSOLUONGVL = command.CreateParameter();
+                            paramMaSOLUONGVL.ParameterName = "@paramMaSOLUONGVL";
+                            paramMaSOLUONGVL.Value = item.SoLuong;
+                            command.Parameters.Add(paramMaSOLUONGVL);
+
+                            var paramID = command.CreateParameter();
+                            paramID.ParameterName = "@paramID";
+                            paramID.Value = id;
+                            command.Parameters.Add(paramID);
+
+                            var paramMaBravo = command.CreateParameter();
+                            paramMaBravo.ParameterName = "@paramMaBravo";
+                            paramMaBravo.Value = item.Ma;
+                            command.Parameters.Add(paramMaBravo);
+
+                            var paramMaMac = command.CreateParameter();
+                            paramMaMac.ParameterName = "@paramMaMac";
+                            paramMaMac.Value = macBT.FirstOrDefault().Ma;
+                            command.Parameters.Add(paramMaMac);
+
+                            var paramMaVL = command.CreateParameter();
+                            paramMaVL.ParameterName = "@paramMaVL";
+                            paramMaVL.Value = item.MaVatLieu;
+                            command.Parameters.Add(paramMaVL);
+
+                            var paramTenVL = command.CreateParameter();
+                            paramTenVL.ParameterName = "@paramTenVL";
+                            paramTenVL.Value = item.TenVatLieu;
+                            command.Parameters.Add(paramTenVL);
+
+                            var paramTimeChange = command.CreateParameter();
+                            paramTimeChange.ParameterName = "@paramTimeChange";
+                            paramTimeChange.Value = item.TimeChange;
+                            command.Parameters.Add(paramTimeChange);
+
                         }
-
-                        command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaBravo],[LASTUPDATED]) VALUES";
-                        command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMaMac, @paramMaVL, @paramTenVL, @paramMaBravo, @paramTimeChange),";
-
-                        var paramMACBETONGID = command.CreateParameter();
-                        paramMACBETONGID.ParameterName = "@paramMACBETONGID";
-                        paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
-                        command.Parameters.Add(paramMACBETONGID);
-
-                        var paramMaCuaVL = command.CreateParameter();
-                        paramMaCuaVL.ParameterName = "@paramMaCuaVL";
-                        paramMaCuaVL.Value = capphoi.MaCuaVL;
-                        command.Parameters.Add(paramMaCuaVL);
-
-                        var paramMaSOLUONGVL = command.CreateParameter();
-                        paramMaSOLUONGVL.ParameterName = "@paramMaSOLUONGVL";
-                        paramMaSOLUONGVL.Value = capphoi.SoLuong;
-                        command.Parameters.Add(paramMaSOLUONGVL);
-
-                        var paramID = command.CreateParameter();
-                        paramID.ParameterName = "@paramID";
-                        paramID.Value = id;
-                        command.Parameters.Add(paramID);
-
-                        var paramMaBravo = command.CreateParameter();
-                        paramMaBravo.ParameterName = "@paramMaBravo";
-                        paramMaBravo.Value = capphoi.Ma;
-                        command.Parameters.Add(paramMaBravo);
-
-                        var paramMaMac = command.CreateParameter();
-                        paramMaMac.ParameterName = "@paramMaMac";
-                        paramMaMac.Value = macBT.FirstOrDefault().Ma;
-                        command.Parameters.Add(paramMaMac);
-
-                        var paramMaVL = command.CreateParameter();
-                        paramMaVL.ParameterName = "@paramMaVL";
-                        paramMaVL.Value = capphoi.MaVatLieu;
-                        command.Parameters.Add(paramMaVL);
-
-                        var paramTenVL = command.CreateParameter();
-                        paramTenVL.ParameterName = "@paramTenVL";
-                        paramTenVL.Value = capphoi.TenVatLieu;
-                        command.Parameters.Add(paramTenVL);
-
-                        var paramTimeChange = command.CreateParameter();
-                        paramTimeChange.ParameterName = "@paramTimeChange";
-                        paramTimeChange.Value = capphoi.TimeChange;
-                        command.Parameters.Add(paramTimeChange);
 
                     }
                     else
