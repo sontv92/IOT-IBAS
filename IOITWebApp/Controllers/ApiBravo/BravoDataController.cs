@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
+﻿using Dapper;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using IOITWebApp;
 using IOITWebApp.Helper;
@@ -23,6 +24,7 @@ using S7.Net;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
@@ -55,186 +57,57 @@ namespace IOITWebApp.Controllers.ApiBravo
             APIResponseData def = new APIResponseData();
             try
             {
-                if (loginModel != null)
-                {
-                    string username = loginModel.username;
-
-                    using (var db = new CNTTVNWebContext())
-                    {
-                        var userRole = new List<UserRole>();
-                        var user = db.User.Where(e => e.UserName == username && e.Status != (int)Const.Status.DELETED).ToList();
-                        //if (user.Count > 0)
-                        //{
-                        string password = user.FirstOrDefault().KeyLock.Trim() + user.FirstOrDefault().RegEmail.Trim() + user.FirstOrDefault().UserId + Utils.GetMD5Hash(loginModel.password.Trim());
-                        password = Utils.GetMD5Hash(password);
-                        var userLogin1 = from person in db.User
-                                         where person.UserName == username && person.Password == password && person.Status != (int)Const.Status.DELETED
-                                         select new UserPartnerLogin()
-                                         {
-                                             userId = person.UserId,
-                                             userName = person.UserName,
-                                             //email = person.Email,
-                                             fullName = person.FullName,
-                                             //password = person.Password,
-                                             // phone = person.Phone,
-                                             status = person.Status,
-                                             isRoleGroup = person.IsRoleGroup != null ? (bool)person.IsRoleGroup : true,
-                                         }
-                                     ;
-                        var userLogin = userLogin1.FirstOrDefault();
-                        if (userLogin != null)
-                        {
-                            //check if user lock
-                            if (userLogin.status == (int)Const.Status.LOCK)
-                            {
-                                def.meta = new Meta(223, "User Locked");
-                                return Ok(def);
-                            }
-
-                            var userId = userLogin.userId;
-                            List<MenuDTO> listFunctionRole = new List<MenuDTO>();
-                            //lấy danh sách quyền theo chức năng, nếu danh sách quyền theo chức năng null thì lấy
-                            //danh sách quyền theo nhóm quyền
-
-                            if (!userLogin.isRoleGroup)
-                            {
-                                var listFR = db.FunctionRole.Where(e => e.TargetId == userId && e.Type == (int)Const.TypeFunction.FUNCTION_USER
-                                && e.Status == (int)Const.Status.NORMAL).OrderBy(e => e.Function.Location).ToList();
-                                foreach (var itemFR in listFR)
-                                {
-                                    //check exits
-                                    var fr = listFunctionRole.Where(e => e.MenuId == itemFR.FunctionId).ToList();
-                                    if (fr.Count > 0)
-                                    {
-                                        string key1 = fr.FirstOrDefault().ActiveKey;
-                                        if (fr.FirstOrDefault().ActiveKey != itemFR.ActiveKey)
-                                        {
-                                            key1 = plusActiveKey(fr.FirstOrDefault().ActiveKey, itemFR.ActiveKey);
-                                        }
-                                        fr.FirstOrDefault().ActiveKey = key1;
-                                    }
-                                    else
-                                    {
-                                        MenuDTO menu = new MenuDTO();
-                                        menu.MenuId = itemFR.FunctionId;
-                                        menu.Code = itemFR.Function.Code;
-                                        menu.Name = itemFR.Function.Name;
-                                        menu.Url = itemFR.Function.Url;
-                                        menu.Icon = itemFR.Function.Icon;
-                                        menu.MenuParent = (int)itemFR.Function.FunctionParentId;
-                                        menu.ActiveKey = itemFR.ActiveKey;
-                                        listFunctionRole.Add(menu);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                //get list user role
-                                userRole = db.UserRole.Where(e => e.UserId == userId && e.Status == (int)Const.Status.NORMAL).ToList();
-                                //get list function role
-                                foreach (var item in userRole)
-                                {
-                                    var listFRR = db.FunctionRole.Where(e => e.TargetId == item.RoleId && e.Type == (int)Const.TypeFunction.FUNCTION_ROLE
-                                        && e.Status == (int)Const.Status.NORMAL).OrderBy(e => e.Function.Location).ToList();
-                                    foreach (var itemFR in listFRR)
-                                    {
-                                        //check exits
-                                        var fr = listFunctionRole.Where(e => e.MenuId == itemFR.FunctionId).ToList();
-                                        if (fr.Count > 0)
-                                        {
-                                            string key1 = fr.FirstOrDefault().ActiveKey;
-                                            if (fr.FirstOrDefault().ActiveKey != itemFR.ActiveKey)
-                                            {
-                                                key1 = plusActiveKey(fr.FirstOrDefault().ActiveKey, itemFR.ActiveKey);
-                                            }
-                                            fr.FirstOrDefault().ActiveKey = key1;
-                                        }
-                                        else
-                                        {
-                                            Models.EF.Function function = db.Function.Where(e => e.FunctionId == itemFR.FunctionId).FirstOrDefault();
-                                            if (function != null)
-                                            {
-                                                MenuDTO menu = new MenuDTO();
-                                                menu.MenuId = itemFR.FunctionId;
-                                                menu.Code = function.Code;
-                                                menu.Name = function.Name;
-                                                menu.Url = function.Url;
-                                                menu.Icon = function.Icon;
-                                                menu.MenuParent = (int)function.FunctionParentId;
-                                                menu.ActiveKey = itemFR.ActiveKey;
-                                                listFunctionRole.Add(menu);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            string access_key = "";
-                            int count = listFunctionRole.Count;
-                            if (count > 0)
-                            {
-                                for (int i = 0; i < count - 1; i++)
-                                {
-                                    if (listFunctionRole[i].ActiveKey != "000000000")
-                                    {
-                                        access_key += listFunctionRole[i].Code + ":" + listFunctionRole[i].ActiveKey + "-";
-                                    }
-                                }
-
-                                access_key = access_key + listFunctionRole[count - 1].Code + ":" + listFunctionRole[count - 1].ActiveKey;
-                            }
-
-                            //userLogin.access_key = access_key;
-                            var claims = new List<Claim>
-                                {
-                                    //new Claim(JwtRegisteredClaimNames.Email, userLogin.email),
-                                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                                    //new Claim(ClaimTypes.NameIdentifier, userLogin.userId.ToString()),
-                                    new Claim(ClaimTypes.Name, userLogin.fullName),
-                                        //new Claim("UserId", userLogin.userId != null ? userLogin.userId.ToString() : ""),
-                                     new Claim("AccessKey", access_key != null ? access_key : ""),
-                                };
-
-                            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
-                            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["AppSettings:JwtExpireDays"]));
-
-                            var token = new JwtSecurityToken(
-                                _configuration["AppSettings:JwtIssuer"],
-                                _configuration["AppSettings:JwtIssuer"],
-                                claims,
-                                expires: expires,
-                                signingCredentials: creds
-                            );
-                            var response = new LoginResponseModel() { 
-                                access_token = new JwtSecurityTokenHandler().WriteToken(token),
-                                access_key = null
-                            };
-
-                            def.data = response;
-                            def.meta = new Meta(200, "success");
-                            return Ok(def);
-                        }
-                        else
-                        {
-                            //check if email exist
-                            var existed = db.User.Where(e => e.UserName == username && e.Status != (int)Const.Status.DELETED).FirstOrDefault();
-                            if (existed != null)
-                            {
-                                def.meta = new Meta(213, "Invalid data");
-                                return Ok(def);
-                            }
-                            else
-                            {
-                                def.meta = new Meta(404, "Not found");
-                                return Ok(def);
-                            }
-                        }
-                    }
-                }
-                else
+                if (loginModel == null || string.IsNullOrEmpty(loginModel.username) || string.IsNullOrEmpty(loginModel.password))
                 {
                     def.meta = new Meta(400, "Bad Request");
+                    return Ok(def);
+                }
+
+                string username = loginModel.username.Trim();
+                string password = loginModel.password.Trim();
+
+                using (var db = new CNTTVNWebContext())
+                {
+                    var user = db.User
+                                 .Where(u => u.UserName == username && u.Status != (int)Const.Status.DELETED)
+                                 .FirstOrDefault();
+
+                    if (user == null)
+                    {
+                        def.meta = new Meta(404, "Not found");
+                        return Ok(def);
+                    }
+
+                    string hashedPassword = Utils.GetMD5Hash(user.KeyLock.Trim() + user.RegEmail.Trim() + user.UserId + Utils.GetMD5Hash(password));
+                    if (user.Password != hashedPassword)
+                    {
+                        def.meta = new Meta(213, "Invalid data");
+                        return Ok(def);
+                    }
+
+                    // Check if user is locked
+                    if (user.Status == (int)Const.Status.LOCK)
+                    {
+                        def.meta = new Meta(223, "User Locked");
+                        return Ok(def);
+                    }
+
+                    // Retrieve function roles
+                    var listFunctionRole = GetUserFunctionRoles(user.UserId, db, user.IsRoleGroup);
+
+                    string accessKey = GenerateAccessKey(listFunctionRole);
+
+                    // Create JWT token
+                    var token = GenerateJwtToken(user.FullName, accessKey);
+
+                    var response = new LoginResponseModel
+                    {
+                        access_token = new JwtSecurityTokenHandler().WriteToken(token),
+                        access_key = accessKey
+                    };
+
+                    def.data = response;
+                    def.meta = new Meta(200, "success");
                     return Ok(def);
                 }
             }
@@ -245,10 +118,9 @@ namespace IOITWebApp.Controllers.ApiBravo
                 return Ok(def);
             }
         }
-
         [Authorize]
         [HttpPost("dmvattu")]
-        public IActionResult PostVatTu([FromBody] DanhMucVatTuRequestModel pg)
+        public async Task<IActionResult> PostVatTu([FromBody] DanhMucVatTuRequestModel pg)
         {
             string functionCode = "dmvattu";
             var res = new APIResponseData();
@@ -256,466 +128,536 @@ namespace IOITWebApp.Controllers.ApiBravo
             {
                 if (pg == null)
                 {
-                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
-                    return Ok(res);
+                    return BadRequestResponse("Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
                 }
-                //check role
+
+                // Kiểm tra quyền truy cập
                 var identity = (ClaimsIdentity)User.Identity;
-                if (identity == null)
+                if (identity == null || !HasAccess(identity, functionCode))
                 {
-                    res.meta = new Meta(401, "Unauthorized");
-                    return Ok(res);
+                    return UnauthorizedResponse();
                 }
-                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
-                {
-                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
-                    return Ok(res);
-                }
+
                 using (var context = new CNTTVNWebContext())
-                using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
-                    if (pg.BranchId != 0)
+                    if (pg.BranchId == 0)
                     {
-                        Branch branch = context.Branch.Find(Convert.ToInt32(pg.BranchId));
-                        if (branch == null)
-                        {
-                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
-                            return Ok(res);
-                        }
-                        //sinh ID tu dong
-                        var id = CustomGuid.NewSequentialId();
+                        return BadRequestResponse("Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
+                    }
 
-                        var maVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                    Branch branch = context.Branch.Find(Convert.ToInt32(pg.BranchId));
+                    if (branch == null)
+                    {
+                        return BadRequestResponse("Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
+                    }
 
-                        // Check mã vật tư đã tồn tại chưa
-                        var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaBravo = {pg.MaVatTu}";
-                        var vattu = DapperHepper.Query<PhuGiaDTO>(LocalSettings.ConnectString, qrCheck);
-                        if (vattu != null && vattu.Any())
-                        {
-                            //res.meta = new Meta(400, "Mã vật tư đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
-                            //return Ok(res);
+                    var id = CustomGuid.NewSequentialId();
+                    var maVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
-                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[PHUGIA] SET [TENPG]= @paramTENPG ,[NHACUNGCAP] = @paramNHACUNGCAP, [MALOAIVL] = @paramMaLoaiVL, [TENLOAIVL] = @paramTenLoaiVL, [HESOQUYDOI] = @paramHeSoQuyDoi, [DONVIQUYDOI] = @paramDonViQuyDoi, [LASTUPDATED] = Getdate()  WHERE ID = @paramID";
+                    // Check mã vật tư đã tồn tại chưa
+                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaBravo = @MaVatTu";
 
-                            //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
-                            var paramID = command.CreateParameter();
-                            paramID.ParameterName = "@paramID";
-                            paramID.Value = vattu.FirstOrDefault().ID;
-                            command.Parameters.Add(paramID);
+                    var connection = context.Database.GetDbConnection();
 
+                    var vattu = await connection.QueryFirstOrDefaultAsync<PhuGiaDTO>(qrCheck, new { MaVatTu = pg.MaVatTu });
 
-                            var paramTENPG = command.CreateParameter();
-                            paramTENPG.ParameterName = "@paramTENPG";
-                            paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
-                            command.Parameters.Add(paramTENPG);
-
-                            var paramNHACUNGCAP = command.CreateParameter();
-                            paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
-                            paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
-                            command.Parameters.Add(paramNHACUNGCAP);
-
-                            var paramMaLoaiVL = command.CreateParameter();
-                            paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
-                            paramMaLoaiVL.Value = pg.MaLoaiVL;
-                            command.Parameters.Add(paramMaLoaiVL);
-
-                            var paramTenLoaiVL = command.CreateParameter();
-                            paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
-                            paramTenLoaiVL.Value = pg.TenLoaiVL;
-                            command.Parameters.Add(paramTenLoaiVL);
-
-                            var paramHeSoQuyDoi = command.CreateParameter();
-                            paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
-                            paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
-                            command.Parameters.Add(paramHeSoQuyDoi);
-
-                            var paramDonViQuyDoi = command.CreateParameter();
-                            paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
-                            paramDonViQuyDoi.Value = pg.DonViQuyDoi;
-                            command.Parameters.Add(paramDonViQuyDoi);
-
-                            context.Database.OpenConnection();
-                            using (var result = command.ExecuteReader())
-                            {
-                                result.Read();
-                                res.meta = new Meta(200, "Cập nhật thành công");
-                                return Ok(res);
-                            }
-                        }
-                        else
-                        {
-                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[PHUGIA] ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) ";
-                            command.CommandText += "VALUES (@paramID,@paramMa,@paramTENPG,@paramNHACUNGCAP, @paramMaLoaiVL, @paramTenLoaiVL, @paramHeSoQuyDoi, @paramDonViQuyDoi, @paramMaBravo, Getdate())";
-                            //command.CommandText += "VALUES ("+ khachhang.ID+","+khachhang.Ma + "," + khachhang.TENKHACHHANG + "," + khachhang.SDT + "," + khachhang.ISSYNC + "," + khachhang.SYSCCHENGE + "," + khachhang.DIACHI + ")";
-                            var paramID = command.CreateParameter();
-                            paramID.ParameterName = "@paramID";
-                            paramID.Value = id;
-                            command.Parameters.Add(paramID);
-
-                            var paramMa = command.CreateParameter();
-                            paramMa.ParameterName = "@paramMa";
-                            paramMa.Value = maVatTu;
-                            command.Parameters.Add(paramMa);
-
-                            var paramTENPG = command.CreateParameter();
-                            paramTENPG.ParameterName = "@paramTENPG";
-                            paramTENPG.Value = (pg.TenVatTu is null) ? string.Empty : pg.TenVatTu.ToString();
-                            command.Parameters.Add(paramTENPG);
-
-                            var paramNHACUNGCAP = command.CreateParameter();
-                            paramNHACUNGCAP.ParameterName = "@paramNHACUNGCAP";
-                            paramNHACUNGCAP.Value = (pg.NhaCungCap is null) ? string.Empty : pg.NhaCungCap.ToString();
-                            command.Parameters.Add(paramNHACUNGCAP);
-
-                            var paramMaLoaiVL = command.CreateParameter();
-                            paramMaLoaiVL.ParameterName = "@paramMaLoaiVL";
-                            paramMaLoaiVL.Value = pg.MaLoaiVL;
-                            command.Parameters.Add(paramMaLoaiVL);
-
-                            var paramTenLoaiVL = command.CreateParameter();
-                            paramTenLoaiVL.ParameterName = "@paramTenLoaiVL";
-                            paramTenLoaiVL.Value = pg.TenLoaiVL;
-                            command.Parameters.Add(paramTenLoaiVL);
-
-                            var paramHeSoQuyDoi = command.CreateParameter();
-                            paramHeSoQuyDoi.ParameterName = "@paramHeSoQuyDoi";
-                            paramHeSoQuyDoi.Value = pg.HeSoQuyDoi;
-                            command.Parameters.Add(paramHeSoQuyDoi);
-
-                            var paramDonViQuyDoi = command.CreateParameter();
-                            paramDonViQuyDoi.ParameterName = "@paramDonViQuyDoi";
-                            paramDonViQuyDoi.Value = pg.DonViQuyDoi;
-                            command.Parameters.Add(paramDonViQuyDoi);
-
-                            var paramMaBravo = command.CreateParameter();
-                            paramMaBravo.ParameterName = "@paramMaBravo";
-                            paramMaBravo.Value = pg.MaVatTu;
-                            command.Parameters.Add(paramMaBravo);
-
-                            context.Database.OpenConnection();
-                            using (var result = command.ExecuteReader())
-                            {
-                                result.Read();
-                                res.meta = new Meta(200, "Thêm mới thành công");
-                                return Ok(res);
-                            }
-                        }
-
+                    if (vattu != null)
+                    {
+                        await UpdateVatTu(context, branch.Dataname, vattu.ID, pg);
+                        res.meta = new Meta(200, "Cập nhật thành công");
                     }
                     else
                     {
-                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
-                        return Ok(res);
+                        await InsertVatTu(context, branch.Dataname, id, maVatTu, pg);
+                        res.meta = new Meta(200, "Thêm mới thành công");
                     }
-                    
+
+                    return Ok(res);
                 }
             }
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                res.meta = new Meta(500, "Lỗi máy chủ!");
-                return Ok(res);
+                return InternalServerErrorResponse();
             }
         }
-
         [Authorize]
         [HttpPost("dmmacbetong")]
-        public IActionResult PostMacBeTong([FromBody] DanhMucMacRequestModel capphoi)
+        public async Task<IActionResult> PostMacBeTong([FromBody] DanhMucMacRequestModel capphoi)
         {
             string functionCode = "dmmacbetong";
             var res = new APIResponseData();
+
             try
             {
+                // Kiểm tra dữ liệu đầu vào
                 if (capphoi == null)
                 {
-                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
-                    return Ok(res);
+                    return BadRequestResponse("Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
                 }
-                //check role
+
+                // Kiểm tra quyền truy cập
                 var identity = (ClaimsIdentity)User.Identity;
-                if (identity == null)
+                if (identity == null || !HasAccess(identity, functionCode))
                 {
-                    res.meta = new Meta(401, "Unauthorized");
-                    return Ok(res);
+                    return UnauthorizedResponse();
                 }
-                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
+
+                // Lấy thông tin trạm
+                if (capphoi.BranchId == 0)
                 {
-                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
-                    return Ok(res);
+                    return BadRequestResponse("Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
                 }
+
+                // Xử lý kết nối cơ sở dữ liệu
                 using (var context = new CNTTVNWebContext())
-                using (var command = context.Database.GetDbConnection().CreateCommand())
+                using (var command = CreateDbCommand(context))
                 {
-                    if (capphoi.BranchId != 0)
+                    var branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                    if (branch == null)
                     {
-                        Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
-                        if (branch == null)
-                        {
-                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
-                            return Ok(res);
-                        }
-                        //sinh ID tu dong
-                        var id = CustomGuid.NewSequentialId();
+                        return BadRequestResponse("Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
+                    }
 
-                        var maMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                    // Sinh mã ID tự động
+                    var id = CustomGuid.NewSequentialId();
+                    var maMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
-                        // Check mã vật tư đã tồn tại chưa
-                        var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaBravo] = {capphoi.MaMac}";
-                        var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
-                        if (macBT != null && macBT.Any())
-                        {
-                            //res.meta = new Meta(400, "Mã mác bê tông đã tồn tại trên hệ thống, vui lòng kiểm tra lại!");
-                            //return Ok(res);
+                    // Kiểm tra mã mác bê tông đã tồn tại
+                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaBravo] = {capphoi.MaMac}";
+                    var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
 
-                            //Cap nhat du lieu tren bang MACBETONG
-                            command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[MACBETONG] SET [TENMACBETONG]= @paramTenMacBeTong ,[CUONGDO] = @paramCUONGDO ,[COTLIEUMAX]= @paramCOTLIEUMAX,[DOSUT]=@paramDOSUT, [GhiChu]=@paramGhiChu, [DONVIQUYDOI]=@paramDONVIQUYDOI, [LASTUPDATED]= Getdate()  WHERE ID = @paramMACBETONGID;";
-
-
-                            var paramMACBETONGID = command.CreateParameter();
-                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
-                            paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
-                            command.Parameters.Add(paramMACBETONGID);
-
-
-                            var paramTenMacBeTong = command.CreateParameter();
-                            paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
-                            paramTenMacBeTong.Value = capphoi.TenMac;
-                            command.Parameters.Add(paramTenMacBeTong);
-
-                            var paramCUONGDO = command.CreateParameter();
-                            paramCUONGDO.ParameterName = "@paramCUONGDO";
-                            paramCUONGDO.Value = capphoi.CuongDo;
-                            command.Parameters.Add(paramCUONGDO);
-
-                            var paramCOTLIEUMAX = command.CreateParameter();
-                            paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
-                            paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
-                            command.Parameters.Add(paramCOTLIEUMAX);
-
-                            var paramDOSUT = command.CreateParameter();
-                            paramDOSUT.ParameterName = "@paramDOSUT";
-                            paramDOSUT.Value = capphoi.DoSut;
-                            command.Parameters.Add(paramDOSUT);
-
-                            var paramGhiChu = command.CreateParameter();
-                            paramGhiChu.ParameterName = "@paramGhiChu";
-                            paramGhiChu.Value = capphoi.GhiChu;
-                            command.Parameters.Add(paramGhiChu);
-
-
-                            var paramDONVIQUYDOI = command.CreateParameter();
-                            paramDONVIQUYDOI.ParameterName = "@paramDONVIQUYDOI";
-                            paramDONVIQUYDOI.Value = capphoi.DonViTinh;
-                            command.Parameters.Add(paramDONVIQUYDOI);
-
-                            context.Database.OpenConnection();
-                            using (var result = command.ExecuteReader())
-                            {
-                                result.Read();
-                                res.meta = new Meta(200, "Cập nhật thành công");
-                                return Ok(res);
-                            }
-
-                        }
-                        else
-                        {
-                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[MACBETONG]([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], [GhiChu], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) ";
-                            command.CommandText += "VALUES (@paramMACBETONGID,@paramMa,@paramTenMacBeTong,@paramCUONGDO,@paramCOTLIEUMAX,@paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI, @paramMaBravo,Getdate());";
-                            var paramMACBETONGID = command.CreateParameter();
-                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
-                            paramMACBETONGID.Value = id;
-                            command.Parameters.Add(paramMACBETONGID);
-
-                            var paramMa = command.CreateParameter();
-                            paramMa.ParameterName = "@paramMa";
-                            paramMa.Value = capphoi.MaMac;
-                            command.Parameters.Add(paramMa);
-
-                            var paramTenMacBeTong = command.CreateParameter();
-                            paramTenMacBeTong.ParameterName = "@paramTenMacBeTong";
-                            paramTenMacBeTong.Value = capphoi.TenMac;
-                            command.Parameters.Add(paramTenMacBeTong);
-
-                            var paramCUONGDO = command.CreateParameter();
-                            paramCUONGDO.ParameterName = "@paramCUONGDO";
-                            paramCUONGDO.Value = capphoi.CuongDo ?? (object)DBNull.Value;
-                            command.Parameters.Add(paramCUONGDO);
-
-                            var paramCOTLIEUMAX = command.CreateParameter();
-                            paramCOTLIEUMAX.ParameterName = "@paramCOTLIEUMAX";
-                            paramCOTLIEUMAX.Value = capphoi.CotLieuMax;
-                            command.Parameters.Add(paramCOTLIEUMAX);
-
-                            var paramDOSUT = command.CreateParameter();
-                            paramDOSUT.ParameterName = "@paramDOSUT";
-                            paramDOSUT.Value = capphoi.DoSut ?? (object)DBNull.Value;
-                            command.Parameters.Add(paramDOSUT);
-
-                            var paramGhiChu = command.CreateParameter();
-                            paramGhiChu.ParameterName = "@paramGhiChu";
-                            paramGhiChu.Value = capphoi.GhiChu ?? (object)DBNull.Value;
-                            command.Parameters.Add(paramGhiChu);
-
-                            var paramDONVIQUYDOI = command.CreateParameter();
-                            paramDONVIQUYDOI.ParameterName = "@paramDONVIQUYDOI";
-                            paramDONVIQUYDOI.Value = capphoi.DonViTinh ?? (object)DBNull.Value;
-                            command.Parameters.Add(paramDONVIQUYDOI);
-
-                            var paramMaBravo = command.CreateParameter();
-                            paramMaBravo.ParameterName = "@paramMaBravo";
-                            paramMaBravo.Value = capphoi.MaMac;
-                            command.Parameters.Add(paramMaBravo);
-
-                            context.Database.OpenConnection();
-                            using (var result = command.ExecuteReader())
-                            {
-                                result.Read();
-                                res.meta = new Meta(200, "Thêm mới thành công");
-                                return Ok(res);
-                            }
-                        }
+                    if (macBT != null && macBT.Any())
+                    {
+                        // Cập nhật mác bê tông nếu đã tồn tại
+                        UpdateMacBetong(command, branch, macBT.FirstOrDefault().ID, capphoi);
+                        res.meta = new Meta(200, "Cập nhật thành công");
                     }
                     else
                     {
-                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
-                        return Ok(res);
+                        // Thêm mới mác bê tông
+                        InsertMacBetong(command, branch, id, capphoi);
+                        res.meta = new Meta(200, "Thêm mới thành công");
                     }
-                    
+
+                    return Ok(res);
                 }
             }
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                res.meta = new Meta(500, "Lỗi máy chủ!");
-                return Ok(res);
+                return InternalServerErrorResponse();
             }
         }
 
         [Authorize]
         [HttpPost("dmcapphoibetong")]
-        public IActionResult PostSoLuongVL([FromBody] DanhMucCapPhoiBeTongRequestModel capphoi)
+        public async Task<IActionResult> PostSoLuongVL([FromBody] DanhMucCapPhoiBeTongRequestModel capphoi)
         {
             string functionCode = "dmmacbetong";
             var res = new APIResponseData();
+
             try
             {
                 if (capphoi == null)
                 {
-                    res.meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
-                    return Ok(res);
+                    return Ok(new APIResponseData { meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!") });
                 }
-                //check role
-                var identity = (ClaimsIdentity)User.Identity;
+
+                // Check role
+                var identity = User.Identity as ClaimsIdentity;
                 if (identity == null)
                 {
-                    res.meta = new Meta(401, "Unauthorized");
-                    return Ok(res);
+                    return UnauthorizedResponse();
                 }
-                string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+
+                string access_key = identity.Claims.FirstOrDefault(c => c.Type == "AccessKey")?.Value;
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
-                    res.meta = new Meta(403, "Không được phép truy cập, vui lòng kiểm tra lại!");
-                    return Ok(res);
+                    return UnauthorizedResponse();
                 }
+
                 using (var context = new CNTTVNWebContext())
-                using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
-                    if (capphoi.BranchId != 0)
+                    if (capphoi.BranchId == 0)
                     {
-                        Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
-                        if (branch == null)
+                        return BadRequestResponse("Mã trạm không hợp lệ!");
+                    }
+
+                    var branch = await context.Branch.FindAsync(capphoi.BranchId);
+                    if (branch == null)
+                    {
+                        return BadRequestResponse("Không tìm thấy trạm tương ứng!");
+                    }
+
+                    var query = "SELECT TOP 1 * FROM [" + branch.Dataname + "].[dbo].[MACBETONG] WHERE [Ma] = @MaMac";
+                    var parameters = new { MaMac = capphoi.Items.Select(i => i.MaMac).Distinct() };
+
+                    var macBTs = (await DapperHepper.QueryAsync<CapPhoiDTO>(LocalSettings.ConnectString, query, parameters)).ToDictionary(m => m.Ma);
+
+                    if (!macBTs.Any())
+                    {
+                        return BadRequestResponse("Mã mác bê tông không tồn tại!");
+                    }
+
+                    var insertData = new List<object>();
+
+                    foreach (var item in capphoi.Items)
+                    {
+                        if (!macBTs.TryGetValue(item.MaMac, out var macBT))
                         {
-                            res.meta = new Meta(400, "Không tìm thấy trạm tương ứng, vui lòng kiểm tra lại!");
-                            return Ok(res);
-                        }
-                        foreach (var item in capphoi.Items)
-                        {
-                            //sinh ID tu dong
-                            var id = CustomGuid.NewSequentialId();
-
-                            // Lấy thông tin số lượng VL theo mã Mác
-                            var qrMac = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [Ma] = {item.MaMac}";
-                            var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrMac);
-                            if (macBT == null && !macBT.Any())
-                            {
-                                res.meta = new Meta(400, "Mã mác bê tông không tồn tại, vui lòng kiểm tra lại!");
-                                return Ok(res);
-                            }
-
-                            command.CommandText += "INSERT INTO [" + branch.Dataname + "].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaBravo],[LASTUPDATED]) VALUES";
-                            command.CommandText += "(@paramMACBETONGID, @paramMaCuaVL, @paramMaSOLUONGVL, @paramID, @paramMaMac, @paramMaVL, @paramTenVL, @paramMaBravo, @paramTimeChange),";
-
-                            var paramMACBETONGID = command.CreateParameter();
-                            paramMACBETONGID.ParameterName = "@paramMACBETONGID";
-                            paramMACBETONGID.Value = macBT.FirstOrDefault().ID;
-                            command.Parameters.Add(paramMACBETONGID);
-
-                            var paramMaCuaVL = command.CreateParameter();
-                            paramMaCuaVL.ParameterName = "@paramMaCuaVL";
-                            paramMaCuaVL.Value = item.MaCuaVL;
-                            command.Parameters.Add(paramMaCuaVL);
-
-                            var paramMaSOLUONGVL = command.CreateParameter();
-                            paramMaSOLUONGVL.ParameterName = "@paramMaSOLUONGVL";
-                            paramMaSOLUONGVL.Value = item.SoLuong;
-                            command.Parameters.Add(paramMaSOLUONGVL);
-
-                            var paramID = command.CreateParameter();
-                            paramID.ParameterName = "@paramID";
-                            paramID.Value = id;
-                            command.Parameters.Add(paramID);
-
-                            var paramMaBravo = command.CreateParameter();
-                            paramMaBravo.ParameterName = "@paramMaBravo";
-                            paramMaBravo.Value = item.Ma;
-                            command.Parameters.Add(paramMaBravo);
-
-                            var paramMaMac = command.CreateParameter();
-                            paramMaMac.ParameterName = "@paramMaMac";
-                            paramMaMac.Value = macBT.FirstOrDefault().Ma;
-                            command.Parameters.Add(paramMaMac);
-
-                            var paramMaVL = command.CreateParameter();
-                            paramMaVL.ParameterName = "@paramMaVL";
-                            paramMaVL.Value = item.MaVatLieu;
-                            command.Parameters.Add(paramMaVL);
-
-                            var paramTenVL = command.CreateParameter();
-                            paramTenVL.ParameterName = "@paramTenVL";
-                            paramTenVL.Value = item.TenVatLieu;
-                            command.Parameters.Add(paramTenVL);
-
-                            var paramTimeChange = command.CreateParameter();
-                            paramTimeChange.ParameterName = "@paramTimeChange";
-                            paramTimeChange.Value = item.TimeChange;
-                            command.Parameters.Add(paramTimeChange);
-
+                            return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {item.MaMac} không tồn tại!") });
                         }
 
+                        insertData.Add(new
+                        {
+                            MACBETONGID = macBT.ID,
+                            MaCuaVL = item.MaCuaVL,
+                            SoLuong = item.SoLuong,
+                            ID = CustomGuid.NewSequentialId(),
+                            MaMac = macBT.Ma,
+                            MaVL = item.MaVatLieu,
+                            TenVL = item.TenVatLieu,
+                            MaBravo = item.Ma,
+                            TimeChange = item.TimeChange
+                        });
                     }
-                    else
+
+                    if (insertData.Any())
                     {
-                        res.meta = new Meta(400, "Mã trạm không hợp lệ, vui lòng kiểm tra lại!");
-                        return Ok(res);
+                        var sqlInsert = $"INSERT INTO [{branch.Dataname}].[dbo].[SOLUONGVL] " +
+                                        "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaBravo], [LASTUPDATED]) " +
+                                        "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @TimeChange)";
+
+                        DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, insertData);
+
                     }
-                    context.Database.OpenConnection();
-                    using (var result = command.ExecuteReader())
-                    {
-                        result.Read();
-                        res.meta = new Meta(200, "Thêm mới thành công");
-                        return Ok(res);
-                    }
+
+                    return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!") });
                 }
             }
             catch (Exception ex)
             {
-                log.Error("Error:" + ex);
-                res.meta = new Meta(500, "Lỗi máy chủ!");
-                return Ok(res);
+                log.Error($"Error: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                return InternalServerErrorResponse();
+            }
+
+        }
+
+        /// <summary>
+        /// Phương thức giúp trả về response lỗi 400
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private IActionResult BadRequestResponse(string message)
+        {
+            var res = new APIResponseData
+            {
+                meta = new Meta(400, message)
+            };
+            return Ok(res);
+        }
+
+        /// <summary>
+        /// Phương thức giúp trả về response lỗi 401 (Unauthorized)
+        /// </summary>
+        /// <returns></returns>
+        private IActionResult UnauthorizedResponse()
+        {
+            var res = new APIResponseData
+            {
+                meta = new Meta(401, "Unauthorized")
+            };
+            return Ok(res);
+        }
+
+        // Phương thức giúp trả về response lỗi 500
+        private IActionResult InternalServerErrorResponse()
+        {
+            var res = new APIResponseData
+            {
+                meta = new Meta(500, "Lỗi máy chủ!")
+            };
+            return Ok(res);
+        }
+
+        /// <summary>
+        /// Phương thức kiểm tra quyền truy cập
+        /// </summary>
+        /// <param name="identity"></param>
+        /// <param name="functionCode"></param>
+        /// <returns></returns>
+        private bool HasAccess(ClaimsIdentity identity, string functionCode)
+        {
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            return CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE);
+        }
+
+        /// <summary>
+        /// Tạo DbCommand
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        private DbCommand CreateDbCommand(CNTTVNWebContext context)
+        {
+            return context.Database.GetDbConnection().CreateCommand();
+        }
+
+        /// <summary>
+        /// Thêm mới vật tư
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="branchDataname"></param>
+        /// <param name="id"></param>
+        /// <param name="maVatTu"></param>
+        /// <param name="pg"></param>
+        /// <returns></returns>
+        private async Task InsertVatTu(CNTTVNWebContext context, string branchDataname, Guid id, string maVatTu, DanhMucVatTuRequestModel pg)
+        {
+            var connection = context.Database.GetDbConnection();
+            string insertSql = $@"
+                                    INSERT INTO [{branchDataname}].[dbo].[PHUGIA] 
+                                    ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) 
+                                    VALUES (@ID, @Ma, @TENPG, @NHACUNGCAP, @MALOAIVL, @TENLOAIVL, @HESOQUYDOI, @DONVIQUYDOI, @MaBravo, Getdate())";
+
+            await connection.ExecuteAsync(insertSql, new
+            {
+                ID = id, // Đảm bảo rằng id là Guid
+                Ma = maVatTu,
+                TENPG = pg.TenVatTu ?? string.Empty,
+                NHACUNGCAP = pg.NhaCungCap ?? string.Empty,
+                MALOAIVL = pg.MaLoaiVL,
+                TENLOAIVL = pg.TenLoaiVL,
+                HESOQUYDOI = pg.HeSoQuyDoi,
+                DONVIQUYDOI = pg.DonViQuyDoi,
+                MaBravo = pg.MaVatTu
+            });
+        }
+
+        /// <summary>
+        /// Cập nhật vật tư
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="branchDataname"></param>
+        /// <param name="id"></param>
+        /// <param name="pg"></param>
+        /// <returns></returns>
+        private async Task UpdateVatTu(CNTTVNWebContext context, string branchDataname, Guid id, DanhMucVatTuRequestModel pg)
+        {
+            var connection = context.Database.GetDbConnection();
+            string updateSql = $@"
+                                    UPDATE TOP(1) [{branchDataname}].[dbo].[PHUGIA]
+                                    SET [TENPG] = @TENPG, [NHACUNGCAP] = @NHACUNGCAP, [MALOAIVL] = @MALOAIVL, 
+                                        [TENLOAIVL] = @TENLOAIVL, [HESOQUYDOI] = @HESOQUYDOI, [DONVIQUYDOI] = @DONVIQUYDOI, 
+                                        [LASTUPDATED] = Getdate()
+                                    WHERE [ID] = @ID";
+
+            await connection.ExecuteAsync(updateSql, new
+            {
+                ID = id, // Đảm bảo rằng id là Guid
+                TENPG = pg.TenVatTu ?? string.Empty,
+                NHACUNGCAP = pg.NhaCungCap ?? string.Empty,
+                MALOAIVL = pg.MaLoaiVL,
+                TENLOAIVL = pg.TenLoaiVL,
+                HESOQUYDOI = pg.HeSoQuyDoi,
+                DONVIQUYDOI = pg.DonViQuyDoi
+            });
+        }
+
+        /// <summary>
+        /// Cập nhật mác bê tông
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="branch"></param>
+        /// <param name="macBetongId"></param>
+        /// <param name="capphoi"></param>
+        private void UpdateMacBetong(DbCommand command, Branch branch, Guid macBetongId, DanhMucMacRequestModel capphoi)
+        {
+            command.CommandText = $"UPDATE TOP(1) [{branch.Dataname}].[dbo].[MACBETONG] SET " +
+                                  "[TENMACBETONG]= @paramTenMacBeTong, [CUONGDO] = @paramCUONGDO, " +
+                                  "[COTLIEUMAX]= @paramCOTLIEUMAX, [DOSUT]=@paramDOSUT, " +
+                                  "[GhiChu]=@paramGhiChu, [DONVIQUYDOI]=@paramDONVIQUYDOI, " +
+                                  "[LASTUPDATED]= Getdate() WHERE ID = @paramMACBETONGID;";
+            AddParameters(command, macBetongId, capphoi);
+        }
+
+        /// <summary>
+        /// Thêm mới mác bê tông
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="branch"></param>
+        /// <param name="id"></param>
+        /// <param name="capphoi"></param>
+        private void InsertMacBetong(DbCommand command, Branch branch, Guid id, DanhMucMacRequestModel capphoi)
+        {
+            command.CommandText = $"INSERT INTO [{branch.Dataname}].[dbo].[MACBETONG] " +
+                                  "([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], " +
+                                  "[GhiChu], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) " +
+                                  "VALUES (@paramMACBETONGID, @paramMa, @paramTenMacBeTong, @paramCUONGDO, " +
+                                  "@paramCOTLIEUMAX, @paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI, @paramMaBravo, Getdate());";
+            AddParameters(command, id, capphoi);
+        }
+
+        /// <summary>
+        /// Thêm các tham số vào DbCommand
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="macBetongId"></param>
+        /// <param name="capphoi"></param>
+        private void AddParameters(DbCommand command, object macBetongId, DanhMucMacRequestModel capphoi)
+        {
+            command.Parameters.Clear();
+            command.Parameters.Add(CreateParameter(command, "@paramMACBETONGID", macBetongId));
+            command.Parameters.Add(CreateParameter(command, "@paramMa", capphoi.MaMac));
+            command.Parameters.Add(CreateParameter(command, "@paramTenMacBeTong", capphoi.TenMac));
+            command.Parameters.Add(CreateParameter(command, "@paramCUONGDO", capphoi.CuongDo ?? (object)DBNull.Value));
+            command.Parameters.Add(CreateParameter(command, "@paramCOTLIEUMAX", capphoi.CotLieuMax));
+            command.Parameters.Add(CreateParameter(command, "@paramDOSUT", capphoi.DoSut ?? (object)DBNull.Value));
+            command.Parameters.Add(CreateParameter(command, "@paramGhiChu", capphoi.GhiChu ?? (object)DBNull.Value));
+            command.Parameters.Add(CreateParameter(command, "@paramDONVIQUYDOI", capphoi.DonViTinh ?? (object)DBNull.Value));
+            command.Parameters.Add(CreateParameter(command, "@paramMaBravo", capphoi.MaMac));
+        }
+
+        /// <summary>
+        /// Tạo Parameter
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="paramName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private DbParameter CreateParameter(DbCommand command, string paramName, object value)
+        {
+            var param = command.CreateParameter();
+            param.ParameterName = paramName;
+            param.Value = value;
+            return param;
+        }
+
+        /// <summary>
+        /// Helper method to get function roles for the user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="db"></param>
+        /// <param name="isRoleGroup"></param>
+        /// <returns></returns>
+        private List<MenuDTO> GetUserFunctionRoles(int userId, CNTTVNWebContext db, bool? isRoleGroup)
+        {
+            var listFunctionRole = new List<MenuDTO>();
+
+            if ((bool)!isRoleGroup)
+            {
+                var userFunctionRoles = db.FunctionRole
+                                          .Where(fr => fr.TargetId == userId && fr.Type == (int)Const.TypeFunction.FUNCTION_USER && fr.Status == (int)Const.Status.NORMAL)
+                                          .OrderBy(fr => fr.Function.Location)
+                                          .ToList();
+
+                foreach (var itemFR in userFunctionRoles)
+                {
+                    AddFunctionRoleToMenu(itemFR, listFunctionRole);
+                }
+            }
+            else
+            {
+                var userRoles = db.UserRole.Where(ur => ur.UserId == userId && ur.Status == (int)Const.Status.NORMAL).ToList();
+
+                foreach (var item in userRoles)
+                {
+                    var roleFunctionRoles = db.FunctionRole
+                                              .Where(fr => fr.TargetId == item.RoleId && fr.Type == (int)Const.TypeFunction.FUNCTION_ROLE && fr.Status == (int)Const.Status.NORMAL)
+                                              .OrderBy(fr => fr.Function.Location)
+                                              .ToList();
+
+                    foreach (var itemFR in roleFunctionRoles)
+                    {
+                        AddFunctionRoleToMenu(itemFR, listFunctionRole);
+                    }
+                }
+            }
+
+            return listFunctionRole;
+        }
+
+        /// <summary>
+        /// Helper method to add function role to the menu list
+        /// </summary>
+        /// <param name="itemFR"></param>
+        /// <param name="listFunctionRole"></param>
+        private void AddFunctionRoleToMenu(FunctionRole itemFR, List<MenuDTO> listFunctionRole)
+        {
+            // Kiểm tra null cho itemFR.Function trước khi truy cập thuộc tính
+            if (itemFR.Function == null)
+            {
+                return; // Nếu Function là null, không làm gì và thoát khỏi hàm
+            }
+
+            var existingMenu = listFunctionRole.FirstOrDefault(e => e.MenuId == itemFR.FunctionId);
+
+            if (existingMenu != null)
+            {
+                string updatedKey = existingMenu.ActiveKey != itemFR.ActiveKey ? plusActiveKey(existingMenu.ActiveKey, itemFR.ActiveKey) : existingMenu.ActiveKey;
+                existingMenu.ActiveKey = updatedKey;
+            }
+            else
+            {
+                var function = itemFR.Function; // Đảm bảo function không null tại đây
+                MenuDTO menu = new MenuDTO
+                {
+                    MenuId = itemFR.FunctionId,
+                    Code = function.Code,
+                    Name = function.Name,
+                    Url = function.Url,
+                    Icon = function.Icon,
+                    MenuParent = (int)function.FunctionParentId,
+                    ActiveKey = itemFR.ActiveKey
+                };
+                listFunctionRole.Add(menu);
             }
         }
+
+
+        /// <summary>
+        /// Helper method to generate access key from function roles
+        /// </summary>
+        /// <param name="listFunctionRole"></param>
+        /// <returns></returns>
+        private string GenerateAccessKey(List<MenuDTO> listFunctionRole)
+        {
+            string accessKey = string.Join("-", listFunctionRole.Where(fr => fr.ActiveKey != "000000000")
+                                                                .Select(fr => $"{fr.Code}:{fr.ActiveKey}"));
+
+            return accessKey;
+        }
+
+        /// <summary>
+        /// Helper method to generate JWT token
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <param name="accessKey"></param>
+        /// <returns></returns>
+        private JwtSecurityToken GenerateJwtToken(string fullName, string accessKey)
+        {
+            var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.Name, fullName),
+        new Claim("AccessKey", accessKey)
+    };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["AppSettings:JwtExpireDays"]));
+
+            return new JwtSecurityToken(
+                _configuration["AppSettings:JwtIssuer"],
+                _configuration["AppSettings:JwtIssuer"],
+                claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+        }
+
+
+
         private string plusActiveKey(string key1, string key2)
         {
             string str = "";
