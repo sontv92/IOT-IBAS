@@ -155,7 +155,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     var maVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                     // Check mã vật tư đã tồn tại chưa
-                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaBravo = @MaVatTu";
+                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaLK = @MaVatTu";
 
                     var connection = context.Database.GetDbConnection();
 
@@ -224,19 +224,19 @@ namespace IOITWebApp.Controllers.ApiBravo
                     var maMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                     // Kiểm tra mã mác bê tông đã tồn tại
-                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaBravo] = {capphoi.MaMac}";
+                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaLK] = {capphoi.MaMac}";
                     var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
 
                     if (macBT != null && macBT.Any())
                     {
                         // Cập nhật mác bê tông nếu đã tồn tại
-                        UpdateMacBetong(command, branch, macBT.FirstOrDefault().ID, capphoi);
+                        UpdateMacBetong(command, branch, macBT.FirstOrDefault(), capphoi);
                         res.meta = new Meta(200, "Cập nhật thành công");
                     }
                     else
                     {
                         // Thêm mới mác bê tông
-                        InsertMacBetong(command, branch, id, capphoi);
+                        InsertMacBetong(command, branch, id, capphoi, maMac);
                         res.meta = new Meta(200, "Thêm mới thành công");
                     }
 
@@ -326,7 +326,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     if (insertData.Any())
                     {
                         var sqlInsert = $"INSERT INTO [{branch.Dataname}].[dbo].[SOLUONGVL] " +
-                                        "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaBravo], [LASTUPDATED]) " +
+                                        "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaLK], [LASTUPDATED]) " +
                                         "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @TimeChange)";
 
                         DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, insertData);
@@ -417,7 +417,7 @@ namespace IOITWebApp.Controllers.ApiBravo
             var connection = context.Database.GetDbConnection();
             string insertSql = $@"
                                     INSERT INTO [{branchDataname}].[dbo].[PHUGIA] 
-                                    ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) 
+                                    ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [MaLK], [LASTUPDATED]) 
                                     VALUES (@ID, @Ma, @TENPG, @NHACUNGCAP, @MALOAIVL, @TENLOAIVL, @HESOQUYDOI, @DONVIQUYDOI, @MaBravo, Getdate())";
 
             await connection.ExecuteAsync(insertSql, new
@@ -471,14 +471,14 @@ namespace IOITWebApp.Controllers.ApiBravo
         /// <param name="branch"></param>
         /// <param name="macBetongId"></param>
         /// <param name="capphoi"></param>
-        private void UpdateMacBetong(DbCommand command, Branch branch, Guid macBetongId, DanhMucMacRequestModel capphoi)
+        private void UpdateMacBetong(DbCommand command, Branch branch, CapPhoiDTO capPhoiDTO, DanhMucMacRequestModel capphoi)
         {
             command.CommandText = $"UPDATE TOP(1) [{branch.Dataname}].[dbo].[MACBETONG] SET " +
                                   "[TENMACBETONG]= @paramTenMacBeTong, [CUONGDO] = @paramCUONGDO, " +
                                   "[COTLIEUMAX]= @paramCOTLIEUMAX, [DOSUT]=@paramDOSUT, " +
                                   "[GhiChu]=@paramGhiChu, [DONVIQUYDOI]=@paramDONVIQUYDOI, " +
                                   "[LASTUPDATED]= Getdate() WHERE ID = @paramMACBETONGID;";
-            AddParameters(command, macBetongId, capphoi);
+            AddParameters(command, capPhoiDTO.ID, capphoi, capPhoiDTO.Ma);
         }
 
         /// <summary>
@@ -488,14 +488,14 @@ namespace IOITWebApp.Controllers.ApiBravo
         /// <param name="branch"></param>
         /// <param name="id"></param>
         /// <param name="capphoi"></param>
-        private void InsertMacBetong(DbCommand command, Branch branch, Guid id, DanhMucMacRequestModel capphoi)
+        private void InsertMacBetong(DbCommand command, Branch branch, Guid id, DanhMucMacRequestModel capphoi, string maMac)
         {
             command.CommandText = $"INSERT INTO [{branch.Dataname}].[dbo].[MACBETONG] " +
                                   "([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], " +
-                                  "[GhiChu], [DONVIQUYDOI], [MaBravo], [LASTUPDATED]) " +
+                                  "[GhiChu], [DONVIQUYDOI], [MaLK], [LASTUPDATED]) " +
                                   "VALUES (@paramMACBETONGID, @paramMa, @paramTenMacBeTong, @paramCUONGDO, " +
                                   "@paramCOTLIEUMAX, @paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI, @paramMaBravo, Getdate());";
-            AddParameters(command, id, capphoi);
+            AddParameters(command, id, capphoi, maMac);
         }
 
         /// <summary>
@@ -504,11 +504,11 @@ namespace IOITWebApp.Controllers.ApiBravo
         /// <param name="command"></param>
         /// <param name="macBetongId"></param>
         /// <param name="capphoi"></param>
-        private void AddParameters(DbCommand command, object macBetongId, DanhMucMacRequestModel capphoi)
+        private void AddParameters(DbCommand command, object macBetongId, DanhMucMacRequestModel capphoi, string maMac)
         {
             command.Parameters.Clear();
             command.Parameters.Add(CreateParameter(command, "@paramMACBETONGID", macBetongId));
-            command.Parameters.Add(CreateParameter(command, "@paramMa", capphoi.MaMac));
+            command.Parameters.Add(CreateParameter(command, "@paramMa", maMac));
             command.Parameters.Add(CreateParameter(command, "@paramTenMacBeTong", capphoi.TenMac));
             command.Parameters.Add(CreateParameter(command, "@paramCUONGDO", capphoi.CuongDo ?? (object)DBNull.Value));
             command.Parameters.Add(CreateParameter(command, "@paramCOTLIEUMAX", capphoi.CotLieuMax));
