@@ -36,6 +36,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static NPOI.HSSF.Util.HSSFColor;
 
 namespace IOITWebApp.Controllers.ApiBravo
 {
@@ -57,57 +59,187 @@ namespace IOITWebApp.Controllers.ApiBravo
             APIResponseData def = new APIResponseData();
             try
             {
-                if (loginModel == null || string.IsNullOrEmpty(loginModel.username) || string.IsNullOrEmpty(loginModel.password))
+                if (loginModel != null)
+                {
+                    string username = loginModel.username;
+
+                    using (var db = new CNTTVNWebContext())
+                    {
+                        var userRole = new List<UserRole>();
+                        var user = db.User.Where(e => e.UserName == username && e.Status != (int)Const.Status.DELETED).ToList();
+                        //if (user.Count > 0)
+                        //{
+                        string password = user.FirstOrDefault().KeyLock.Trim() + user.FirstOrDefault().RegEmail.Trim() + user.FirstOrDefault().UserId + Utils.GetMD5Hash(loginModel.password.Trim());
+                        password = Utils.GetMD5Hash(password);
+                        var userLogin1 = from person in db.User
+                                         where person.UserName == username && person.Password == password && person.Status != (int)Const.Status.DELETED
+                                         select new UserPartnerLogin()
+                                         {
+                                             userId = person.UserId,
+                                             userName = person.UserName,
+                                             //email = person.Email,
+                                             fullName = person.FullName,
+                                             //password = person.Password,
+                                             // phone = person.Phone,
+                                             status = person.Status,
+                                             isRoleGroup = person.IsRoleGroup != null ? (bool)person.IsRoleGroup : true,
+                                         }
+                                     ;
+                        var userLogin = userLogin1.FirstOrDefault();
+                        if (userLogin != null)
+                        {
+                            //check if user lock
+                            if (userLogin.status == (int)Const.Status.LOCK)
+                            {
+                                def.meta = new Meta(223, "User Locked");
+                                return Ok(def);
+                            }
+
+                            var userId = userLogin.userId;
+                            List<MenuDTO> listFunctionRole = new List<MenuDTO>();
+                            //lấy danh sách quyền theo chức năng, nếu danh sách quyền theo chức năng null thì lấy
+                            //danh sách quyền theo nhóm quyền
+
+                            if (!userLogin.isRoleGroup)
+                            {
+                                var listFR = db.FunctionRole.Where(e => e.TargetId == userId && e.Type == (int)Const.TypeFunction.FUNCTION_USER
+                                && e.Status == (int)Const.Status.NORMAL).OrderBy(e => e.Function.Location).ToList();
+                                foreach (var itemFR in listFR)
+                                {
+                                    //check exits
+                                    var fr = listFunctionRole.Where(e => e.MenuId == itemFR.FunctionId).ToList();
+                                    if (fr.Count > 0)
+                                    {
+                                        string key1 = fr.FirstOrDefault().ActiveKey;
+                                        if (fr.FirstOrDefault().ActiveKey != itemFR.ActiveKey)
+                                        {
+                                            key1 = plusActiveKey(fr.FirstOrDefault().ActiveKey, itemFR.ActiveKey);
+                                        }
+                                        fr.FirstOrDefault().ActiveKey = key1;
+                                    }
+                                    else
+                                    {
+                                        MenuDTO menu = new MenuDTO();
+                                        menu.MenuId = itemFR.FunctionId;
+                                        menu.Code = itemFR.Function.Code;
+                                        menu.Name = itemFR.Function.Name;
+                                        menu.Url = itemFR.Function.Url;
+                                        menu.Icon = itemFR.Function.Icon;
+                                        menu.MenuParent = (int)itemFR.Function.FunctionParentId;
+                                        menu.ActiveKey = itemFR.ActiveKey;
+                                        listFunctionRole.Add(menu);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //get list user role
+                                userRole = db.UserRole.Where(e => e.UserId == userId && e.Status == (int)Const.Status.NORMAL).ToList();
+                                //get list function role
+                                foreach (var item in userRole)
+                                {
+                                    var listFRR = db.FunctionRole.Where(e => e.TargetId == item.RoleId && e.Type == (int)Const.TypeFunction.FUNCTION_ROLE
+                                        && e.Status == (int)Const.Status.NORMAL).OrderBy(e => e.Function.Location).ToList();
+                                    foreach (var itemFR in listFRR)
+                                    {
+                                        //check exits
+                                        var fr = listFunctionRole.Where(e => e.MenuId == itemFR.FunctionId).ToList();
+                                        if (fr.Count > 0)
+                                        {
+                                            string key1 = fr.FirstOrDefault().ActiveKey;
+                                            if (fr.FirstOrDefault().ActiveKey != itemFR.ActiveKey)
+                                            {
+                                                key1 = plusActiveKey(fr.FirstOrDefault().ActiveKey, itemFR.ActiveKey);
+                                            }
+                                            fr.FirstOrDefault().ActiveKey = key1;
+                                        }
+                                        else
+                                        {
+                                            Models.EF.Function function = db.Function.Where(e => e.FunctionId == itemFR.FunctionId).FirstOrDefault();
+                                            if (function != null)
+                                            {
+                                                MenuDTO menu = new MenuDTO();
+                                                menu.MenuId = itemFR.FunctionId;
+                                                menu.Code = function.Code;
+                                                menu.Name = function.Name;
+                                                menu.Url = function.Url;
+                                                menu.Icon = function.Icon;
+                                                menu.MenuParent = (int)function.FunctionParentId;
+                                                menu.ActiveKey = itemFR.ActiveKey;
+                                                listFunctionRole.Add(menu);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            string access_key = "";
+                            int count = listFunctionRole.Count;
+                            if (count > 0)
+                            {
+                                for (int i = 0; i < count - 1; i++)
+                                {
+                                    if (listFunctionRole[i].ActiveKey != "000000000")
+                                    {
+                                        access_key += listFunctionRole[i].Code + ":" + listFunctionRole[i].ActiveKey + "-";
+                                    }
+                                }
+
+                                access_key = access_key + listFunctionRole[count - 1].Code + ":" + listFunctionRole[count - 1].ActiveKey;
+                            }
+
+                            //userLogin.access_key = access_key;
+                            var claims = new List<Claim>
+                        {
+                            //new Claim(JwtRegisteredClaimNames.Email, userLogin.email),
+                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            //new Claim(ClaimTypes.NameIdentifier, userLogin.userId.ToString()),
+                            new Claim(ClaimTypes.Name, userLogin.fullName),
+                                //new Claim("UserId", userLogin.userId != null ? userLogin.userId.ToString() : ""),
+                             new Claim("AccessKey", access_key != null ? access_key : ""),
+                        };
+
+                            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
+                            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["AppSettings:JwtExpireDays"]));
+
+                            var token = new JwtSecurityToken(
+                                _configuration["AppSettings:JwtIssuer"],
+                                _configuration["AppSettings:JwtIssuer"],
+                                claims,
+                                expires: expires,
+                                signingCredentials: creds
+                            );
+                            var response = new LoginResponseModel()
+                            {
+                                access_token = new JwtSecurityTokenHandler().WriteToken(token),
+                                access_key = null
+                            };
+
+                            def.data = response;
+                            def.meta = new Meta(200, "success");
+                            return Ok(def);
+                        }
+                        else
+                        {
+                            //check if email exist
+                            var existed = db.User.Where(e => e.UserName == username && e.Status != (int)Const.Status.DELETED).FirstOrDefault();
+                            if (existed != null)
+                            {
+                                def.meta = new Meta(213, "Invalid data");
+                                return Ok(def);
+                            }
+                            else
+                            {
+                                def.meta = new Meta(404, "Not found");
+                                return Ok(def);
+                            }
+                        }
+                    }
+                }
+                else
                 {
                     def.meta = new Meta(400, "Bad Request");
-                    return Ok(def);
-                }
-
-                string username = loginModel.username.Trim();
-                string password = loginModel.password.Trim();
-
-                using (var db = new CNTTVNWebContext())
-                {
-                    var user = db.User
-                                 .Where(u => u.UserName == username && u.Status != (int)Const.Status.DELETED)
-                                 .FirstOrDefault();
-
-                    if (user == null)
-                    {
-                        def.meta = new Meta(404, "Not found");
-                        return Ok(def);
-                    }
-
-                    string hashedPassword = Utils.GetMD5Hash(user.KeyLock.Trim() + user.RegEmail.Trim() + user.UserId + Utils.GetMD5Hash(password));
-                    if (user.Password != hashedPassword)
-                    {
-                        def.meta = new Meta(213, "Invalid data");
-                        return Ok(def);
-                    }
-
-                    // Check if user is locked
-                    if (user.Status == (int)Const.Status.LOCK)
-                    {
-                        def.meta = new Meta(223, "User Locked");
-                        return Ok(def);
-                    }
-
-                    // Retrieve function roles
-                    var listFunctionRole = GetUserFunctionRoles(user.UserId, db, user.IsRoleGroup);
-
-                    string accessKey = GenerateAccessKey(listFunctionRole);
-
-                    // Create JWT token
-                    var token = GenerateJwtToken(user.FullName, accessKey);
-
-                    var response = new LoginResponseModel
-                    {
-                        access_token = new JwtSecurityTokenHandler().WriteToken(token),
-                        access_key = accessKey
-                    };
-
-                    def.data = response;
-                    def.meta = new Meta(200, "success");
                     return Ok(def);
                 }
             }
@@ -289,48 +421,81 @@ namespace IOITWebApp.Controllers.ApiBravo
                     {
                         return BadRequestResponse("Không tìm thấy trạm tương ứng!");
                     }
+                    string databaseName = $"{branch.Dataname}";
 
-                    var query = "SELECT TOP 1 * FROM [" + branch.Dataname + "].[dbo].[MACBETONG] WHERE [Ma] = @MaMac";
-                    var parameters = new { MaMac = capphoi.Items.Select(i => i.MaMac).Distinct() };
+                    // Kiểm tra Mác bê tông có tồn tại hay không
+                    var query = $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [Ma] = @MaMac";
+                    var parameters = new { MaMac = capphoi.Items.FirstOrDefault()?.MaMac };
 
-                    var macBTs = (await DapperHepper.QueryAsync<CapPhoiDTO>(LocalSettings.ConnectString, query, parameters)).ToDictionary(m => m.Ma);
-
-                    if (!macBTs.Any())
+                    var macBTs = await DapperHepper.QueryAsync<CapPhoiDTO>(LocalSettings.ConnectString, query, parameters);
+                    if (macBTs == null || !macBTs.Any())
                     {
-                        return BadRequestResponse("Mã mác bê tông không tồn tại!");
+                        return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {parameters.MaMac} không tồn tại!") });
                     }
 
-                    var insertData = new List<object>();
+                    var macBT = macBTs.First();
+
+                    if (capphoi.Items == null || !capphoi.Items.Any() || capphoi.Items.Count > 20)
+                    {
+                        return Ok(new APIResponseData { meta = new Meta(400, "Danh sách vật liệu không hợp lệ!") });
+                    }
+
+                    // Danh sách tất cả các MaCuaVL hợp lệ từ 1 đến 20
+                    var allMaCuaVL = Enumerable.Range(1, 20).ToList();
+                    // Danh sách MaCuaVL hiện có trong capphoi.Items
+                    var existingMaCuaVL = capphoi.Items.Select(item => item.MaCuaVL).Distinct().ToList();
+                    // Danh sách MaCuaVL bị thiếu
+                    var missingMaCuaVL = allMaCuaVL.Except(existingMaCuaVL).ToList();
+                    if (missingMaCuaVL.Any())
+                    {
+                        // Thêm các mã cửa bị thiếu vào danh sách
+                        foreach (var maCuaVL in missingMaCuaVL)
+                        {
+                            capphoi.Items.Add(new DanhMucCapPhoiBeTongItemRequestModel()
+                            {
+                                MaMac = macBT.Ma,
+                                MaCuaVL = maCuaVL,
+                                SoLuong = 0,
+                                MaVatLieu = "",
+                                TenVatLieu = "",
+                                Ma = ""
+                            });
+                        }
+                    }
 
                     foreach (var item in capphoi.Items)
                     {
-                        if (!macBTs.TryGetValue(item.MaMac, out var macBT))
+                        // Kiểm tra Số lương VL với Mã mác và mã cửa đã tồn tại chưa?
+                        var querySoLuongVL = $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
+                        var parametersSoLuongVL = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL };
+                        var soluongVL = await DapperHepper.QueryAsync<SoLuongVLDTO>(LocalSettings.ConnectString, querySoLuongVL, parametersSoLuongVL);
+
+                        // Update
+                        if (soluongVL != null && soluongVL.Any())
                         {
-                            return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {item.MaMac} không tồn tại!") });
+                            var sqlUpdate = $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @maVL, [TENVATLIEU] = @tenVL, [MaLK] = @maBravo, [LASTUPDATED] = Getdate() " +
+                                            "WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
+                            var parametersUpdate = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma };
+                            var isUpdate = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlUpdate, parametersUpdate);
+                            if (isUpdate == -1)
+                            {
+                                log.Error($"Error: Cập nhật không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
+                            }
                         }
-
-                        insertData.Add(new
+                        else // Thêm mới
                         {
-                            MACBETONGID = macBT.ID,
-                            MaCuaVL = item.MaCuaVL,
-                            SoLuong = item.SoLuong,
-                            ID = CustomGuid.NewSequentialId(),
-                            MaMac = macBT.Ma,
-                            MaVL = item.MaVatLieu,
-                            TenVL = item.TenVatLieu,
-                            MaBravo = item.Ma,
-                            TimeChange = item.TimeChange
-                        });
-                    }
+                            var id = CustomGuid.NewSequentialId();
 
-                    if (insertData.Any())
-                    {
-                        var sqlInsert = $"INSERT INTO [{branch.Dataname}].[dbo].[SOLUONGVL] " +
-                                        "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVL], [TENVL], [MaLK], [LASTUPDATED]) " +
-                                        "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @TimeChange)";
-
-                        DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, insertData);
-
+                            var sqlInsert = $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] " +
+                                       "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [LASTUPDATED]) " +
+                                       "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, GETDATE())";
+                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma };
+                            var isAdd = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, parametersInsert);
+                            if (isAdd == -1)
+                            {
+                                log.Error($"Error: Thêm không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
+                            }
+                        }
                     }
 
                     return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!") });
@@ -532,131 +697,6 @@ namespace IOITWebApp.Controllers.ApiBravo
             param.Value = value;
             return param;
         }
-
-        /// <summary>
-        /// Helper method to get function roles for the user
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="db"></param>
-        /// <param name="isRoleGroup"></param>
-        /// <returns></returns>
-        private List<MenuDTO> GetUserFunctionRoles(int userId, CNTTVNWebContext db, bool? isRoleGroup)
-        {
-            var listFunctionRole = new List<MenuDTO>();
-
-            if ((bool)!isRoleGroup)
-            {
-                var userFunctionRoles = db.FunctionRole
-                                          .Where(fr => fr.TargetId == userId && fr.Type == (int)Const.TypeFunction.FUNCTION_USER && fr.Status == (int)Const.Status.NORMAL)
-                                          .OrderBy(fr => fr.Function.Location)
-                                          .ToList();
-
-                foreach (var itemFR in userFunctionRoles)
-                {
-                    AddFunctionRoleToMenu(itemFR, listFunctionRole);
-                }
-            }
-            else
-            {
-                var userRoles = db.UserRole.Where(ur => ur.UserId == userId && ur.Status == (int)Const.Status.NORMAL).ToList();
-
-                foreach (var item in userRoles)
-                {
-                    var roleFunctionRoles = db.FunctionRole
-                                              .Where(fr => fr.TargetId == item.RoleId && fr.Type == (int)Const.TypeFunction.FUNCTION_ROLE && fr.Status == (int)Const.Status.NORMAL)
-                                              .OrderBy(fr => fr.Function.Location)
-                                              .ToList();
-
-                    foreach (var itemFR in roleFunctionRoles)
-                    {
-                        AddFunctionRoleToMenu(itemFR, listFunctionRole);
-                    }
-                }
-            }
-
-            return listFunctionRole;
-        }
-
-        /// <summary>
-        /// Helper method to add function role to the menu list
-        /// </summary>
-        /// <param name="itemFR"></param>
-        /// <param name="listFunctionRole"></param>
-        private void AddFunctionRoleToMenu(FunctionRole itemFR, List<MenuDTO> listFunctionRole)
-        {
-            // Kiểm tra null cho itemFR.Function trước khi truy cập thuộc tính
-            if (itemFR.Function == null)
-            {
-                return; // Nếu Function là null, không làm gì và thoát khỏi hàm
-            }
-
-            var existingMenu = listFunctionRole.FirstOrDefault(e => e.MenuId == itemFR.FunctionId);
-
-            if (existingMenu != null)
-            {
-                string updatedKey = existingMenu.ActiveKey != itemFR.ActiveKey ? plusActiveKey(existingMenu.ActiveKey, itemFR.ActiveKey) : existingMenu.ActiveKey;
-                existingMenu.ActiveKey = updatedKey;
-            }
-            else
-            {
-                var function = itemFR.Function; // Đảm bảo function không null tại đây
-                MenuDTO menu = new MenuDTO
-                {
-                    MenuId = itemFR.FunctionId,
-                    Code = function.Code,
-                    Name = function.Name,
-                    Url = function.Url,
-                    Icon = function.Icon,
-                    MenuParent = (int)function.FunctionParentId,
-                    ActiveKey = itemFR.ActiveKey
-                };
-                listFunctionRole.Add(menu);
-            }
-        }
-
-
-        /// <summary>
-        /// Helper method to generate access key from function roles
-        /// </summary>
-        /// <param name="listFunctionRole"></param>
-        /// <returns></returns>
-        private string GenerateAccessKey(List<MenuDTO> listFunctionRole)
-        {
-            string accessKey = string.Join("-", listFunctionRole.Where(fr => fr.ActiveKey != "000000000")
-                                                                .Select(fr => $"{fr.Code}:{fr.ActiveKey}"));
-
-            return accessKey;
-        }
-
-        /// <summary>
-        /// Helper method to generate JWT token
-        /// </summary>
-        /// <param name="fullName"></param>
-        /// <param name="accessKey"></param>
-        /// <returns></returns>
-        private JwtSecurityToken GenerateJwtToken(string fullName, string accessKey)
-        {
-            var claims = new List<Claim>
-    {
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim(ClaimTypes.Name, fullName),
-        new Claim("AccessKey", accessKey)
-    };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["AppSettings:JwtExpireDays"]));
-
-            return new JwtSecurityToken(
-                _configuration["AppSettings:JwtIssuer"],
-                _configuration["AppSettings:JwtIssuer"],
-                claims,
-                expires: expires,
-                signingCredentials: creds
-            );
-        }
-
-
 
         private string plusActiveKey(string key1, string key2)
         {
