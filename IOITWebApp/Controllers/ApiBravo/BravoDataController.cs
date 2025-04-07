@@ -582,8 +582,8 @@ namespace IOITWebApp.Controllers.ApiBravo
             var connection = context.Database.GetDbConnection();
             string insertSql = $@"
                                     INSERT INTO [{branchDataname}].[dbo].[PHUGIA] 
-                                    ([ID], [Ma], [TENPG], [NHACUNGCAP], [MALOAIVL], [TENLOAIVL], [HESOQUYDOI], [DONVIQUYDOI], [MaLK], [LASTUPDATED]) 
-                                    VALUES (@ID, @Ma, @TENPG, @NHACUNGCAP, @MALOAIVL, @TENLOAIVL, @HESOQUYDOI, @DONVIQUYDOI, @MaBravo, Getdate())";
+                                    ([ID], [Ma], [MaLK], [Ten], [NhaCungCap], [MaLoaiVL], [TenLoaiVL], [HeSoQuyDoi], [DonViQuyDoi], [LASTUPDATED]) 
+                                    VALUES (@ID, @Ma, @MaBravo, @TENPG, @NHACUNGCAP, @MALOAIVL, @TENLOAIVL, @HESOQUYDOI, @DONVIQUYDOI, Getdate())";
 
             await connection.ExecuteAsync(insertSql, new
             {
