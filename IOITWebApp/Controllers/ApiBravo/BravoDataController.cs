@@ -201,7 +201,7 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AppSettings:JwtKey"]));
                             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["AppSettings:JwtExpireDays"]));
+                            var expires = DateTime.Now.AddSeconds(Convert.ToDouble(_configuration["AppSettings:JwtExpireBravoSecond"]));
 
                             var token = new JwtSecurityToken(
                                 _configuration["AppSettings:JwtIssuer"],
@@ -458,7 +458,9 @@ namespace IOITWebApp.Controllers.ApiBravo
                                 SoLuong = 0,
                                 MaVatLieu = "",
                                 TenVatLieu = "",
-                                Ma = ""
+                                Ma = "",
+                                DonViQuyDoi = "",
+                                HeSoQuyDoi = 0,
                             });
                         }
                     }
@@ -473,9 +475,9 @@ namespace IOITWebApp.Controllers.ApiBravo
                         // Update
                         if (soluongVL != null && soluongVL.Any())
                         {
-                            var sqlUpdate = $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @maVL, [TENVATLIEU] = @tenVL, [MaLK] = @maBravo, [LASTUPDATED] = Getdate() " +
+                            var sqlUpdate = $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @maVL, [TENVATLIEU] = @tenVL, [MaLK] = @maBravo, [DonViQuyDoi] = @donviQuyDoi, [HeSoQuyDoi] = @heSoQuyDoi, [LASTUPDATED] = Getdate() " +
                                             "WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
-                            var parametersUpdate = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma };
+                            var parametersUpdate = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
                             var isUpdate = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlUpdate, parametersUpdate);
                             if (isUpdate == -1)
                             {
@@ -487,9 +489,9 @@ namespace IOITWebApp.Controllers.ApiBravo
                             var id = CustomGuid.NewSequentialId();
 
                             var sqlInsert = $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] " +
-                                       "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [LASTUPDATED]) " +
-                                       "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, GETDATE())";
-                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma };
+                                       "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) " +
+                                       "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @donviQuyDoi, @heSoQuyDoi, GETDATE())";
+                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
                             var isAdd = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, parametersInsert);
                             if (isAdd == -1)
                             {
