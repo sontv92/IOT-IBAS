@@ -491,6 +491,7 @@ namespace IOITWebApp.Models.Data
         public Guid MACBETONGID { get; set; }
         public Guid ID { get; set; }
         public float SOLUONG { get; set; }
+        public string Ma { get; set; }
         public int MACUAVL { get; set; }
         public string MAMAC { get; set; }
 

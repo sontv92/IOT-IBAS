@@ -109,6 +109,10 @@ namespace IOITWebApp.Models
         public Meta meta { get; set; }
         public object data { get; set; }
     }
+    public class ResponseDetail
+    {
+        public string MaThamChieu { get; set; }
+    }
 
 
 }

@@ -284,7 +284,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     }
 
                     var id = CustomGuid.NewSequentialId();
-                    var maVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                    var maVatTu = string.Empty;
 
                     // Check mã vật tư đã tồn tại chưa
                     var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaLK = @MaVatTu";
@@ -295,13 +295,17 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                     if (vattu != null)
                     {
+                        maVatTu = vattu.Ma;
                         await UpdateVatTu(context, branch.Dataname, vattu.ID, pg);
                         res.meta = new Meta(200, "Cập nhật thành công");
+                        res.data = new ResponseDetail() { MaThamChieu = maVatTu };
                     }
                     else
                     {
+                        maVatTu = CommonLib.GetSo("PHUGIA", "Ma", "VL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
                         await InsertVatTu(context, branch.Dataname, id, maVatTu, pg);
                         res.meta = new Meta(200, "Thêm mới thành công");
+                        res.data = new ResponseDetail() { MaThamChieu = maVatTu };
                     }
 
                     return Ok(res);
@@ -353,23 +357,36 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                     // Sinh mã ID tự động
                     var id = CustomGuid.NewSequentialId();
-                    var maMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
-
+                    var maMac = string.Empty;
                     // Kiểm tra mã mác bê tông đã tồn tại
-                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaLK] = {capphoi.MaMac}";
+                    var qrCheck = $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[MACBETONG] WHERE [MaLK] = '{capphoi.MaMac}'";
                     var macBT = DapperHepper.Query<CapPhoiDTO>(LocalSettings.ConnectString, qrCheck);
 
                     if (macBT != null && macBT.Any())
                     {
+                        maMac = macBT.FirstOrDefault().Ma;
                         // Cập nhật mác bê tông nếu đã tồn tại
                         UpdateMacBetong(command, branch, macBT.FirstOrDefault(), capphoi);
-                        res.meta = new Meta(200, "Cập nhật thành công");
+                        context.Database.OpenConnection();
+                        using (var result = command.ExecuteReader())
+                        {
+                            result.Read();
+                            res.meta = new Meta(200, "Cập nhật thành công");
+                            res.data = new ResponseDetail() { MaThamChieu = maMac };
+                        }
                     }
                     else
                     {
+                        maMac = CommonLib.GetSo("MACBETONG", "Ma", "MAC1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
                         // Thêm mới mác bê tông
                         InsertMacBetong(command, branch, id, capphoi, maMac);
-                        res.meta = new Meta(200, "Thêm mới thành công");
+                        context.Database.OpenConnection();
+                        using (var result = command.ExecuteReader())
+                        {
+                            result.Read();
+                            res.meta = new Meta(200, "Thêm mới thành công");
+                            res.data = new ResponseDetail() { MaThamChieu = maMac };
+                        }
                     }
 
                     return Ok(res);
@@ -446,6 +463,8 @@ namespace IOITWebApp.Controllers.ApiBravo
                     var existingMaCuaVL = capphoi.Items.Select(item => item.MaCuaVL).Distinct().ToList();
                     // Danh sách MaCuaVL bị thiếu
                     var missingMaCuaVL = allMaCuaVL.Except(existingMaCuaVL).ToList();
+
+
                     if (missingMaCuaVL.Any())
                     {
                         // Thêm các mã cửa bị thiếu vào danh sách
@@ -465,6 +484,8 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
                     }
 
+                    var maDinhMuc = string.Empty;
+
                     foreach (var item in capphoi.Items)
                     {
                         // Kiểm tra Số lương VL với Mã mác và mã cửa đã tồn tại chưa?
@@ -475,6 +496,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         // Update
                         if (soluongVL != null && soluongVL.Any())
                         {
+                            maDinhMuc = soluongVL.FirstOrDefault().Ma;
                             var sqlUpdate = $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @maVL, [TENVATLIEU] = @tenVL, [MaLK] = @maBravo, [DonViQuyDoi] = @donviQuyDoi, [HeSoQuyDoi] = @heSoQuyDoi, [LASTUPDATED] = Getdate() " +
                                             "WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
                             var parametersUpdate = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
@@ -482,26 +504,36 @@ namespace IOITWebApp.Controllers.ApiBravo
                             if (isUpdate == -1)
                             {
                                 log.Error($"Error: Cập nhật không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
+                                return Ok(new APIResponseData { meta = new Meta(500, "Cập nhật không thành công!") });
+                            }
+                            else
+                            {
+                                return Ok(new APIResponseData { meta = new Meta(200, "Cập nhật thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
                             }
                         }
                         else // Thêm mới
                         {
                             var id = CustomGuid.NewSequentialId();
+                            maDinhMuc = CommonLib.GetSo("SOLUONGVL", "Ma", "SL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                             var sqlInsert = $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] " +
-                                       "([MACBETONGID], [MACUAVL], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) " +
-                                       "VALUES (@MACBETONGID, @MaCuaVL, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @donviQuyDoi, @heSoQuyDoi, GETDATE())";
-                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
+                                       "([MACBETONGID], [MACUAVL], [Ma], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) " +
+                                       "VALUES (@MACBETONGID, @MaCuaVL, @ma, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @donviQuyDoi, @heSoQuyDoi, GETDATE())";
+                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, ma = maDinhMuc, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
                             var isAdd = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, parametersInsert);
                             if (isAdd == -1)
                             {
                                 log.Error($"Error: Thêm không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
+                                return Ok(new APIResponseData { meta = new Meta(500, "Thêm không thành công!") });
+                            }
+                            else
+                            {
+                                return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
                             }
                         }
                     }
-
-                    return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!") });
                 }
+                return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!") });
             }
             catch (Exception ex)
             {
@@ -614,8 +646,8 @@ namespace IOITWebApp.Controllers.ApiBravo
             var connection = context.Database.GetDbConnection();
             string updateSql = $@"
                                     UPDATE TOP(1) [{branchDataname}].[dbo].[PHUGIA]
-                                    SET [TENPG] = @TENPG, [NHACUNGCAP] = @NHACUNGCAP, [MALOAIVL] = @MALOAIVL, 
-                                        [TENLOAIVL] = @TENLOAIVL, [HESOQUYDOI] = @HESOQUYDOI, [DONVIQUYDOI] = @DONVIQUYDOI, 
+                                    SET [Ten] = @TENPG, [NhaCungCap] = @NHACUNGCAP, [MaLoaiVL] = @MALOAIVL, 
+                                        [TenLoaiVL] = @TENLOAIVL, [HeSoQuyDoi] = @HESOQUYDOI, [DonViQuyDoi] = @DONVIQUYDOI, 
                                         [LASTUPDATED] = Getdate()
                                     WHERE [ID] = @ID";
 
