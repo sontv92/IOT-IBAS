@@ -477,7 +477,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                                 SoLuong = 0,
                                 MaVatLieu = "",
                                 TenVatLieu = "",
-                                Ma = "",
+                                Ma = capphoi.Items.FirstOrDefault()?.Ma,
                                 DonViQuyDoi = "",
                                 HeSoQuyDoi = 0,
                             });
