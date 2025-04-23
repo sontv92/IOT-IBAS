@@ -441,7 +441,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     string databaseName = $"{branch.Dataname}";
 
                     // Kiểm tra Mác bê tông có tồn tại hay không
-                    var query = $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [Ma] = @MaMac";
+                    var query = $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [MaLK] = @MaMac";
                     var parameters = new { MaMac = capphoi.Items.FirstOrDefault()?.MaMac };
 
                     var macBTs = await DapperHepper.QueryAsync<CapPhoiDTO>(LocalSettings.ConnectString, query, parameters);
