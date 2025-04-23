@@ -488,6 +488,12 @@ namespace IOITWebApp.Controllers.ApiBravo
 
                     foreach (var item in capphoi.Items)
                     {
+                        if (item.MaCuaVL == 0)
+                        {
+                            log.Error($"Error: Cập nhật không thành công. Mã cửa vật liệu không hợp lệ!");
+                            return Ok(new APIResponseData { meta = new Meta(400, "Mã cửa vật liệu không hợp lệ!") });
+                        }
+
                         // Kiểm tra Số lương VL với Mã mác và mã cửa đã tồn tại chưa?
                         var querySoLuongVL = $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
                         var parametersSoLuongVL = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL };
