@@ -484,6 +484,9 @@ namespace IOITWebApp.Models.Data
         public Guid MACBETONGID { get; set; }
 
         public DateTime LASTUPDATE { get; set; }
+        public string MaLK { get; set; }
+        public string GhiChu { get; set; }
+        public string DonViQuyDoi { get; set; }
     }
     public partial class SoLuongVLDTO
     {

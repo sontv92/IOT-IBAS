@@ -444,7 +444,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     var query = $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [MaLK] = @MaMac";
                     var parameters = new { MaMac = capphoi.Items.FirstOrDefault()?.MaMac };
 
-                    var macBTs = await DapperHepper.QueryAsync<CapPhoiDTO>(LocalSettings.ConnectString, query, parameters);
+                    var macBTs = await DapperHepper.QueryAsync<MacBeTongDTO>(LocalSettings.ConnectString, query, parameters);
                     if (macBTs == null || !macBTs.Any())
                     {
                         return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {parameters.MaMac} không tồn tại!") });
@@ -472,7 +472,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         {
                             capphoi.Items.Add(new DanhMucCapPhoiBeTongItemRequestModel()
                             {
-                                MaMac = macBT.Ma,
+                                MaMac = macBT.MaLK,
                                 MaCuaVL = maCuaVL,
                                 SoLuong = 0,
                                 MaVatLieu = "",
@@ -484,7 +484,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
                     }
 
-                    var maDinhMuc = string.Empty;
+                    var maDinhMuc = CommonLib.GetSo("SOLUONGVL", "Ma", "SL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                     foreach (var item in capphoi.Items)
                     {
@@ -495,8 +495,8 @@ namespace IOITWebApp.Controllers.ApiBravo
                         }
 
                         // Kiểm tra Số lương VL với Mã mác và mã cửa đã tồn tại chưa?
-                        var querySoLuongVL = $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
-                        var parametersSoLuongVL = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL };
+                        var querySoLuongVL = $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL AND [MaLK] = @maLK";
+                        var parametersSoLuongVL = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, maLK = item.Ma };
                         var soluongVL = await DapperHepper.QueryAsync<SoLuongVLDTO>(LocalSettings.ConnectString, querySoLuongVL, parametersSoLuongVL);
 
                         // Update
@@ -510,17 +510,11 @@ namespace IOITWebApp.Controllers.ApiBravo
                             if (isUpdate == -1)
                             {
                                 log.Error($"Error: Cập nhật không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
-                                return Ok(new APIResponseData { meta = new Meta(500, "Cập nhật không thành công!") });
-                            }
-                            else
-                            {
-                                return Ok(new APIResponseData { meta = new Meta(200, "Cập nhật thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
                             }
                         }
                         else // Thêm mới
                         {
                             var id = CustomGuid.NewSequentialId();
-                            maDinhMuc = CommonLib.GetSo("SOLUONGVL", "Ma", "SL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                             var sqlInsert = $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] " +
                                        "([MACBETONGID], [MACUAVL], [Ma], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) " +
@@ -530,16 +524,11 @@ namespace IOITWebApp.Controllers.ApiBravo
                             if (isAdd == -1)
                             {
                                 log.Error($"Error: Thêm không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
-                                return Ok(new APIResponseData { meta = new Meta(500, "Thêm không thành công!") });
-                            }
-                            else
-                            {
-                                return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
                             }
                         }
                     }
+                    return Ok(new APIResponseData { meta = new Meta(200, "Cập nhật thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
                 }
-                return Ok(new APIResponseData { meta = new Meta(200, "Thêm mới thành công!") });
             }
             catch (Exception ex)
             {
