@@ -403,131 +403,121 @@ namespace IOITWebApp.Controllers.ApiBravo
         [HttpPost("dmcapphoibetong")]
         public async Task<IActionResult> PostSoLuongVL([FromBody] DanhMucCapPhoiBeTongRequestModel capphoi)
         {
-            string functionCode = "dmmacbetong";
-            var res = new APIResponseData();
-
             try
             {
-                if (capphoi == null)
-                {
-                    return Ok(new APIResponseData { meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!") });
-                }
+                const string functionCode = "dmmacbetong";
 
-                // Check role
+                if (capphoi == null)
+                    return Ok(new APIResponseData { meta = new Meta(400, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!") });
+
                 var identity = User.Identity as ClaimsIdentity;
                 if (identity == null)
-                {
                     return UnauthorizedResponse();
-                }
 
-                string access_key = identity.Claims.FirstOrDefault(c => c.Type == "AccessKey")?.Value;
-                if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
-                {
+                string accessKey = identity.Claims.FirstOrDefault(c => c.Type == "AccessKey")?.Value;
+                if (!CheckRole.CheckRoleByCode(accessKey, functionCode, (int)Const.Action.CREATE))
                     return UnauthorizedResponse();
-                }
 
                 using (var context = new CNTTVNWebContext())
                 {
+
                     if (capphoi.BranchId == 0)
-                    {
                         return BadRequestResponse("Mã trạm không hợp lệ!");
-                    }
 
                     var branch = await context.Branch.FindAsync(capphoi.BranchId);
                     if (branch == null)
-                    {
                         return BadRequestResponse("Không tìm thấy trạm tương ứng!");
-                    }
-                    string databaseName = $"{branch.Dataname}";
 
-                    // Kiểm tra Mác bê tông có tồn tại hay không
-                    var query = $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [MaLK] = @MaMac";
-                    var parameters = new { MaMac = capphoi.Items.FirstOrDefault()?.MaMac };
-
-                    var macBTs = await DapperHepper.QueryAsync<MacBeTongDTO>(LocalSettings.ConnectString, query, parameters);
-                    if (macBTs == null || !macBTs.Any())
-                    {
-                        return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {parameters.MaMac} không tồn tại!") });
-                    }
-
-                    var macBT = macBTs.First();
+                    string databaseName = branch.Dataname;
 
                     if (capphoi.Items == null || !capphoi.Items.Any() || capphoi.Items.Count > 20)
-                    {
                         return Ok(new APIResponseData { meta = new Meta(400, "Danh sách vật liệu không hợp lệ!") });
-                    }
 
-                    // Danh sách tất cả các MaCuaVL hợp lệ từ 1 đến 20
+                    string maMac = capphoi.Items.FirstOrDefault()?.MaMac;
+                    var macBTs = await DapperHepper.QueryAsync<MacBeTongDTO>(
+                        LocalSettings.ConnectString,
+                        $"SELECT TOP 1 * FROM {databaseName}.[dbo].[MACBETONG] WHERE [MaLK] = @MaMac",
+                        new { MaMac = maMac }
+                    );
+
+                    if (macBTs == null || !macBTs.Any())
+                        return Ok(new APIResponseData { meta = new Meta(400, $"Mã mác {maMac} không tồn tại!") });
+
+                    var macBT = macBTs.First();
                     var allMaCuaVL = Enumerable.Range(1, 20).ToList();
-                    // Danh sách MaCuaVL hiện có trong capphoi.Items
-                    var existingMaCuaVL = capphoi.Items.Select(item => item.MaCuaVL).Distinct().ToList();
-                    // Danh sách MaCuaVL bị thiếu
-                    var missingMaCuaVL = allMaCuaVL.Except(existingMaCuaVL).ToList();
+                    var existingMaCuaVL = capphoi.Items.Select(x => x.MaCuaVL).Distinct().ToList();
+                    var missingMaCuaVL = allMaCuaVL.Except(existingMaCuaVL);
 
-
-                    if (missingMaCuaVL.Any())
+                    foreach (var maCuaVL in missingMaCuaVL)
                     {
-                        // Thêm các mã cửa bị thiếu vào danh sách
-                        foreach (var maCuaVL in missingMaCuaVL)
+                        capphoi.Items.Add(new DanhMucCapPhoiBeTongItemRequestModel
                         {
-                            capphoi.Items.Add(new DanhMucCapPhoiBeTongItemRequestModel()
-                            {
-                                MaMac = macBT.MaLK,
-                                MaCuaVL = maCuaVL,
-                                SoLuong = 0,
-                                MaVatLieu = "",
-                                TenVatLieu = "",
-                                Ma = capphoi.Items.FirstOrDefault()?.Ma,
-                                DonViQuyDoi = "",
-                                HeSoQuyDoi = 0,
-                            });
-                        }
+                            MaMac = macBT.MaLK,
+                            MaCuaVL = maCuaVL,
+                            SoLuong = 0,
+                            MaVatLieu = "",
+                            TenVatLieu = "",
+                            Ma = capphoi.Items.FirstOrDefault()?.Ma,
+                            DonViQuyDoi = "",
+                            HeSoQuyDoi = 0
+                        });
                     }
 
-                    var maDinhMuc = CommonLib.GetSo("SOLUONGVL", "Ma", "SL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
+                    string maDinhMuc = "";
+                    var soluongVLs = (await DapperHepper.QueryAsync<SoLuongVLDTO>(
+                        LocalSettings.ConnectString,
+                        $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID",
+                        new { macBeTongID = macBT.ID }
+                    ))?.ToList();
+
+                    if (soluongVLs != null && soluongVLs.Any())
+                        maDinhMuc = soluongVLs.First().Ma;
+                    else
+                        maDinhMuc = CommonLib.GetSo("SOLUONGVL", "Ma", "SL1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
 
                     foreach (var item in capphoi.Items)
                     {
                         if (item.MaCuaVL == 0)
                         {
-                            log.Error($"Error: Cập nhật không thành công. Mã cửa vật liệu không hợp lệ!");
+                            log.Error("Error: Mã cửa vật liệu không hợp lệ!");
                             return Ok(new APIResponseData { meta = new Meta(400, "Mã cửa vật liệu không hợp lệ!") });
                         }
 
-                        // Kiểm tra Số lương VL với Mã mác và mã cửa đã tồn tại chưa?
-                        var querySoLuongVL = $"SELECT * FROM {databaseName}.[dbo].[SOLUONGVL] WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL AND [MaLK] = @maLK";
-                        var parametersSoLuongVL = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, maLK = item.Ma };
-                        var soluongVL = await DapperHepper.QueryAsync<SoLuongVLDTO>(LocalSettings.ConnectString, querySoLuongVL, parametersSoLuongVL);
+                        var existing = soluongVLs?.FirstOrDefault(x => x.MACUAVL == item.MaCuaVL);
 
-                        // Update
-                        if (soluongVL != null && soluongVL.Any())
-                        {
-                            maDinhMuc = soluongVL.FirstOrDefault().Ma;
-                            var sqlUpdate = $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @maVL, [TENVATLIEU] = @tenVL, [MaLK] = @maBravo, [DonViQuyDoi] = @donviQuyDoi, [HeSoQuyDoi] = @heSoQuyDoi, [LASTUPDATED] = Getdate() " +
-                                            "WHERE [MACBETONGID] = @macBeTongID AND [MACUAVL] = @maCuaVL";
-                            var parametersUpdate = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, SoLuong = item.SoLuong, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
-                            var isUpdate = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlUpdate, parametersUpdate);
-                            if (isUpdate == -1)
-                            {
-                                log.Error($"Error: Cập nhật không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
-                            }
-                        }
-                        else // Thêm mới
-                        {
-                            var id = CustomGuid.NewSequentialId();
+                        var sql = existing != null
+                            ? $"UPDATE [{databaseName}].[dbo].[SOLUONGVL] SET [SOLUONG] = @SoLuong, [MAVATLIEU] = @MaVL, [TENVATLIEU] = @TenVL, [MaLK] = @MaBravo, [DonViQuyDoi] = @DonViQuyDoi, [HeSoQuyDoi] = @HeSoQuyDoi, [LASTUPDATED] = GETDATE() WHERE [MACBETONGID] = @MACBETONGID AND [MACUAVL] = @MaCuaVL"
+                            : $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] ([MACBETONGID], [MACUAVL], [Ma], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) VALUES (@MACBETONGID, @MaCuaVL, @Ma, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @DonViQuyDoi, @HeSoQuyDoi, GETDATE())";
 
-                            var sqlInsert = $"INSERT INTO [{databaseName}].[dbo].[SOLUONGVL] " +
-                                       "([MACBETONGID], [MACUAVL], [Ma], [SOLUONG], [ID], [MAMAC], [MAVATLIEU], [TENVATLIEU], [MaLK], [DonViQuyDoi], [HeSoQuyDoi], [LASTUPDATED]) " +
-                                       "VALUES (@MACBETONGID, @MaCuaVL, @ma, @SoLuong, @ID, @MaMac, @MaVL, @TenVL, @MaBravo, @donviQuyDoi, @heSoQuyDoi, GETDATE())";
-                            var parametersInsert = new { macBeTongID = macBT.ID, maCuaVL = item.MaCuaVL, ma = maDinhMuc, SoLuong = item.SoLuong, ID = id, MaMac = item.MaMac, maVL = item.MaVatLieu, tenVL = item.TenVatLieu, maBravo = item.Ma, donviQuyDoi = item.DonViQuyDoi, heSoQuyDoi = item.HeSoQuyDoi };
-                            var isAdd = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sqlInsert, parametersInsert);
-                            if (isAdd == -1)
-                            {
-                                log.Error($"Error: Thêm không thành công. Với Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
-                            }
+                        var parameters = new
+                        {
+                            MACBETONGID = macBT.ID,
+                            MaCuaVL = item.MaCuaVL,
+                            Ma = maDinhMuc,
+                            SoLuong = item.SoLuong,
+                            ID = CustomGuid.NewSequentialId(),
+                            MaMac = item.MaMac,
+                            MaVL = item.MaVatLieu,
+                            TenVL = item.TenVatLieu,
+                            MaBravo = item.Ma,
+                            DonViQuyDoi = item.DonViQuyDoi,
+                            HeSoQuyDoi = item.HeSoQuyDoi
+                        };
+
+                        int result = DapperHepper.ExecuteNew(LocalSettings.ConnectString, sql, parameters);
+
+                        if (result == -1)
+                        {
+                            log.Error($"Error: {(existing != null ? "Cập nhật" : "Thêm")} không thành công. Mã mác: {macBT.Ma}, MACUAVL: {item.MaCuaVL}");
+                            return Ok(new APIResponseData { meta = new Meta(400, $"{(existing != null ? "Cập nhật" : "Thêm")} không thành công!") });
                         }
                     }
-                    return Ok(new APIResponseData { meta = new Meta(200, "Cập nhật thành công!"), data = new ResponseDetail() { MaThamChieu = maDinhMuc } });
+
+                    return Ok(new APIResponseData
+                    {
+                        meta = new Meta(200, "Cập nhật thành công!"),
+                        data = new ResponseDetail { MaThamChieu = maDinhMuc }
+                    });
                 }
             }
             catch (Exception ex)
@@ -537,7 +527,6 @@ namespace IOITWebApp.Controllers.ApiBravo
             }
 
         }
-
         /// <summary>
         /// Phương thức giúp trả về response lỗi 400
         /// </summary>
