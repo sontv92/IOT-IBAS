@@ -90,7 +90,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     //    "[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12],[13],[14],[15],[16],[17],[18])) " +
                                     command.CommandText += "AS PivotTable;";
                                     command.CommandText += " SELECT COUNT(*) AS COUNTS FROM #TempTable ;";
-                                    command.CommandText += "select [MACBETONGID],mbt.Ma,mbt.MaLK,mbt.TENMACBETONG,mbt.CUONGDO, mbt.COTLIEUMAX, mbt.DOSUT,mbt.LASTUPDATED,";
+                                    command.CommandText += "select [MACBETONGID],mbt.Ma,mbt.MaLK,mbt.TENMACBETONG,mbt.CUONGDO, mbt.COTLIEUMAX, mbt.DOSUT, mbt.ISSYNC,mbt.LASTUPDATED,";
                                     for (int k = 1; k <= count; k++)
                                     {
                                         if (k < count)
@@ -157,6 +157,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             item.CUONGDO = (result["CUONGDO"] is DBNull) ? string.Empty : result["CUONGDO"].ToString();
                             item.DOSUT = (result["DOSUT"] is DBNull) ? String.Empty : (string)result["DOSUT"];
                             item.COTLIEUMAX = (result["COTLIEUMAX"] is DBNull) ? 0 : (int)result["COTLIEUMAX"];
+                            item.ISSYNC = (result["ISSYNC"] is DBNull) ? false : (bool)result["ISSYNC"];
 
                             item.VatLieus = new List<VatLieuDTO>();
                             for (int i = 1; i <= count; i++)

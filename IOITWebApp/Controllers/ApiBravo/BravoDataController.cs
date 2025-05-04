@@ -452,7 +452,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                     {
                         capphoi.Items.Add(new DanhMucCapPhoiBeTongItemRequestModel
                         {
-                            MaMac = macBT.MaLK,
+                            MaMac = macBT.Ma,
                             MaCuaVL = maCuaVL,
                             SoLuong = 0,
                             MaVatLieu = "",
@@ -496,7 +496,7 @@ namespace IOITWebApp.Controllers.ApiBravo
                             Ma = maDinhMuc,
                             SoLuong = item.SoLuong,
                             ID = CustomGuid.NewSequentialId(),
-                            MaMac = item.MaMac,
+                            MaMac = macBT.Ma,
                             MaVL = item.MaVatLieu,
                             TenVL = item.TenVatLieu,
                             MaBravo = item.Ma,
@@ -674,10 +674,10 @@ namespace IOITWebApp.Controllers.ApiBravo
         private void InsertMacBetong(DbCommand command, Branch branch, Guid id, DanhMucMacRequestModel capphoi, string maMac)
         {
             command.CommandText = $"INSERT INTO [{branch.Dataname}].[dbo].[MACBETONG] " +
-                                  "([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], " +
+                                  "([ID], [Ma], [TENMACBETONG], [CUONGDO], [COTLIEUMAX], [DOSUT], [ISSYNC]," +
                                   "[GhiChu], [DONVIQUYDOI], [MaLK], [LASTUPDATED]) " +
                                   "VALUES (@paramMACBETONGID, @paramMa, @paramTenMacBeTong, @paramCUONGDO, " +
-                                  "@paramCOTLIEUMAX, @paramDOSUT, @paramGhiChu, @paramDONVIQUYDOI, @paramMaBravo, Getdate());";
+                                  "@paramCOTLIEUMAX, @paramDOSUT, 1, @paramGhiChu, @paramDONVIQUYDOI, @paramMaBravo, Getdate());";
             AddParameters(command, id, capphoi, maMac);
         }
 

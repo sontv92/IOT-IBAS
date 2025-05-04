@@ -60,11 +60,11 @@ namespace IOITWebApp.ApiCMS.Controllers
                     }
 
                     data = data.Where(paging.query);
-                    //if (!string.IsNullOrEmpty(paging.Branchlist) && paging.Branchlist.Trim() != "null" && paging.Branchlist.Trim() != "undefined")
-                    //{
-                    //    var branchArr = paging.Branchlist.Split(",");
-                    //    data = data.Where(x => branchArr.Any(y => x.BranchId == int.Parse(y)));
-                    //}
+                    if (!string.IsNullOrEmpty(paging.Branchlist) && paging.Branchlist.Trim() != "null" && paging.Branchlist.Trim() != "undefined")
+                    {
+                        var branchArr = paging.Branchlist.Split(",");
+                        data = data.Where(x => branchArr.Any(y => x.BranchId == int.Parse(y)));
+                    }
                     def.metadata = data.Count();
 
                     if (paging.page_size > 0)

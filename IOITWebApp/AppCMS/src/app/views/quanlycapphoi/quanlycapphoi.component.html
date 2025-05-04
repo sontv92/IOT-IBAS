@@ -133,12 +133,12 @@
               <td>{{ item.COTLIEUMAX }}</td>
               <td>{{ item.DOSUT }}</td>
               <td style="text-align: center;">
-                <a *ngIf="actionUpdate" class="btn btn-info btn-sm" href="javascript:void(0)" (click)="OpenEditModal(item)" tooltip="Sửa" style="margin-left: 5px;">
+                <a *ngIf="actionUpdate && !item.ISSYNC" class="btn btn-info btn-sm" href="javascript:void(0)" (click)="OpenEditModal(item)" tooltip="Sửa" style="margin-left: 5px;">
                   <i class="fas fa-pencil-alt">
                   </i>
                   Sửa
                 </a>
-                <a *ngIf="actionDelete" class="btn btn-danger btn-sm"  href="javascript:void(0)" (click)="ShowConfirmDelete(item.MACBETONGID, this.q.BranchId)" tooltip="Xóa">
+                <a *ngIf="actionDelete && !item.ISSYNC" class="btn btn-danger btn-sm"  href="javascript:void(0)" (click)="ShowConfirmDelete(item.MACBETONGID, this.q.BranchId)" tooltip="Xóa">
                   <i class="fas fa-trash">
                   </i>
                   Xóa

@@ -221,7 +221,7 @@ namespace IOITWebApp.Models.Data
         public string Ma { get; set; }
         public string MALIENKET { get; set; }
         public string TENMACBETONG { get; set; }
-
+        public bool ISSYNC { get; set; }
         public List<VatLieuDTO> VatLieus { get; set; }
         public Double CAT1 { get; set; }
         public Double CAT2 { get; set; }
