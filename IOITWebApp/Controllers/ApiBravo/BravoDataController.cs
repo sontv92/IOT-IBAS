@@ -483,6 +483,15 @@ namespace IOITWebApp.Controllers.ApiBravo
                             return Ok(new APIResponseData { meta = new Meta(400, "Mã cửa vật liệu không hợp lệ!") });
                         }
 
+                        var checkPG = await DapperHepper.QueryAsync<PhuGiaDTO>(
+                               LocalSettings.ConnectString,
+                               $"SELECT TOP(1) * FROM [{branch.Dataname}].[dbo].[PHUGIA] WHERE MaLK = @MaVatTu",
+                               new { MaVatTu = item.MaVatLieu }
+                           );
+
+                        if (checkPG == null || !checkPG.Any())
+                            return Ok(new APIResponseData { meta = new Meta(400, $"Mã vật tư {item.MaVatLieu} không tồn tại!") });
+
                         var existing = soluongVLs?.FirstOrDefault(x => x.MACUAVL == item.MaCuaVL);
 
                         var sql = existing != null
