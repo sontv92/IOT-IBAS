@@ -26,5 +26,6 @@ namespace IOITWebApp.Models.EF
         public int CompanyId { get; set; }
         public string PMQLXe { get; set; }
         public string QLCamera { get; set; }
+        public int? TypeTram { get; set; }
     }
 }

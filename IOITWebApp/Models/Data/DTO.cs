@@ -1561,6 +1561,7 @@ namespace IOITWebApp.Models.Data
         public string Password { get; set; }
         public string PMQLXe { get; set; }
         public string QLCamera { get; set; }
+        public int StationType { get; set; }
 
     }
 

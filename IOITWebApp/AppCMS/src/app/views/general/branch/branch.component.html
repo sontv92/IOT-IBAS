@@ -177,6 +177,22 @@
                            [ngModelOptions]="{standalone: true}">
                 </ng-select>
               </div>
+              <!-- Loại trạm -->
+              <div class="form-group">
+              <label>Loại trạm<span style="color: red;">&nbsp;(*)</span></label>
+              <div class="custom-radio-group">
+                <label class="custom-radio">Trạm trộn
+                  <input type="radio" name="StationType" [(ngModel)]="Item.StationType" [value]="1" required>
+                  <span class="checkmark"></span>
+                </label>
+                <label class="custom-radio">Trạm cân
+                  <input type="radio" name="StationType" [(ngModel)]="Item.StationType" [value]="2">
+                  <span class="checkmark"></span>
+                </label>
+              </div>
+            </div>
+
+
               <div class="form-group">
                 <label for="Username">Tài khoản</label>
                 <input type="text" [disabled]="isdisabled" id="Username" name="Username" class="form-control" placeholder="" [(ngModel)]="Item.Username" autocomplete="off">

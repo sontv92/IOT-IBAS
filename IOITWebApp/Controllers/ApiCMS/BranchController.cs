@@ -264,7 +264,13 @@ namespace IOITWebApp.ApiCMS.Controllers
                         return Ok(def);
                     }
                     // Tạo database và user
-                    var restore = RestoreDatabase(data.Username);
+                    var nameDB = data.Username;
+                    if (data.StationType == 2)
+                        nameDB += "_tramcan_online";
+                    else
+                        nameDB += "_online";
+
+                    var restore = RestoreDatabase(nameDB, data.StationType);
                     if (restore == 1)
                     {
                         def.meta = new Meta(400, "Tên cơ sở dữ liệu đã tồn tại !");
@@ -272,16 +278,16 @@ namespace IOITWebApp.ApiCMS.Controllers
                     }
                     else if (restore == -1)
                     {
-                        var restoreuser = RestoreUser(data.Username, data.Password);
+                        var restoreuser = RestoreUser(data.Username, data.Password, nameDB);
                         if (restoreuser == 1)
                         {
-                            DropDatabase(data.Username);
+                            DropDatabase(data.Username, nameDB);
                             def.meta = new Meta(400, "Tên tài khoản đã tồn tại !");
                             return Ok(def);
                         }
                         if (restoreuser != -1)
                         {
-                            DropDatabase(data.Username);
+                            DropDatabase(data.Username, nameDB);
                             def.meta = new Meta(400, "Lỗi dữ liệu!");
                             return Ok(def);
                         }
@@ -315,6 +321,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                         branch.Password = data.Password;
                         branch.PMQLXe = data.PMQLXe;
                         branch.QLCamera = data.QLCamera;
+                        branch.TypeTram = data.StationType;
                         db.Branch.Add(branch);
 
                         try
@@ -418,11 +425,16 @@ namespace IOITWebApp.ApiCMS.Controllers
 
                         try
                         {
+                            var nameDB = data.Username;
+                            if (data.TypeTram == 2)
+                                nameDB += "_tramcan_online";
+                            else
+                                nameDB += "_online";
 
                             await db.SaveChangesAsync();
                             if (data.BranchId > 0)
                             {
-                                DropDatabase(data.Username);
+                                DropDatabase(data.Username, nameDB);
                                 transaction.Commit();
                             }
                             else
@@ -467,7 +479,7 @@ namespace IOITWebApp.ApiCMS.Controllers
             }
         }
 
-        private int RestoreDatabase(string name)
+        private int RestoreDatabase(string name, int? typeTram)
         {
             string applicationPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             string sqlStmt3 = "";
@@ -485,7 +497,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                     string webRootPath = _hostingEnvironment.WebRootPath;
                     log.Info("webRootPath:"+ webRootPath);
                     log.Info("applicationPath:"+applicationPath);
-                    string[] strArray = new string[] { webRootPath, @"\", "TRAMTRON_DNP_Online.bak" };
+                    string[] strArray = new string[] { webRootPath, @"\", typeTram == 1 ? "TRAMTRON_DNP_Online.bak" : "TRAMCAN_iBas_Online.bak" };
                     string filePath = string.Concat(strArray);
 
                     //string filePath = dbPath +"/TRAMTRON_Online.bak";
@@ -495,7 +507,11 @@ namespace IOITWebApp.ApiCMS.Controllers
 
                     //string savePath = @"D:\DB test\";
 
-                    sqlStmt3 = string.Format("RESTORE DATABASE " + name + "_online" + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + "_online" + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_online" + "_log.mdf';");
+                    if (typeTram == 2)
+                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + "_online" + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'TRAMCAN_iBas_Online' TO '" + savePath + name + ".mdf', MOVE 'TRAMCAN_iBas_Online_Log' TO '" + savePath + name + "_log.mdf';");
+                    else
+                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + "_online" + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + "_online" + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_online" + "_log.mdf';");
+
 
                     //var cmd = String.Format("USE master restore DATABASE QUANLYTAITRAM_Local from DISK='{0}' WITH REPLACE;", dbPath);
                     var data = db.Database.ExecuteSqlCommand(sqlStmt3);
@@ -510,7 +526,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                 return 0;
             }
         }
-        private int RestoreUser(string user, string pass)
+        private int RestoreUser(string user, string pass, string dbName)
         {
             try
             {
@@ -521,7 +537,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                 }
                 using (var db = new CNTTVNWebContext())
                 {
-                    string sqlStmt4 = string.Format("CREATE LOGIN " + user + " WITH PASSWORD = '" + pass + "';  USE " + user + "_online" + "; CREATE USER " + user + " FOR LOGIN " + user + "; ALTER ROLE db_owner ADD MEMBER " + user + " ;");
+                    string sqlStmt4 = string.Format("CREATE LOGIN " + user + " WITH PASSWORD = '" + pass + "';  USE " + dbName + "; CREATE USER " + user + " FOR LOGIN " + user + "; ALTER ROLE db_owner ADD MEMBER " + user + " ;");
                     var data = db.Database.ExecuteSqlCommand(sqlStmt4);
                     return data;
                 }
@@ -533,13 +549,13 @@ namespace IOITWebApp.ApiCMS.Controllers
             }
         }
 
-        private int DropDatabase(string user)
+        private int DropDatabase(string user, string dbName)
         {
             try
             {
                 using (var db = new CNTTVNWebContext())
                 {
-                    string sqlStmt = string.Format("DROP LOGIN " + user + " ; EXEC msdb.dbo.sp_delete_database_backuphistory @database_name = N'" + user + "_online" + "'  ALTER DATABASE " + user + "_online" + " SET  SINGLE_USER WITH ROLLBACK IMMEDIATE DROP DATABASE " + user + "_online");
+                    string sqlStmt = string.Format("DROP LOGIN " + user + " ; EXEC msdb.dbo.sp_delete_database_backuphistory @database_name = N'" + dbName + "'  ALTER DATABASE " + user + "_online" + " SET  SINGLE_USER WITH ROLLBACK IMMEDIATE DROP DATABASE " + user + "_online");
                     var data = db.Database.ExecuteSqlCommand(sqlStmt);
                     return data;
                 }
