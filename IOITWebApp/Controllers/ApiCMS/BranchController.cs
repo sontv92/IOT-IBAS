@@ -53,7 +53,11 @@ namespace IOITWebApp.ApiCMS.Controllers
                 using (var db = new CNTTVNWebContext())
                 {
                     def.meta = new Meta(200, "Success");
-                    IQueryable<Branch> data = db.Branch.Where(c => c.Status != (int)Const.Status.DELETED);
+                    IQueryable<Branch> data = db.Branch.Where(c => c.Status != (int)Const.Status.DELETED && (
+                            paging.TypeTram == null || paging.TypeTram == 0 || // không lọc
+                            (paging.TypeTram == 1 && (c.TypeTram == 1 || c.TypeTram == null)) || // lấy 1 + null
+                            (paging.TypeTram != 1 && c.TypeTram == paging.TypeTram) // các giá trị khác (VD: 2)
+                        ));
                     if (paging.query != null)
                     {
                         paging.query = HttpUtility.UrlDecode(paging.query);
@@ -316,7 +320,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                         branch.UpdatedAt = DateTime.Now;
                         branch.Status = (int)Const.Status.NORMAL;
                         branch.CompanyId = data.CompanyId;
-                        branch.Dataname = data.Username + "_online";
+                        branch.Dataname = nameDB;
                         branch.Username = data.Username;
                         branch.Password = data.Password;
                         branch.PMQLXe = data.PMQLXe;
@@ -502,15 +506,15 @@ namespace IOITWebApp.ApiCMS.Controllers
 
                     //string filePath = dbPath +"/TRAMTRON_Online.bak";
 
-                    string savePath = webRootPath + @"\" + "Data";
+                    string savePath = webRootPath + @"\Data";
 
 
                     //string savePath = @"D:\DB test\";
 
                     if (typeTram == 2)
-                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + "_online" + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'TRAMCAN_iBas_Online' TO '" + savePath + name + ".mdf', MOVE 'TRAMCAN_iBas_Online_Log' TO '" + savePath + name + "_log.mdf';");
+                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_log.mdf';");
                     else
-                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + "_online" + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + "_online" + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_online" + "_log.mdf';");
+                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + "_online" + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_log.mdf';");
 
 
                     //var cmd = String.Format("USE master restore DATABASE QUANLYTAITRAM_Local from DISK='{0}' WITH REPLACE;", dbPath);
@@ -555,7 +559,7 @@ namespace IOITWebApp.ApiCMS.Controllers
             {
                 using (var db = new CNTTVNWebContext())
                 {
-                    string sqlStmt = string.Format("DROP LOGIN " + user + " ; EXEC msdb.dbo.sp_delete_database_backuphistory @database_name = N'" + dbName + "'  ALTER DATABASE " + user + "_online" + " SET  SINGLE_USER WITH ROLLBACK IMMEDIATE DROP DATABASE " + user + "_online");
+                    string sqlStmt = string.Format("DROP LOGIN " + user + " ; EXEC msdb.dbo.sp_delete_database_backuphistory @database_name = N'" + dbName + "'  ALTER DATABASE " + dbName + " SET  SINGLE_USER WITH ROLLBACK IMMEDIATE DROP DATABASE " + dbName);
                     var data = db.Database.ExecuteSqlCommand(sqlStmt);
                     return data;
                 }

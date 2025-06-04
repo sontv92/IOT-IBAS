@@ -52,4 +52,5 @@ export class QueryFilter {
     Branchlist: [];
     fromdate: string;
     todate: string;
+    typeTram: number;
 }

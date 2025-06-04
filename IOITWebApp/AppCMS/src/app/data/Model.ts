@@ -879,7 +879,7 @@ export class Branch {
   CompanyId: number;
   PMQLXe: string;
   QLCamera: string;
-  StationType: number;
+  TypeTram: number;
 }
 
 export class ResetPasswordCustomerDTO {

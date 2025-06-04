@@ -39,6 +39,11 @@ export class BranchComponent implements OnInit {
   actionPrint: boolean;
   access_key: string;
   functionRole: string; 
+  stationTypeOptions = [
+  { label: 'Tất cả', value: null },
+  { label: 'Trạm trộn', value: 1 },
+  { label: 'Trạm cân', value: 2 }
+]; 
 
   constructor(
     public http: HttpClient,
@@ -85,6 +90,7 @@ export class BranchComponent implements OnInit {
     if (this.role != 1 && this.role != 3) {
       this.paging.Branchid = this.lstBranchIdRole;
     }
+    this.paging.typeTram = 0;
     this.GetListBranch();
     if (this.role == 1) {
       this.GetListCompany();
@@ -109,7 +115,7 @@ export class BranchComponent implements OnInit {
     if (this.role != 1) {
       this.paging.query += ' and CompanyId = ' + this.companyId;
     }
-    this.http.get('/api/branch/GetByPage?page=' + this.paging.page + '&page_size=' + this.paging.page_size + '&query=' + this.paging.query + '&Branchlist=' + this.paging.Branchid + '&order_by=' + this.paging.order_by, this.httpOptions).subscribe(
+    this.http.get('/api/branch/GetByPage?page=' + this.paging.page + '&page_size=' + this.paging.page_size + '&query=' + this.paging.query + '&Branchlist=' + this.paging.Branchid + '&TypeTram=' + this.paging.typeTram + '&order_by=' + this.paging.order_by, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.listBranch = res["data"];
@@ -169,6 +175,10 @@ export class BranchComponent implements OnInit {
         query += 'CompanyId = ' + this.q.CompanyId;
       }
     }
+    this.paging.typeTram = 0;
+    if(this.q.typeTram != undefined) {
+      this.paging.typeTram = this.q.typeTram;
+    }
     if (this.role != 1) {
       if (query != '') {
         query += ' and CompanyId = ' + this.companyId;
@@ -181,7 +191,6 @@ export class BranchComponent implements OnInit {
       this.paging.query = '1=1';
     else
       this.paging.query = query;
-
     this.GetListBranch();
   }
 
