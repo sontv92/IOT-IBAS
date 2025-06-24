@@ -86,6 +86,7 @@ import { ThongKeTongKhoiLuongBeTongComponent } from './views/thongketongkhoiluon
 import { ThongKeChiTietVatTuComponent } from './views/thongkechitietvattu/thongkechitietvattu.component';
 import { BaoCaoXuatKhoComponent } from './views/baocaoxuatkho/baocaoxuatkho.component';
 import { ThongKeChiTietVatTuTheoXeTronComponent } from './views/thongkechitietvattutheoxetron/thongkechitietvattutheoxetron.component';
+import { TC_BaoCaoTramCanComponent } from './views/tc_baocaotramcan/tc_baocaotramcan.component';
 export const routes: Routes = [
   {
     path: '',
@@ -338,6 +339,14 @@ export const routes: Routes = [
         component: ThongKeChiTietVatTuTheoXeTronComponent,
         data: {
           title: 'Thống kê chi tiết vật tư theo xe trộn'
+        },
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'tramcan/baocaotramcan',
+        component: TC_BaoCaoTramCanComponent,
+        data: {
+          title: 'Báo cáo trạm cân'
         },
         canActivate: [AuthGuard]
       },

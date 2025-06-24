@@ -91,6 +91,7 @@ export class BranchComponent implements OnInit {
       this.paging.Branchid = this.lstBranchIdRole;
     }
     this.paging.typeTram = 0;
+    this.paging.module = 1;
     this.GetListBranch();
     if (this.role == 1) {
       this.GetListCompany();
@@ -115,7 +116,7 @@ export class BranchComponent implements OnInit {
     if (this.role != 1) {
       this.paging.query += ' and CompanyId = ' + this.companyId;
     }
-    this.http.get('/api/branch/GetByPage?page=' + this.paging.page + '&page_size=' + this.paging.page_size + '&query=' + this.paging.query + '&Branchlist=' + this.paging.Branchid + '&TypeTram=' + this.paging.typeTram + '&order_by=' + this.paging.order_by, this.httpOptions).subscribe(
+    this.http.get('/api/branch/GetByPage?page=' + this.paging.page + '&page_size=' + this.paging.page_size + '&query=' + this.paging.query + '&Branchlist=' + this.paging.Branchid + '&TypeTram=' + this.paging.typeTram +'&Module=' + this.paging.module + '&order_by=' + this.paging.order_by, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.listBranch = res["data"];

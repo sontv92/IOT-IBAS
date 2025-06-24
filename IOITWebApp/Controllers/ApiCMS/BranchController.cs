@@ -53,11 +53,25 @@ namespace IOITWebApp.ApiCMS.Controllers
                 using (var db = new CNTTVNWebContext())
                 {
                     def.meta = new Meta(200, "Success");
-                    IQueryable<Branch> data = db.Branch.Where(c => c.Status != (int)Const.Status.DELETED && (
-                            paging.TypeTram == null || paging.TypeTram == 0 || // không lọc
-                            (paging.TypeTram == 1 && (c.TypeTram == 1 || c.TypeTram == null)) || // lấy 1 + null
-                            (paging.TypeTram != 1 && c.TypeTram == paging.TypeTram) // các giá trị khác (VD: 2)
-                        ));
+                    IQueryable<Branch> data = db.Branch.Where(c =>
+                        c.Status != (int)Const.Status.DELETED &&
+                        (
+                            // Module = 0: loại TypeTram = 2
+                            (paging.Module == 0 || paging.Module == null && (c.TypeTram != 2 || c.TypeTram == null))
+
+                            ||
+
+                            // Module = 1:
+                            (paging.Module == 1 &&
+                                (
+                                    paging.TypeTram == null || paging.TypeTram == 0 || // không lọc
+                                    (paging.TypeTram == 1 && (c.TypeTram == 1 || c.TypeTram == null)) || // lọc TypeTram = 1 + null
+                                    (paging.TypeTram != 1 && c.TypeTram == paging.TypeTram) // lọc theo các giá trị khác
+                                )
+                            )
+                        )
+                    );
+
                     if (paging.query != null)
                     {
                         paging.query = HttpUtility.UrlDecode(paging.query);
@@ -269,12 +283,12 @@ namespace IOITWebApp.ApiCMS.Controllers
                     }
                     // Tạo database và user
                     var nameDB = data.Username;
-                    if (data.StationType == 2)
+                    if (data.TypeTram == 2)
                         nameDB += "_tramcan_online";
                     else
                         nameDB += "_online";
 
-                    var restore = RestoreDatabase(nameDB, data.StationType);
+                    var restore = RestoreDatabase(nameDB, data.TypeTram);
                     if (restore == 1)
                     {
                         def.meta = new Meta(400, "Tên cơ sở dữ liệu đã tồn tại !");
@@ -325,7 +339,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                         branch.Password = data.Password;
                         branch.PMQLXe = data.PMQLXe;
                         branch.QLCamera = data.QLCamera;
-                        branch.TypeTram = data.StationType;
+                        branch.TypeTram = data.TypeTram;
                         db.Branch.Add(branch);
 
                         try
@@ -499,8 +513,8 @@ namespace IOITWebApp.ApiCMS.Controllers
                     //string dbPath = System.IO.Directory.GetCurrentDirectory();
 
                     string webRootPath = _hostingEnvironment.WebRootPath;
-                    log.Info("webRootPath:"+ webRootPath);
-                    log.Info("applicationPath:"+applicationPath);
+                    log.Info("webRootPath:" + webRootPath);
+                    log.Info("applicationPath:" + applicationPath);
                     string[] strArray = new string[] { webRootPath, @"\", typeTram == 1 ? "TRAMTRON_DNP_Online.bak" : "TRAMCAN_iBas_Online.bak" };
                     string filePath = string.Concat(strArray);
 
@@ -512,7 +526,7 @@ namespace IOITWebApp.ApiCMS.Controllers
                     //string savePath = @"D:\DB test\";
 
                     if (typeTram == 2)
-                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_log.mdf';");
+                        sqlStmt3 = string.Format("RESTORE DATABASE " + name + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTRAMCAN_TC_Local' TO '" + savePath + name + ".mdf', MOVE 'QUANLYTRAMCAN_TC_Local_log' TO '" + savePath + name + "_log.mdf';");
                     else
                         sqlStmt3 = string.Format("RESTORE DATABASE " + name + " FROM DISK = '" + filePath + "'" + @" WITH MOVE 'QUANLYTAITRAM' TO '" + savePath + name + "_online" + ".mdf', MOVE 'QUANLYTAITRAM_Log' TO '" + savePath + name + "_log.mdf';");
 

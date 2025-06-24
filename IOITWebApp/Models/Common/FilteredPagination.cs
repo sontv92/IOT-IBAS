@@ -94,6 +94,8 @@ namespace IOITWebApp.Models
         public string TKCO { get; set; }
         [System.ComponentModel.DefaultValue(0)]
         public int? TypeTram { get; set; }
+        [System.ComponentModel.DefaultValue(0)]
+        public int? Module { get; set; }
 
     }
 }

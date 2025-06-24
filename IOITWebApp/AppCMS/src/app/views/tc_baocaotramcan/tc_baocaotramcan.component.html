@@ -1,0 +1,240 @@
+<!-- Content Header (Page header) -->
+<div class="content-header" style="background-color: #2f00ff; color:white">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h1 class="m-0">BÁO CÁO TRẠM CÂN</h1>
+      </div><!-- /.col -->
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="/">Trang quản trị</a></li>
+          <li class="breadcrumb-item active">Báo cáo đơn hàng</li>
+        </ol>
+      </div><!-- /.col -->
+    </div><!-- /.row -->
+  </div><!-- /.container-fluid -->
+</div>
+<ng4-loading-spinner  [timeout]="600000" [zIndex]="100000"> </ng4-loading-spinner>
+
+<!-- <ngx-spinner bdColor = "rgba(0, 0, 0, 0.8)" size = "medium" color = "#fff" type = "square-jelly-box" [fullScreen] = "true"><p style="color: white" > Loading... </p></ngx-spinner> -->
+<section class="content" style="padding:20px">
+  <div class="container-fluid">
+    <div class="card card-default">
+      <div class="card-header">
+        <h3 class="card-title">Lọc tìm kiếm</h3>
+
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body" style="display: block;">
+        <div class="form-group row">
+          <label for="inputCat1"  class="col-sm-2 col-form-label">Từ ngày</label>
+          <div class="col-sm-2">
+            <input type="date" id="exampleInput" style="width:100%" name="inputtungay" class="input-search" [(ngModel)]="q.tungay"
+            placeholder="yyyy/MM/dd" />
+          </div>
+          <div class="col-sm-2">
+            <input type="time" id="exampleInput" style="width:100%" name="inputtimetungay" class="input-search"
+              [(ngModel)]="q.timetungay"/>
+          </div>
+          <label for="inputCat2" class="col-sm-2 col-form-label">Đến ngày</label>
+          <div class="col-sm-2">
+            <input type="date" id="exampleInput" style="width:100%" name="inputdenngay" class="input-search" [(ngModel)]="q.denngay"
+            placeholder="yyyy/MM/dd" />
+          </div>
+          <div class="col-sm-2">
+            <input type="time" id="exampleInput" style="width:100%" name="inputtimedenngay" class="input-search"
+              [(ngModel)]="q.timedenngay"/>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat3"  class="col-sm-2 col-form-label" *ngIf="role == 1">Công ty<span style="color: red;">&ngsp;(*)</span></label>
+          <div class="col-sm-4" *ngIf="role == 1">
+            <ng-select [items]="listCompany"
+                       bindLabel="Name"
+                       bindValue="CompanyId"
+                       [multiple]="false"
+                       placeholder="Chọn công ty"
+                       [(ngModel)]="q.CompanyId"
+                       [ngModelOptions]="{standalone: true}" (change)="GetBranch()" style="margin-right: 15px;width:100%" id="listCompanySearchDropdown">
+            </ng-select>
+          </div>
+          <label for="inputCat4" class="col-sm-2 col-form-label">Trạm cân<span style="color: red;">&ngsp;(*)</span></label>
+          <div class="col-sm-4">
+            <ng-select [items]="listBranchSearch"
+                       bindLabel="Name"
+                       bindValue="BranchId"
+                       [multiple]="false"
+                       placeholder="Chọn trạm trộn"
+                       [(ngModel)]="q.Branchlist"
+                       (change)="changeFn(q.Branchlist)"
+                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;" id="listBranchSearchDropdown">
+            </ng-select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="inputCat5"  class="col-sm-2 col-form-label" >Biển số</label>
+          <div class="col-sm-4" >
+            <ng-select [items]="listBienSo"
+                       bindLabel="BIENSO"
+                       bindValue="BIENSO"
+                       [multiple]="false"
+                       placeholder="Tất cả"
+                       [(ngModel)]="q.BIENSO"
+                       [disabled]="disable"
+                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
+            </ng-select>
+          </div>
+          <label for="inputCat7" class="col-sm-2 col-form-label">Tên mác bê tông</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listTenMacBeTong" bindLabel="TENMACBETONG" bindValue="TENMACBETONG" [multiple]="false"
+              placeholder="Tất cả" [(ngModel)]="q.TENMACBETONG" [disabled]="disable"
+              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+          
+        </div>
+        <div class="form-group row">
+          <label for="inputCat6" class="col-sm-2 col-form-label">Tên khách hàng</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listKH"
+                       bindLabel="TENKHACHHANG"
+                       bindValue="TENKHACHHANG"
+                       [multiple]="false"
+                       placeholder="Tất cả"
+                       [(ngModel)]="q.TENKHACHHANG"
+                       [disabled]="disable"
+                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
+            </ng-select>
+          </div>
+          <label for="inputCat7"  class="col-sm-2 col-form-label" >Kiểu cân</label>
+          <div class="col-sm-4" >
+            <ng-select [items]="listTenMacBeTong"
+                       bindLabel="TENMACBETONG"
+                       bindValue="TENMACBETONG"
+                       [multiple]="false"
+                       placeholder="Tất cả"
+                       [(ngModel)]="q.TENMACBETONG"
+                       [disabled]="disable"
+                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+          
+        </div>
+        <div class="form-group row">
+          <label for="inputCat8" class="col-sm-2 col-form-label">Người cân</label>
+          <div class="col-sm-4">
+            <ng-select [items]="ListNV"
+                       bindLabel="TENNV"
+                       bindValue="TENNV"
+                       [multiple]="false"
+                       placeholder="Tất cả"
+                       [(ngModel)]="q.TENNV"
+                       [disabled]="disable"
+                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+          <label for="inputCat10" class="col-sm-2 col-form-label">Nhóm theo</label>
+          <div class="col-sm-4">
+            <ng-select [items]="listGroup" bindLabel="name" bindValue="value" [multiple]="false" placeholder="Ngày lập"
+              [(ngModel)]="q.GroupBy" [disabled]="disable" [ngModelOptions]="{standalone: true}"
+              style="margin-right: 15px;width:100%;">
+            </ng-select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <div class="col-xs-12 col-sm-4 col-md-3 mb-2" *ngIf="q.status == 2">
+            <input type="checkbox" [(ngModel)]="q.ckbKhachHang"> KHÁCH HÀNG
+          </div>
+          <div class="col-xs-12 col-sm-4 col-md-3 mb-2" *ngIf="q.status == 2">
+            <input type="checkbox" [(ngModel)]="q.ckbXeTron"> XE TRỘN
+          </div>
+          <div class="col-xs-12 col-sm-4 col-md-3 mb-2" *ngIf="q.status == 2">
+            <input type="checkbox" [(ngModel)]="q.ckbMacBeTong"> MÁC BÊ TÔNG
+          </div>
+        </div>
+        <div class="row" style="margin-bottom: 20px;">
+          <div class="col-xs-12 col-sm-4 col-md-4 mb-2">
+            <button class="btn btn-primary btn-sm" style="height: 36px;" type="button" (click)="QueryChanged()"><i class="fa fa-filter"></i>Tìm kiếm</button>
+            <button *ngIf="actionExport" class="btn btn-success btn-sm" style="height: 36px; margin-left:10px" type="button" (click)="ExportExcel()"><i class="fa fa-file-excel"></i>Xuất Excel</button>
+          </div>
+        </div>
+        <!-- /.row -->
+        <!-- /.row -->
+      </div>
+      <!-- /.card-body -->
+
+    </div>
+
+    <div id="DataTables_Table_0_wrapper">
+
+
+      <div class="row">
+        <div class="table-responsive p-0 header-custom" style="max-height: 600px;" [innerHTML]="querytable">
+        </div>
+      </div>
+
+    </div>
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <div class="card card-primary">
+          <div class="card-header" style="background-color: #2f00ff !important;">
+            <h3 class="card-title"><i class="fas fa-server" style="margin-right:5px"></i> Thống kê chi tiết</h3>
+          </div>
+          <div class="card-body p-3" style="display: block;">
+            <div class="row">
+              <div class="table-responsive p-0" style="height: 700px;">
+                <table class="table table-bordered text-nowrap header-fixed" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+                  <span *ngFor="let row of tableMockData; let i = index">
+                    <thead style="position: sticky; top: 0; z-index: 1; background-color: #007bff; color: white;">
+                       <th >{{row.header}}</th>
+                    </thead>
+                    <tr *ngFor="let rowdata of row.rows;">
+                        <td >{{RoundData(rowdata)}}</td>
+                    </tr>
+                 </span>
+                </table>
+              </div>
+            </div>
+            <div class="row" style="padding-left:15px;">
+              <div class="col-sm-12 col-md-3">
+                Hiển thị
+                <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0" class="input-search" [(ngModel)]="paging.page_size" (change)="GetListSlide()">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="col-sm-12 col-md-4">
+                <div *ngIf="paging.item_count > 0" class="dataTables_info" id="DataTables_Table_0_info" role="status" aria-live="polite">
+                  Hiển thị {{ (paging.page - 1) * paging.page_size + 1 }} đến {{ paging.item_count < paging.page * paging.page_size ? paging.item_count : paging.page * paging.page_size }} trong số {{ paging.item_count }} bản ghi
+                </div>
+              </div>
+              <div class="col-xs-12 col-md-5">
+                <pagination [totalItems]="paging.item_count" [(ngModel)]="paging.page" [maxSize]="5" [itemsPerPage]="paging.page_size" class="pagination pagination-sm m-0 float-right"
+                            previousText="&lsaquo;" nextText="&rsaquo;" firstText="&laquo;" lastText="&raquo;" [boundaryLinks]="true" (pageChanged)="PageChanged($event)"></pagination>
+              </div>
+            </div>
+            <div class="row">
+              <div class="table-responsive p-0">
+                <table class="table table-bordered text-nowrap header-fixed" id="DataTables_Table_0" role="grid" aria-describedby="DataTables_Table_0_info">
+                  <span *ngFor="let row of tableMockDataTong; let i = index">
+                    <thead style="background-color: #007bff; color: white;;">
+                       <th >{{row.header}}</th>
+                    </thead>
+                    <tr *ngFor="let rowdata of row.rows;">
+                        <td >{{rowdata}}</td>
+                    </tr>
+                 </span>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
