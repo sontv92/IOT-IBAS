@@ -78,19 +78,19 @@
           <label for="inputCat5"  class="col-sm-2 col-form-label" >Biển số</label>
           <div class="col-sm-4" >
             <ng-select [items]="listBienSo"
-                       bindLabel="BIENSO"
-                       bindValue="BIENSO"
+                       bindLabel="BienSo"
+                       bindValue="BienSo"
                        [multiple]="false"
                        placeholder="Tất cả"
-                       [(ngModel)]="q.BIENSO"
+                       [(ngModel)]="q.BienSo"
                        [disabled]="disable"
                        [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
-          <label for="inputCat7" class="col-sm-2 col-form-label">Tên mác bê tông</label>
+          <label for="inputCat7" class="col-sm-2 col-form-label">Vật liệu</label>
           <div class="col-sm-4">
-            <ng-select [items]="listTenMacBeTong" bindLabel="TENMACBETONG" bindValue="TENMACBETONG" [multiple]="false"
-              placeholder="Tất cả" [(ngModel)]="q.TENMACBETONG" [disabled]="disable"
+            <ng-select [items]="ListVatLieu" bindLabel="Ten" bindValue="Ten" [multiple]="false"
+              placeholder="Tất cả" [(ngModel)]="q.Ten" [disabled]="disable"
               [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
             </ng-select>
           </div>
@@ -100,11 +100,11 @@
           <label for="inputCat6" class="col-sm-2 col-form-label">Tên khách hàng</label>
           <div class="col-sm-4">
             <ng-select [items]="listKH"
-                       bindLabel="TENKHACHHANG"
-                       bindValue="TENKHACHHANG"
+                       bindLabel="Ten"
+                       bindValue="Ten"
                        [multiple]="false"
                        placeholder="Tất cả"
-                       [(ngModel)]="q.TENKHACHHANG"
+                       [(ngModel)]="q.Ten"
                        [disabled]="disable"
                        [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
             </ng-select>

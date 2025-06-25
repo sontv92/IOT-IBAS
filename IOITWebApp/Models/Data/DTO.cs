@@ -518,6 +518,77 @@ namespace IOITWebApp.Models.Data
 
     }
 
+    public partial class TC_VatLieuDTO
+    {
+        public Guid ID { get; set; }
+
+        public string Ma { get; set; }
+
+        public string MaLK { get; set; }
+
+        public string Ten { get; set; }
+
+        public string NhaCungCap { get; set; }
+
+        public string DonViQuyDoi { get; set; }
+
+        public float? HeSoQuyDoi { get; set; }
+
+        public float? DonGia { get; set; }
+
+        public string DonViGia { get; set; }
+
+        public string LoaiVL { get; set; }
+
+        public DateTime? InsertedDate { get; set; }
+
+        public DateTime? Lastupdated { get; set; }
+    }
+    public partial class TC_KhachHangDTO
+    {
+        public Guid ID { get; set; }
+
+        public string Ma { get; set; }
+
+        public string MaLK { get; set; }
+
+        public string Ten { get; set; }
+
+        public string DienThoai { get; set; }
+
+        public string DiaChi { get; set; }
+
+        public DateTime? InsertedDate { get; set; }
+
+        public DateTime? Lastupdated { get; set; }
+    }
+    public partial class TC_XeDTO
+    {
+        public Guid ID { get; set; }
+
+        public string Ma { get; set; }
+
+        public string MaLK { get; set; }
+
+        public string BienSo { get; set; }
+
+        public string LaiXe { get; set; }
+
+        public string HangHoa { get; set; }
+
+        public string TenCongTy { get; set; }
+
+        public float? KhoiLuongBi { get; set; }
+
+        public string IDCard { get; set; }
+
+        public string HinhThuc { get; set; }
+
+        public DateTime? InsertedDate { get; set; }
+
+        public DateTime? Lastupdated { get; set; }
+    }
+
     public partial class MaLienKetDTO
     {
         public string MALIENKET { get; set; }

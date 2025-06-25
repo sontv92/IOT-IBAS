@@ -218,8 +218,8 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     this.disable = false;
     this.GetlistKH(val);
     this.GetlistBienSo(val);
-    this.GetlistTenMacBeTong(val);
-    this.GetlistNV(val);
+    //this.GetlistNV(val);
+    this.GetListVatLieu(val);
 
   }
 
@@ -233,7 +233,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   TaoTable() {
     this.tablesilde = [];
 
-    this.GetListVatLieu();
+
   }
   // Get danh sách slide
   GetListSlide() {
@@ -544,90 +544,11 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       }
     );
   }
-  GetListVatLieu() {
-    this.http.get('/api/tc_baocaotramcan/GetVatLieu?companyid=' + this.paging.CompanyId + '&Branchlist=' + this.paging.Branchid, this.httpOptions).subscribe(
+    GetListVatLieu(val) {
+    this.http.get('/api/tc_baocaotramcan/GetVatLieu/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.ListVatLieu = res["data"];
-
-          //Tạo table
-          let obj = new tablesilde();
-          obj.name = 'NGAYTRON';
-          obj.nametable = 'NGÀY';
-          obj.nameget = 'item.NGAYTRON';
-          this.tablesilde.push(obj);
-          //
-          let obj1 = new tablesilde();
-          obj1.name = 'GIOBATDAU';
-          obj1.nametable = 'BẮT ĐẦU';
-          obj1.nameget = 'item.GIOBATDAU'
-          this.tablesilde.push(obj1);
-          //
-          let obj2 = new tablesilde();
-          obj2.name = 'GIOXONG';
-          obj2.nametable = 'KẾT THÚC';
-          obj2.nameget = 'item.GIOXONG'
-          this.tablesilde.push(obj2);
-          //
-          let obj3 = new tablesilde();
-          obj3.name = 'TENKHACHHANG';
-          obj3.nametable = 'TÊN KHÁCH HÀNG';
-          obj3.nameget = 'item.TENKHACHHANG'
-          this.tablesilde.push(obj3);
-          //
-          let obj4 = new tablesilde();
-          obj4.name = 'BIENSO';
-          obj4.nametable = 'BIỂN XE';
-          obj4.nameget = 'item.BIENSO'
-          this.tablesilde.push(obj4);
-          //
-          let obj5 = new tablesilde();
-          obj5.name = 'TENMACBETONG';
-          obj5.nametable = 'MÁC BÊ TÔNG';
-          obj5.nameget = 'item.TENMACBETONG'
-          this.tablesilde.push(obj5);
-          //
-          let obj7 = new tablesilde();
-          obj7.name = 'TENNV';
-          obj7.nametable = 'NV KINH DOANH';
-          obj7.nameget = 'item.TENNV'
-          this.tablesilde.push(obj7);
-          //
-          let obj6 = new tablesilde();
-          obj6.name = 'M3METRON';
-          obj6.nametable = 'THỂ TÍCH';
-          obj6.nameget = 'item.M3METRON'
-          this.tablesilde.push(obj6);
-          //
-          if (this.ListVatLieu.length > 0) {
-
-            for (var i = 0; i < this.ListVatLieu.length; i++) {
-              let obj = new tablesilde();
-              obj.name = this.ListVatLieu[i].TENCUAVL;
-              obj.nametable = this.ListVatLieu[i].TENCUAVL;
-              obj.nameget = 'item.' + this.ListVatLieu[i].TENCUAVL + ''
-              this.tablesilde.push(obj);
-              if (this.ListVatLieu[i].COPHAIPHUGIA != 1) {
-                let obj1 = new tablesilde();
-                obj1.name = "T." + this.ListVatLieu[i].TENCUAVL;
-                obj1.nametable = "T." + this.ListVatLieu[i].TENCUAVL;
-                obj1.nameget = 'item.T.' + this.ListVatLieu[i].TENCUAVL + ''
-                this.tablesilde.push(obj1);
-              }
-            }
-          }
-          if (this.q.status == "1") {
-            let obj = new tablesilde();
-            obj.name = 'TENPHUGIA';
-            obj.nametable = 'TÊN PHỤ GIA';
-            obj.nameget = 'item.TENPHUGIA'
-            this.tablesilde.push(obj);
-            let obj5 = new tablesilde();
-            obj5.name = 'name';
-            obj5.nametable = 'TRẠM TRỘN';
-            obj5.nameget = 'item.name'
-            this.tablesilde.push(obj5);
-          }
         }
       },
       (err) => {
