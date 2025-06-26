@@ -75,16 +75,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                                 if (branch != null)
                                 {
 
-                                    List<ThongKeTongVatTuDTO> lstResult = new List<ThongKeTongVatTuDTO>();
-                                    List<ThongKeTongVatTuDTO> lstTong = new List<ThongKeTongVatTuDTO>();
-                                    if (paging.CVL is null || paging.CVL == "undefined" || paging.CVL == "null")
-                                    {
-                                        paging.CVL = "";
-                                    }
-                                    if (paging.CHEDO is null || paging.CHEDO == "undefined" || paging.CHEDO == "null")
-                                    {
-                                        paging.CHEDO = "";
-                                    }
+                                    List<CanReportDto> lstResult = new List<CanReportDto>();
+                                    List<CanReportDto> lstTong = new List<CanReportDto>();
 
                                     int hourTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(0, 2)) : 0;
                                     int minuteTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(3)) : 0;
@@ -95,172 +87,129 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     DateTime thoigianbatdau = new DateTime(paging.tungay.Year, paging.tungay.Month, paging.tungay.Day, hourTungay, minuteTungay, 0);
                                     DateTime thoigianketthuc = new DateTime(paging.denngay.Year, paging.denngay.Month, paging.denngay.Day, hourDenngay, minuteDenngay, 0);
 
-                                    if (paging != null)
+
+                                    string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
+                                    string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
+                                    string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
+                                    string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
+
+                                    string dieuKienKieuCan = "1=1";
+                                    if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All")
                                     {
-                                        string tenCUAVLCond, cheDo;
-                                        tenCUAVLCond = cheDo = "1=1";
-
-
-                                        if (!string.IsNullOrEmpty(paging.CVL)) tenCUAVLCond = string.Format("F.TENCUAVL = N'{0}'", paging.CVL);
-                                        if (paging.CHEDO.Equals("Normal")) cheDo = string.Format("A.CHEDO = N'{0}'", "NORMAL");
-                                        if (paging.CHEDO.Equals("Simulation")) cheDo = string.Format("A.CHEDO = N'{0}'", "SIM");
-
-                                        command.CommandText = "select * INTO #Result FROM (";
-
-                                        String sql = string.Format($@"SELECT MaPhieu N'Số phiếu', ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) N'Ngày', KhachHang N'Khách hàng', BienXe N'Biển số', 
-	                                                                           LaiXe N'Lái xe', TenVatLieu N'Hàng hóa', KhoiLuongCanLan1 N'Cân lần 1', KhoiLuongCanLan2 N'Cân lần 2', 
-	                                                                           KhoiLuongHang N'Khối lượng hàng', (KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)) N'Khối lượng quy đổi', DonViQuyDoi N'Đơn vị',
-	                                                                           ThoiGianCanLan1 N'Thời gian cân lần 1', ThoiGianCanLan2 N'Thời gian cân lần 2', ISNULL(UserName2, UserName1) N'Người cân' 
-                                                                        FROM [{branch.Dataname}].[dbo].LSCan WHERE 
-	                                                                           ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) >= '2024-6-24 0:0:0' 
-	                                                                           AND ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) <= '2025-6-24 23:59:59' 
-	                                                                           AND 1=1 AND 1=1 AND 1=1 AND 1=1 AND 1=1",
-                                                                    CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau),
-                                                                    CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc),
-                                                                    tenCUAVLCond, cheDo);
-
-                                        command.CommandText += sql.ToString();
-                                        command.CommandText += ") as ChiTiet; SELECT COUNT(*) AS COUNTS FROM #Result ; SELECT * FROM #Result ORDER BY STTCUAVL_MAIN OFFSET " + (paging.page - 1) * paging.page_size + " ROWS FETCH NEXT " + paging.page_size + " ROWS ONLY; DROP TABLE #Result;";
-
-                                        DataTable dtSource = CommonLib.GetDataBySql(sql);
-                                        context.Database.OpenConnection();
-                                        using (var result = command.ExecuteReader())
-                                        {
-                                            result.Read();
-                                            def.metadata = result[0];
-                                            result.NextResult();
-
-                                            DataTable dtresult = new DataTable();
-
-                                            dtresult.Load(result);
-                                            dtresult.Columns.Remove("STTCUAVL_MAIN");
-
-                                            DataTable newTable = dtresult.Clone();
-
-                                            string list = "";
-                                            DataRow rowTong = newTable.NewRow();
-                                            rowTong["Tên cửa vật liệu"] = "TỔNG";
-
-                                            foreach (DataColumn col in newTable.Columns)
-                                            {
-                                                string type = col.DataType.Name.ToString().ToUpper();
-                                                string colName = col.ColumnName;
-                                                if (colName != "STT" && colName != "MACHITIETMETRON_MAIN" && colName != "Tên cửa vật liệu" && colName != "Đơn vị")
-                                                {
-                                                    list += col.DataType.Name.ToString().ToUpper() + ", ";   //Để xem có các kiểu dữ liệu gì dạng số
-
-                                                    switch (col.DataType.Name.ToString().ToUpper())
-                                                    {
-                                                        case "INT32":
-                                                        case "INT64":
-                                                            try
-                                                            {
-                                                                rowTong[colName] = (int)dtSource.Compute(string.Format("SUM({0})", colName), "");
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                col.AllowDBNull = true;
-                                                            }
-                                                            break;
-                                                        case "DOUBLE":
-                                                            try
-                                                            {
-                                                                rowTong[colName] = Math.Round((double)dtSource.Compute(string.Format("SUM([{0}])", colName), ""), 2);
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                col.AllowDBNull = true;
-                                                            }
-                                                            break;
-                                                        case "SINGLE":
-                                                            try
-                                                            {
-                                                                rowTong[colName] = Math.Round((Single)dtSource.Compute(string.Format("SUM([{0}])", colName), ""), 2);
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                col.AllowDBNull = true;
-                                                            }
-                                                            break;
-                                                        case "FLOAT":
-                                                        case "DECIMAL":
-                                                            try
-                                                            {
-                                                                rowTong[colName] = Math.Round((double)dtSource.Compute(string.Format("SUM([{0}])", colName), ""), 2);
-                                                            }
-                                                            catch (Exception ex)
-                                                            {
-                                                                col.AllowDBNull = true;
-                                                            }
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    col.AllowDBNull = true;
-                                                }
-                                            }
-                                            newTable.Rows.Add(rowTong);
-
-                                            foreach (DataColumn col in dtresult.Columns)
-                                            {
-                                                ThongKeTongVatTuDTO items = new ThongKeTongVatTuDTO();
-                                                string colName = col.ColumnName;
-
-                                                if (colName != "ID")
-                                                {
-                                                    items.header = colName;
-                                                    items.rows = new List<string>();
-                                                    for (int m = 0; m < dtresult.Rows.Count; m++)
-                                                    {
-                                                        var myValue = dtresult.Rows[m][colName];
-                                                        items.rows.Add(myValue.ToString());
-                                                    }
-                                                    lstResult.Add(items);
-                                                }
-
-                                            }
-                                            foreach (DataColumn col in newTable.Columns)
-                                            {
-                                                ThongKeTongVatTuDTO items = new ThongKeTongVatTuDTO();
-                                                string colName = col.ColumnName;
-
-
-                                                if (colName != "ID")
-                                                {
-                                                    items.header = colName;
-                                                    items.rows = new List<string>();
-                                                    for (int m = 0; m < newTable.Rows.Count; m++)
-                                                    {
-                                                        var myValue = newTable.Rows[m][colName];
-                                                        if (myValue.ToString().Length > 0)
-                                                        {
-
-                                                            items.rows.Add(myValue.ToString());
-                                                        }
-                                                        else
-                                                        {
-                                                            items.rows.Add("0");
-                                                        }
-                                                    }
-                                                    lstTong.Add(items);
-                                                }
-
-                                            }
-                                            def.data1 = lstTong;
-                                            def.data = lstResult;
-
-                                        }
-                                        def.meta = new Meta(200, "Success");
-                                        return Ok(def);
+                                        // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
+                                        dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
                                     }
-                                    else
+
+                                    String sql = string.Format($@"SELECT 
+                                                                        MaPhieu AS SoPhieu,
+                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) AS Ngay,
+                                                                        KhachHang AS KhachHang,
+                                                                        BienXe AS BienSo,
+                                                                        LaiXe AS LaiXe,
+                                                                        TenVatLieu AS HangHoa,
+                                                                        KhoiLuongCanLan1 AS CanLan1,
+                                                                        KhoiLuongCanLan2 AS CanLan2,
+                                                                        KhoiLuongHang AS KhoiLuongHang,
+                                                                        (KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)) AS KhoiLuongQuyDoi,
+                                                                        DonViQuyDoi AS DonVi,
+                                                                        ThoiGianCanLan1 AS ThoiGianCanLan1,
+                                                                        ThoiGianCanLan2 AS ThoiGianCanLan2,
+                                                                        ISNULL(UserName2, UserName1) AS NguoiCan
+                                                                    FROM [{branch.Dataname}].[dbo].[LSCan]
+                                                                    WHERE 
+                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) >= '{CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau)}'
+                                                                        AND ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) <= '{CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc)}'
+                                                                        AND {dieuKienBienSo}
+                                                                        AND {dieuKienVatLieu}
+                                                                        AND {dieuKienKhachHang}
+                                                                        AND {dieuKienKieuCan}
+                                                                        AND {dieuKienNguoiCan}");
+
+                                    command.CommandText += sql.ToString();
+
+                                    DataTable dtSource = CommonLib.GetDataBySql(sql);
+                                    var dataTable = CommonLib.AsEnumerable(dtSource);
+
+                                    List<CanReportDto> listData = dataTable.Select(row => new CanReportDto()
                                     {
-                                        def.meta = new Meta(400, "Bad Request");
-                                        return Ok(def);
+                                        SoPhieu = row["SoPhieu"] != DBNull.Value ? row["SoPhieu"].ToString() : "",
+                                        Ngay = row["Ngay"] != DBNull.Value ? Convert.ToDateTime(row["Ngay"]) : (DateTime?)null,
+                                        KhachHang = row["KhachHang"] != DBNull.Value ? row["KhachHang"].ToString() : "",
+                                        BienSo = row["BienSo"] != DBNull.Value ? row["BienSo"].ToString() : "",
+                                        LaiXe = row["LaiXe"] != DBNull.Value ? row["LaiXe"].ToString() : "",
+                                        HangHoa = row["HangHoa"] != DBNull.Value ? row["HangHoa"].ToString() : "",
+                                        CanLan1 = row["CanLan1"] != DBNull.Value ? Convert.ToDecimal(row["CanLan1"]) : (decimal?)null,
+                                        CanLan2 = row["CanLan2"] != DBNull.Value ? Convert.ToDecimal(row["CanLan2"]) : (decimal?)null,
+                                        KhoiLuongHang = row["KhoiLuongHang"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongHang"]) : (decimal?)null,
+                                        KhoiLuongQuyDoi = row["KhoiLuongQuyDoi"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongQuyDoi"]) : (decimal?)null,
+                                        DonVi = row["DonVi"] != DBNull.Value ? row["DonVi"].ToString() : "",
+                                        ThoiGianCanLan1 = row["ThoiGianCanLan1"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan1"]) : (DateTime?)null,
+                                        ThoiGianCanLan2 = row["ThoiGianCanLan2"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan2"]) : (DateTime?)null,
+                                        NguoiCan = row["NguoiCan"] != DBNull.Value ? row["NguoiCan"].ToString() : ""
+                                    }).ToList();
+
+
+                                    List<CanReportGroupDTO> result = new List<CanReportGroupDTO>();
+
+                                    switch (paging.GroupBy)
+                                    {
+                                        case "KH": // Group theo khách hàng
+                                            var groupByKH = listData.GroupBy(x => x.KhachHang);
+                                            foreach (var itemGrp in groupByKH)
+                                            {
+                                                result.Add(new CanReportGroupDTO
+                                                {
+                                                    Key = itemGrp.Key,
+                                                    Data = itemGrp.ToList(),
+                                                    Expanded = false,
+                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                });
+                                            }
+                                            break;
+
+                                        case "VL": // Group theo vật liệu
+                                            var groupByVL = listData.GroupBy(x => x.HangHoa);
+                                            foreach (var itemGrp in groupByVL)
+                                            {
+                                                result.Add(new CanReportGroupDTO
+                                                {
+                                                    Key = itemGrp.Key,
+                                                    Data = itemGrp.ToList(),
+                                                    Expanded = false,
+                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                });
+                                            }
+                                            break;
+
+                                        default: // Mặc định group theo ngày
+                                            var groupByNgay = listData.GroupBy(x => x.Ngay?.ToString("yyyy-MM-dd")); // Format ngày nếu cần gom theo ngày
+                                            foreach (var itemGrp in groupByNgay)
+                                            {
+                                                result.Add(new CanReportGroupDTO
+                                                {
+                                                    Key = itemGrp.Key,
+                                                    Data = itemGrp.ToList(),
+                                                    Expanded = false,
+                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                });
+                                            }
+                                            break;
                                     }
+
+                                    def.data = result;
+                                    def.metadata = listData.Count();
+                                    def.meta = new Meta(200, "Success");
+                                    return Ok(def);
+
                                 }
                             }
                         }
@@ -283,47 +232,6 @@ namespace IOITWebApp.Controllers.ApiCMS
             try
             {
                 DefaultResponse def = new DefaultResponse();
-
-                if (paging.TENKHACHHANG is null || paging.TENKHACHHANG == "undefined")
-                {
-                    paging.TENKHACHHANG = "";
-                }
-                if (paging.BIENSO is null || paging.BIENSO == "undefined")
-                {
-                    paging.BIENSO = "";
-                }
-                if (paging.TENMACBETONG is null || paging.TENMACBETONG == "undefined")
-                {
-                    paging.TENMACBETONG = "";
-                }
-                if (paging.Branchlist is null || paging.Branchlist == "undefined")
-                {
-                    paging.Branchlist = "";
-                }
-                if (paging.TENNV is null || paging.TENNV == "undefined")
-                {
-                    paging.TENNV = "";
-                }
-                if (paging.TENHANGMUC is null || paging.TENHANGMUC == "undefined")
-                {
-                    paging.TENHANGMUC = "";
-                }
-
-                if (paging.CHEDO is null || paging.CHEDO == "undefined")
-                {
-                    paging.CHEDO = "";
-                }
-
-
-                int hourTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(0, 2)) : 0;
-                int minuteTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(3)) : 0;
-
-                int hourDenngay = !string.IsNullOrEmpty(paging.timedenngay) ? int.Parse(paging.timedenngay.Substring(0, 2)) : 23;
-                int minuteDenngay = !string.IsNullOrEmpty(paging.timedenngay) ? int.Parse(paging.timedenngay.Substring(3)) : 59;
-
-                DateTime thoigianbatdau = new DateTime(paging.tungay.Year, paging.tungay.Month, paging.tungay.Day, hourTungay, minuteTungay, 0);
-                DateTime thoigianketthuc = new DateTime(paging.denngay.Year, paging.denngay.Month, paging.denngay.Day, hourDenngay, minuteDenngay, 0);
-
                 //check role
                 var identity = (ClaimsIdentity)User.Identity;
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
@@ -331,29 +239,14 @@ namespace IOITWebApp.Controllers.ApiCMS
                 {
                     return null;
                 }
-                DataTable _TableCuaVL = null;
-
                 if (paging != null)
                 {
                     using (var context = new CNTTVNWebContext())
                     using (var command = context.Database.GetDbConnection().CreateCommand())
                     {
-                        command.CommandTimeout = 300;
-                        List<rpthongkeDTO> rpdonhang = new List<rpthongkeDTO>();
-                        command.CommandText = "";
-
-
-
                         if (paging.Branchlist != "" && paging.Branchlist != null)
                         {
                             var arrListStr = paging.Branchlist.Split(',');
-                            string cuaVLSOLUONG1 = "";
-                            string cuaVLSOLUONG2 = "";
-                            string cuaVLSOLUONGT1 = "";
-                            string cuaVLSOLUONGT2 = "";
-                            string cuaVLSOLUONGCP1 = "";
-                            string cuaVLSOLUONGCP2 = "";
-                            string selectByCuaVL = "";
                             foreach (var item in arrListStr)
                             {
                                 if (item != "")
@@ -362,492 +255,503 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     if (branch != null)
                                     {
 
-                                        _TableCuaVL = CommonLib.GetDataBySql("SELECT B.TENCUAVL, A.TENLOAIVL, A.COPHAIPHUGIA, B.STTCUAVL FROM [" + branch.Dataname + "].[dbo].LOAIVL A INNER JOIN [" + branch.Dataname + "].[dbo].CUAVL B ON A.MALOAIVL = B.MALOAIVL ORDER BY B.STTCUAVL");
+                                        List<CanReportDto> lstResult = new List<CanReportDto>();
 
-                                        if (_TableCuaVL != null && _TableCuaVL.Rows.Count > 0)
+                                        int hourTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(0, 2)) : 0;
+                                        int minuteTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(3)) : 0;
+
+                                        int hourDenngay = !string.IsNullOrEmpty(paging.timedenngay) ? int.Parse(paging.timedenngay.Substring(0, 2)) : 23;
+                                        int minuteDenngay = !string.IsNullOrEmpty(paging.timedenngay) ? int.Parse(paging.timedenngay.Substring(3)) : 59;
+
+                                        DateTime thoigianbatdau = new DateTime(paging.tungay.Year, paging.tungay.Month, paging.tungay.Day, hourTungay, minuteTungay, 0);
+                                        DateTime thoigianketthuc = new DateTime(paging.denngay.Year, paging.denngay.Month, paging.denngay.Day, hourDenngay, minuteDenngay, 0);
+
+
+                                        string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
+                                        string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
+                                        string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
+                                        string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
+
+                                        string dieuKienKieuCan = "1=1";
+                                        if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All")
                                         {
-                                            foreach (DataRow row in _TableCuaVL.Rows)
-                                            {
-                                                string tenCuaVL = CommonLib.ConvertToString(row["TENCUAVL"].ToString());
-                                                string maCuaVL = CommonLib.ConvertToString(row["STTCUAVL"].ToString());
-
-                                                bool cophaiPhuGia = CommonLib.ConvertToBool(row["COPHAIPHUGIA"].ToString());
-                                                if (maCuaVL.Trim() != "")
-                                                {
-                                                    // dạng p.[Sand 1], p.[Sand 2], p.[Stone 1], p.[Stone 2], p.[Cement 1], p.[Cement 2], p.[Cement 3], p.[Cement 4], p.[Water], p.[Adm 1], p.[Adm 2]
-                                                    cuaVLSOLUONG1 += string.Format("ISNULL(p.[{0}],0) [{0}], ", maCuaVL);
-                                                    // dạng [Sand 1],[Sand 2],[Stone 1],[Stone 2],[Cement 1],[Cement 2],[Cement 3],[Cement 4],[Water],[Adm 1],[Adm 2]
-                                                    cuaVLSOLUONG2 += string.Format("[{0}], ", maCuaVL);
-
-                                                    // dạng T.[Sand 1], ..
-                                                    cuaVLSOLUONGT1 += string.Format("ISNULL(p.[T_{0}],0) [T_{0}], ", maCuaVL);
-                                                    // dạng [Sand 1],[Sand 2],[Stone 1],[Stone 2],[Cement 1],[Cement 2],[Cement 3],[Cement 4],[Water],[Adm 1],[Adm 2]
-                                                    cuaVLSOLUONGT2 += string.Format("[T_{0}], ", maCuaVL);
-
-                                                    // dạng CP.[Sand 1], ..
-                                                    cuaVLSOLUONGCP1 += string.Format("ISNULL(p.[CP_{0}],0) [CP_{0}], ", maCuaVL);
-                                                    // dạng [Sand 1],[Sand 2],[Stone 1],[Stone 2],[Cement 1],[Cement 2],[Cement 3],[Cement 4],[Water],[Adm 1],[Adm 2]
-                                                    cuaVLSOLUONGCP2 += string.Format("[CP_{0}], ", maCuaVL);
-
-                                                    //dạng , D.[CP_Cát 1], B.[Cát 1], C.[T_Cát 1], (B.[Cát 1] + C.[T_Cát 1] - D.[CP_Cát 1]) N'Sai số_Cát 1', abs(B.[Cát 1] + C.[T_Cát 1] - D.[CP_Cát 1]) / nullif(D.[CP_Cát 1], 0) * 100 '%_Cát 1'
-                                                    selectByCuaVL += string.Format(", ROUND(ISNULL(D.[CP_{0}],0),2) N'CP_{1}', ROUND(ISNULL(B.[{0}],0),2) N'{1}', ROUND(ISNULL(C.[T_{0}],0),2) N'T_{1}', ROUND((ISNULL(B.[{0}],0) + ISNULL(C.[T_{0}],0) - ISNULL(D.[CP_{0}],0)),2) N'Sai số_{1}', ROUND(ISNULL(abs(ISNULL(B.[{0}],0) + ISNULL(C.[T_{0}],0) - ISNULL(D.[CP_{0}],0)) / nullif(D.[CP_{0}], 0) * 100,0),2) '%_{1}' \n", maCuaVL, tenCuaVL);
-                                                }
-                                            }
+                                            // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
+                                            dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
                                         }
-                                        if (cuaVLSOLUONG1.EndsWith(", ")) cuaVLSOLUONG1 = cuaVLSOLUONG1.Substring(0, cuaVLSOLUONG1.Length - 2);
-                                        if (cuaVLSOLUONG2.EndsWith(", ")) cuaVLSOLUONG2 = cuaVLSOLUONG2.Substring(0, cuaVLSOLUONG2.Length - 2);
-                                        if (cuaVLSOLUONGT1.EndsWith(", ")) cuaVLSOLUONGT1 = cuaVLSOLUONGT1.Substring(0, cuaVLSOLUONGT1.Length - 2);
-                                        if (cuaVLSOLUONGT2.EndsWith(", ")) cuaVLSOLUONGT2 = cuaVLSOLUONGT2.Substring(0, cuaVLSOLUONGT2.Length - 2);
-                                        if (cuaVLSOLUONGCP1.EndsWith(", ")) cuaVLSOLUONGCP1 = cuaVLSOLUONGCP1.Substring(0, cuaVLSOLUONGCP1.Length - 2);
-                                        if (cuaVLSOLUONGCP2.EndsWith(", ")) cuaVLSOLUONGCP2 = cuaVLSOLUONGCP2.Substring(0, cuaVLSOLUONGCP2.Length - 2);
 
-                                        string tenKHCond, xeCond, tenMacBeTongCond, tenHangMucCond, nvkdCond, cheDo;
-                                        tenKHCond = xeCond = tenMacBeTongCond = tenHangMucCond = nvkdCond = cheDo = "1=1";
-
-                                        if (!paging.TENKHACHHANG.Equals("")) tenKHCond = string.Format("H.TENKHACHHANG = N'{0}'", paging.TENKHACHHANG.ToString());
-                                        if (!paging.BIENSO.Equals("")) xeCond = string.Format("A.BIENSO = N'{0}'", paging.BIENSO.ToString());
-                                        if (!paging.TENMACBETONG.Equals("")) tenMacBeTongCond = string.Format("A.TENMACBETONG = N'{0}'", paging.TENMACBETONG.ToString());
-                                        if (!paging.TENHANGMUC.Equals("")) tenHangMucCond = string.Format("H.TENHANGMUC = N'{0}'", paging.TENHANGMUC.ToString());
-                                        if (!paging.TENNV.Equals("")) nvkdCond = string.Format("H.TENNV = N'{0}'", paging.TENNV.ToString());
-                                        if (paging.CHEDO.Equals("NORMAL")) cheDo = string.Format("A.CHEDO = N'{0}'", "NORMAL");
-                                        if (paging.CHEDO.Equals("SIM")) cheDo = string.Format("A.CHEDO = N'{0}'", "SIM");
-
-                                        String subQuerySumSOLUONG = string.Format("	SELECT [MACHITIETMETRON], {8} \n" +
-                                                                                                "		FROM ( \n" +
-                                                                                                "		SELECT DISTINCT B.MACHITIETMETRON, D.STTCUAVL STTCUAVL\n" +
-                                                                                                "			, (ISNULL(D.SOLUONGTD,0)) SUMSOLUONG \n" +
-                                                                                                "		FROM [" + branch.Dataname + "].[dbo].LSTRON A INNER JOIN [" + branch.Dataname + "].[dbo].LSCHITIETMETRON B ON A.MALSTRON = B.MALSTRON   \n" +
-                                                                                                "			INNER JOIN [" + branch.Dataname + "].[dbo].GIAMSATTRON C ON C.ID = B.GIAMSATTRONID   \n" +
-                                                                                                "			INNER JOIN [" + branch.Dataname + "].[dbo].GIAMSATSOLUONG D ON D.STTGIAMSATTRON = C.STT   \n" +
-                                                                                                "			LEFT JOIN [" + branch.Dataname + "].[dbo].LSDATHANG H ON H.STT = A.STTLSDATHANG   \n" +
-                                                                                                "		WHERE '{0}' <= A.GIOBATDAU AND A.GIOXONG <= '{1}' \n" +
-                                                                                                "           AND {2} AND {3} AND {4} AND {5} AND {6} AND {7} \n" +
-                                                                                                "	) AS j  \n" +
-                                                                                                "	PIVOT (SUM(SUMSOLUONG) FOR [STTCUAVL] in ({9})) AS p \n",
-                                                                                                CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau),
-                                                                                                CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc),
-                                                                                                tenKHCond, xeCond, tenMacBeTongCond, tenHangMucCond, nvkdCond, cheDo,
-                                                                                                cuaVLSOLUONG1, cuaVLSOLUONG2);
-
-                                        String subQuerySumSOLUONGT = subQuerySumSOLUONG.Replace("(ISNULL(D.SOLUONGTD,0))", "(ISNULL(D.SOLUONGTAY,0))");
-                                        subQuerySumSOLUONGT = subQuerySumSOLUONGT.Replace("D.STTCUAVL", "N'T_' + CAST(D.STTCUAVL as varchar(10))");
-                                        subQuerySumSOLUONGT = subQuerySumSOLUONGT.Replace("D@STTCUAVL", "D.STTCUAVL");
-                                        subQuerySumSOLUONGT = subQuerySumSOLUONGT.Replace(cuaVLSOLUONG1, cuaVLSOLUONGT1);
-                                        subQuerySumSOLUONGT = subQuerySumSOLUONGT.Replace(cuaVLSOLUONG2, cuaVLSOLUONGT2);
-
-                                        String subQuerySumSOLUONGCP = subQuerySumSOLUONG.Replace("(ISNULL(D.SOLUONGTD,0))", "(ISNULL(D.SOLUONGCP,0))");
-                                        subQuerySumSOLUONGCP = subQuerySumSOLUONGCP.Replace("D.STTCUAVL", "N'CP_' + CAST(D.STTCUAVL as varchar(10))");
-                                        subQuerySumSOLUONGCP = subQuerySumSOLUONGCP.Replace("D@STTCUAVL", "D.STTCUAVL");
-                                        subQuerySumSOLUONGCP = subQuerySumSOLUONGCP.Replace(cuaVLSOLUONG1, cuaVLSOLUONGCP1);
-                                        subQuerySumSOLUONGCP = subQuerySumSOLUONGCP.Replace(cuaVLSOLUONG2, cuaVLSOLUONGCP2);
-
-                                        subQuerySumSOLUONG = subQuerySumSOLUONG.Replace("D@STTCUAVL", "D.STTCUAVL");
-
-                                        String sql = string.Format("SELECT ROW_NUMBER() OVER(ORDER BY A.MACHITIETMETRON_MAIN ASC) AS STT, A.* \n" +
-                                        " {11} \n" +
-                                        "FROM ( \n" +
-                                        "	SELECT DISTINCT B.MACHITIETMETRON MACHITIETMETRON_MAIN, B.MALSTRON N'Mã phiếu', B.SOTTMETRON N'STT mẻ trộn'  \n" +
-                                        "		, FORMAT(A.NGAYTRON, 'dd/MM/yyy') N'Ngày trộn', FORMAT(A.GIOBATDAU, 'HH:mm') N'Giờ bắt đầu', FORMAT(A.GIOXONG, 'HH:mm') N'Giờ kết thúc' \n" +
-                                        "		, H.TENKHACHHANG N'Khách hàng', A.BIENSO N'Biển số', H.TENDUAN N'Dự án', H.TENNV N'Nhân viên KD', A.TENMACBETONG N'Tên mác BT', A.CHEDO N'Chế độ', ROUND(B.M3METRON,2) N'Thể tích' \n" +
-                                        "	FROM [" + branch.Dataname + "].[dbo].LSTRON A INNER JOIN [" + branch.Dataname + "].[dbo].LSCHITIETMETRON B ON A.MALSTRON = B.MALSTRON   \n" +
-                                        "		LEFT JOIN [" + branch.Dataname + "].[dbo].LSDATHANG H ON H.STT = A.STTLSDATHANG   \n" +
-                                        "	WHERE '{0}' <= A.GIOBATDAU AND A.GIOXONG <= '{1}' \n" +
-                                        "       AND {2} AND {3} AND {4} AND {5} AND {6} AND {7}\n" +
-                                        ") AS A LEFT JOIN ( \n" +
-                                        "	 {8}\n" +
-                                        ") AS B ON A.MACHITIETMETRON_MAIN = B.MACHITIETMETRON LEFT JOIN ( \n" +
-                                        "	 {9}\n" +
-                                        ") AS C ON A.MACHITIETMETRON_MAIN = C.MACHITIETMETRON LEFT JOIN ( \n" +
-                                        "	 {10}\n" +
-                                        ") AS D ON A.MACHITIETMETRON_MAIN = D.MACHITIETMETRON \n",
-                                        CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau),
-                                        CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc),
-                                        tenKHCond, xeCond, tenMacBeTongCond, tenHangMucCond, nvkdCond, cheDo,
-                                        subQuerySumSOLUONG, subQuerySumSOLUONGT, subQuerySumSOLUONGCP,
-                                        selectByCuaVL);
-
-
+                                        String sql = string.Format($@"SELECT 
+                                                                        MaPhieu AS SoPhieu,
+                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) AS Ngay,
+                                                                        KhachHang AS KhachHang,
+                                                                        BienXe AS BienSo,
+                                                                        LaiXe AS LaiXe,
+                                                                        TenVatLieu AS HangHoa,
+                                                                        KhoiLuongCanLan1 AS CanLan1,
+                                                                        KhoiLuongCanLan2 AS CanLan2,
+                                                                        KhoiLuongHang AS KhoiLuongHang,
+                                                                        (KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)) AS KhoiLuongQuyDoi,
+                                                                        DonViQuyDoi AS DonVi,
+                                                                        ThoiGianCanLan1 AS ThoiGianCanLan1,
+                                                                        ThoiGianCanLan2 AS ThoiGianCanLan2,
+                                                                        ISNULL(UserName2, UserName1) AS NguoiCan
+                                                                    FROM [{branch.Dataname}].[dbo].[LSCan]
+                                                                    WHERE 
+                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) >= '{CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau)}'
+                                                                        AND ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) <= '{CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc)}'
+                                                                        AND {dieuKienBienSo}
+                                                                        AND {dieuKienVatLieu}
+                                                                        AND {dieuKienKhachHang}
+                                                                        AND {dieuKienKieuCan}
+                                                                        AND {dieuKienNguoiCan}");
 
                                         DataTable dtSource = CommonLib.GetDataBySql(sql);
-                                        //DataTable dtSource = dt.Copy();
-                                        dtSource.Columns.Remove("MACHITIETMETRON_MAIN");
 
-
-
-                                        //Tính tổng dòng cuối, chỉ web mới dùng
-                                        string list = "";
-                                        DataRow rowTong = dtSource.NewRow();
-                                        rowTong["Ngày trộn"] = "TỔNG";
-
-                                        //B1: Tổng quá cho tất cả các cột kiểu Int, Double, Float, Decimal SUM()
-                                        foreach (DataColumn col in dtSource.Columns)
+                                        List<CanReportGroupDTO> result = new List<CanReportGroupDTO>();
+                                        if (dtSource.Rows.Count > 0)
                                         {
-                                            string type = col.DataType.Name.ToString().ToUpper();
-                                            string colName = col.ColumnName;
-                                            if (colName != "STT" && colName != "Mã phiếu" && colName != "STT mẻ trộn")
+                                            var dataTable = CommonLib.AsEnumerable(dtSource);
+
+                                            List<CanReportDto> listData = dataTable.Select(row => new CanReportDto()
                                             {
-                                                list += col.DataType.Name.ToString().ToUpper() + ", ";   //Để xem có các kiểu dữ liệu gì dạng số
+                                                SoPhieu = row["SoPhieu"] != DBNull.Value ? row["SoPhieu"].ToString() : "",
+                                                Ngay = row["Ngay"] != DBNull.Value ? Convert.ToDateTime(row["Ngay"]) : (DateTime?)null,
+                                                KhachHang = row["KhachHang"] != DBNull.Value ? row["KhachHang"].ToString() : "",
+                                                BienSo = row["BienSo"] != DBNull.Value ? row["BienSo"].ToString() : "",
+                                                LaiXe = row["LaiXe"] != DBNull.Value ? row["LaiXe"].ToString() : "",
+                                                HangHoa = row["HangHoa"] != DBNull.Value ? row["HangHoa"].ToString() : "",
+                                                CanLan1 = row["CanLan1"] != DBNull.Value ? Convert.ToDecimal(row["CanLan1"]) : (decimal?)null,
+                                                CanLan2 = row["CanLan2"] != DBNull.Value ? Convert.ToDecimal(row["CanLan2"]) : (decimal?)null,
+                                                KhoiLuongHang = row["KhoiLuongHang"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongHang"]) : (decimal?)null,
+                                                KhoiLuongQuyDoi = row["KhoiLuongQuyDoi"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongQuyDoi"]) : (decimal?)null,
+                                                DonVi = row["DonVi"] != DBNull.Value ? row["DonVi"].ToString() : "",
+                                                ThoiGianCanLan1 = row["ThoiGianCanLan1"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan1"]) : (DateTime?)null,
+                                                ThoiGianCanLan2 = row["ThoiGianCanLan2"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan2"]) : (DateTime?)null,
+                                                NguoiCan = row["NguoiCan"] != DBNull.Value ? row["NguoiCan"].ToString() : ""
+                                            }).ToList();
 
-                                                switch (col.DataType.Name.ToString().ToUpper())
-                                                {
-                                                    case "INT32":
-                                                    case "INT64":
-                                                        try
-                                                        {
-                                                            rowTong[colName] = (int)dtSource.Compute(string.Format("SUM({0})", colName), "");
-                                                        }
-                                                        catch (Exception ex)
-                                                        { }
-                                                        break;
-                                                    case "DOUBLE":
-                                                    case "FLOAT":
-                                                    case "DECIMAL":
-                                                        try
-                                                        {
-                                                            rowTong[colName] = Math.Round((double)dtSource.Compute(string.Format("SUM([{0}])", colName), ""), 2);
-                                                        }
-                                                        catch (Exception ex)
-                                                        { }
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
-                                        }
-
-                                        //B2: Một số cột sẽ công thức khác sẽ tính lại ở đây
-                                        foreach (DataColumn col in dtSource.Columns)
-                                        {
-                                            string colName = col.ColumnName;
-                                            if (colName.ToUpper().StartsWith("%"))
+                                            var groupName = string.Empty;
+                                            switch (paging.GroupBy)
                                             {
-                                                string tenCUAVL = colName.Replace("%_", ""); //Chỉ lấy tên cửa VL, VD từu '%_Cát 1' --> 'Cát 1'
-                                                double sumSaiSo = Math.Round((double)rowTong["Sai số_" + tenCUAVL], 2);
-                                                double sumCP = Math.Round((double)rowTong["CP_" + tenCUAVL], 2);
-
-                                                if (sumCP != 0) rowTong[colName] = Math.Round((double)(Math.Abs(sumSaiSo) / sumCP) * 100, 2);
-                                            }
-                                        }
-                                        dtSource.Rows.Add(rowTong);
-
-                                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                                        using (var package = new ExcelPackage())
-                                        {
-                                            var alphabet = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO,AP,AQ,AR,AS,AT,AU,AV,AW,AX,AY,AZ,"
-                                                            + "BA,BB,BC,BD,BE,BF,BG,BH,BI,BJ,BK,BL,BM,BN,BO,BP,BQ,BR,BS,BT,BU,BV,BW,BX,BY,BZ,"
-                                                            + "CA,CB,CC,CD,CE,CF,CG,CH,CI,CJ,CK,CL,CM,CN,CO,CP,CQ,CR,CS,CT,CU,CV,CW,CX,CY,CZ,"
-                                                            + "DA,DB,DC,DD,DE,DF,DG,DH,DI,DJ,DK,DL,DM,DN,DO,DP,DQ,DR,DS,DT,DU,DV,DW,DX,DY,DZ";
-                                            var arrAlphabet = alphabet.Split(",");
-                                            var lastAlphabet = string.Empty;
-                                            lastAlphabet = arrAlphabet[dtSource.Columns.Count - 1];
-
-                                            ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Thống kê chi tiết hợp đồng");
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Merge = true;
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Value = "THỐNG KÊ CHI TIẾT HỢP ĐỒNG";
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Style.Font.Bold = true;
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Style.Font.Size = 16;
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A1:" + lastAlphabet + "1"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A1:Y1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Merge = true;
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Value = "Báo cáo được tạo vào ngày " + DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Style.Font.Italic = true;
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A2:" + lastAlphabet + "2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            //Điều kiện lọc
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Merge = true;
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Value = "* Điều kiện:";
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Style.Font.Italic = true;
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Style.Font.Bold = true;
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A3:" + lastAlphabet + "3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            #region Điều kiện
-
-                                            // Khách hàng
-                                            worksheet.Cells["A4:" + lastAlphabet + "4"].Merge = true;
-                                            var valueFilterKhachhang = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.TENKHACHHANG))
-                                            {
-                                                valueFilterKhachhang = paging.TENKHACHHANG;
-                                            }
-                                            worksheet.Cells["A4:" + lastAlphabet + "4"].Value = "- Khách hàng: " + valueFilterKhachhang;
-                                            worksheet.Cells["A4:" + lastAlphabet + "4"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A4:" + lastAlphabet + "4"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A4:" + lastAlphabet + "4"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            // Tên mác be tông
-                                            worksheet.Cells["A5:" + lastAlphabet + "5"].Merge = true;
-                                            var valueFilterMac = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.TENMACBETONG))
-                                            {
-                                                valueFilterMac = paging.TENMACBETONG;
-                                            }
-                                            worksheet.Cells["A5:" + lastAlphabet + "5"].Value = "- Tên mác bê tông: " + valueFilterMac;
-                                            worksheet.Cells["A5:" + lastAlphabet + "5"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A5:" + lastAlphabet + "5"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A5:" + lastAlphabet + "5"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            // Biển số
-                                            worksheet.Cells["A6:" + lastAlphabet + "6"].Merge = true;
-                                            var valueFilterBienSo = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.BIENSO))
-                                            {
-                                                valueFilterBienSo = paging.BIENSO;
-                                            }
-                                            worksheet.Cells["A6:" + lastAlphabet + "6"].Value = "- Biển số: " + valueFilterBienSo;
-                                            worksheet.Cells["A6:" + lastAlphabet + "6"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A6:" + lastAlphabet + "6"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A6:" + lastAlphabet + "6"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            // Nhân viên
-                                            worksheet.Cells["A7:" + lastAlphabet + "7"].Merge = true;
-                                            var valueFilterNV = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.TENNV))
-                                            {
-                                                valueFilterNV = paging.TENNV;
-                                            }
-                                            worksheet.Cells["A7:" + lastAlphabet + "7"].Value = "- Nhân viên: " + valueFilterNV;
-                                            worksheet.Cells["A7:" + lastAlphabet + "7"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A7:" + lastAlphabet + "7"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A7:" + lastAlphabet + "7"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            // Hạng mục
-                                            worksheet.Cells["A8:" + lastAlphabet + "8"].Merge = true;
-                                            var valueFilterHM = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.TENHANGMUC))
-                                            {
-                                                valueFilterHM = paging.TENHANGMUC;
-                                            }
-                                            worksheet.Cells["A8:" + lastAlphabet + "8"].Value = "- Hạng mục: " + valueFilterHM;
-                                            worksheet.Cells["A8:" + lastAlphabet + "8"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A8:" + lastAlphabet + "8"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A8:" + lastAlphabet + "8"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-                                            // Chế độ
-                                            worksheet.Cells["A9:" + lastAlphabet + "9"].Merge = true;
-                                            var valueFilterCD = "Tất cả";
-                                            if (!string.IsNullOrEmpty(paging.CHEDO))
-                                            {
-                                                valueFilterCD = paging.CHEDO;
-                                            }
-                                            worksheet.Cells["A9:" + lastAlphabet + "9"].Value = "- Chế độ: " + valueFilterCD;
-                                            worksheet.Cells["A9:" + lastAlphabet + "9"].Style.Font.Color.SetColor(Color.Black);
-                                            worksheet.Cells["A9:" + lastAlphabet + "9"].Style.HorizontalAlignment =
-                                                ExcelHorizontalAlignment.Left;
-                                            worksheet.Cells["A9:" + lastAlphabet + "9"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-
-
-                                            #endregion
-
-
-                                            var index = 11;
-                                            var cell = string.Empty;
-
-                                            var count = 0;
-                                            foreach (DataColumn col in dtSource.Columns)
-                                            {
-                                                cell = arrAlphabet[count] + "11";
-                                                worksheet.Cells[cell].Value = col.ColumnName;
-                                                worksheet.Cells[cell].Style.Font.Bold = true;
-                                                count++;
-
-                                            }
-                                            cell = "A" + index + ":" + lastAlphabet + index;
-                                            worksheet.Cells[cell].Style.Font.Color.SetColor(Color.White);
-                                            worksheet.Cells[cell].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                            worksheet.Cells[cell].Style.Fill.BackgroundColor.SetColor(Color.Green);
-
-                                            if (dtSource.Rows.Count > 0)
-                                            {
-                                                int rowFirts = 12;
-                                                for (int i = 0; i < dtSource.Rows.Count; i++)
-                                                {
-                                                    int row = rowFirts + i;
-                                                    var element = dtSource.Rows[i];
-
-                                                    int column = 1;
-
-                                                    foreach (var rowItem in element.ItemArray)
+                                                case "KH": // Group theo khách hàng
+                                                    var groupByKH = listData.GroupBy(x => x.KhachHang);
+                                                    foreach (var itemGrp in groupByKH)
                                                     {
-                                                        worksheet.Cells[row, column].Value = rowItem;
-                                                        worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                            ExcelVerticalAlignment.Center;
-
-                                                        if (i == dtSource.Rows.Count - 1)
+                                                        result.Add(new CanReportGroupDTO
                                                         {
-                                                            worksheet.Cells[row, column].Style.Font.Bold = true;
-                                                        }
-
-                                                        column++;
+                                                            Key = itemGrp.Key,
+                                                            Data = itemGrp.ToList(),
+                                                            Expanded = false,
+                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                        });
                                                     }
+                                                    break;
 
-                                                }
-                                                //Row merge total
-                                                var regionTotal = dtSource.Rows.Count + 11;
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Value = "Tổng";
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Merge = true;
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Style.Font.Italic = true;
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Style.Font.Bold = true;
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Style.Font.Color.SetColor(Color.Black);
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Style.HorizontalAlignment =
-                                                    ExcelHorizontalAlignment.Center;
-                                                worksheet.Cells["A" + regionTotal + ":" + "L" + regionTotal].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                case "VL": // Group theo vật liệu
+                                                    var groupByVL = listData.GroupBy(x => x.HangHoa);
+                                                    foreach (var itemGrp in groupByVL)
+                                                    {
+                                                        result.Add(new CanReportGroupDTO
+                                                        {
+                                                            Key = itemGrp.Key,
+                                                            Data = itemGrp.ToList(),
+                                                            Expanded = false,
+                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                        });
+                                                    }
+                                                    break;
 
+                                                default: // Mặc định group theo ngày
+                                                    var groupByNgay = listData.GroupBy(x => x.Ngay?.ToString("yyyy-MM-dd")); // Format ngày nếu cần gom theo ngày
+                                                    foreach (var itemGrp in groupByNgay)
+                                                    {
+                                                        result.Add(new CanReportGroupDTO
+                                                        {
+                                                            Key = itemGrp.Key,
+                                                            Data = itemGrp.ToList(),
+                                                            Expanded = false,
+                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
+                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
+                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
+                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
+                                                        });
+                                                    }
+                                                    break;
+                                            }
 
+                                            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                                            using (var package = new ExcelPackage())
+                                            {
+                                                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Thống kê chi tiết khối lượng bê tông");
+                                                worksheet.Cells["A1:K1"].Merge = true;
+                                                worksheet.Cells["A1:K1"].Value = "THỐNG KÊ CHI TIẾT KHỐI LƯỢNG BÊ TÔNG";
+                                                worksheet.Cells["A1:K1"].Style.Font.Bold = true;
+                                                worksheet.Cells["A1:K1"].Style.Font.Size = 16;
+                                                worksheet.Cells["A1:K1"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A1:K1"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A1:K1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                                                string modelRange = "A12:" + lastAlphabet + (dtSource.Rows.Count + 11);
-                                                var modelTable = worksheet.Cells[modelRange];
-                                                modelTable.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                                                modelTable.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                                                modelTable.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                                                modelTable.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                                                //modelCells.LoadFromCollection(Collection: model, PrintHeaders: true);
-                                                worksheet.Cells["A:AZ"].AutoFitColumns();
+                                                worksheet.Cells["A2:K2"].Merge = true;
+                                                worksheet.Cells["A2:K2"].Value = "Báo cáo được tạo vào ngày " + DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
+                                                worksheet.Cells["A2:K2"].Style.Font.Italic = true;
+                                                worksheet.Cells["A2:K2"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A2:K2"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A2:K2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                                                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                                                //Điều kiện lọc
+                                                worksheet.Cells["A3:K3"].Merge = true;
+                                                worksheet.Cells["A3:K3"].Value = "* Điều kiện:";
+                                                worksheet.Cells["A3:K3"].Style.Font.Italic = true;
+                                                worksheet.Cells["A3:K3"].Style.Font.Bold = true;
+                                                worksheet.Cells["A3:K3"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A3:K3"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A3:K3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                #region Điều kiện
+                                                //mã phiếu
+                                                worksheet.Cells["A4:K4"].Merge = true;
+                                                var valueFilterMaPhieu = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.MAPHIEU))
                                                 {
-                                                    Content = new ByteArrayContent(package.GetAsByteArray())
-                                                };
-                                                return response;
+                                                    valueFilterMaPhieu = paging.MAPHIEU;
+                                                }
+                                                worksheet.Cells["A4:K4"].Value = "- Mã phiếu: " + valueFilterMaPhieu;
+                                                worksheet.Cells["A4:K4"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A4:K4"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A4:K4"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Hạng mục
+                                                worksheet.Cells["A5:K5"].Merge = true;
+                                                var valueFilterHangmuc = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TENHANGMUC))
+                                                {
+                                                    valueFilterHangmuc = paging.TENHANGMUC;
+                                                }
+                                                worksheet.Cells["A5:K5"].Value = "- Hạng mục: " + valueFilterHangmuc;
+                                                worksheet.Cells["A5:K5"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A5:K5"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A5:K5"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Khách hàng
+                                                worksheet.Cells["A6:K6"].Merge = true;
+                                                var valueFilterKhachhang = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TENKHACHHANG))
+                                                {
+                                                    valueFilterKhachhang = paging.TENKHACHHANG;
+                                                }
+                                                worksheet.Cells["A6:K6"].Value = "- Khách hàng: " + valueFilterKhachhang;
+                                                worksheet.Cells["A6:K6"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A6:K6"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A6:K6"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Dự án
+                                                worksheet.Cells["A7:K7"].Merge = true;
+                                                var valueFilterDuan = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TENDUAN))
+                                                {
+                                                    valueFilterDuan = paging.MAPHIEU;
+                                                }
+                                                worksheet.Cells["A7:K7"].Value = "- Công trường: " + valueFilterDuan;
+                                                worksheet.Cells["A7:K7"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A7:K7"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A7:K7"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Tài xế
+                                                worksheet.Cells["A8:K8"].Merge = true;
+                                                var valueFilterTx = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TAIXE))
+                                                {
+                                                    valueFilterTx = paging.TAIXE;
+                                                }
+                                                worksheet.Cells["A8:K8"].Value = "- Tài xế: " + valueFilterTx;
+                                                worksheet.Cells["A8:K8"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A8:K8"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A8:K8"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Biển số
+                                                worksheet.Cells["A9:K9"].Merge = true;
+                                                var valueFilterBs = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.BIENSO))
+                                                {
+                                                    valueFilterBs = paging.BIENSO;
+                                                }
+                                                worksheet.Cells["A9:K9"].Value = "- Biển số: " + valueFilterBs;
+                                                worksheet.Cells["A9:K9"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A9:K9"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A9:K9"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Tên mác be tông
+                                                worksheet.Cells["A10:K10"].Merge = true;
+                                                var valueFilterMac = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TENMACBETONG))
+                                                {
+                                                    valueFilterMac = paging.TENMACBETONG;
+                                                }
+                                                worksheet.Cells["A10:K10"].Value = "- Tên mác bê tông: " + valueFilterMac;
+                                                worksheet.Cells["A10:K10"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A10:K10"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A10:K10"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Nhân viên
+                                                worksheet.Cells["A11:K11"].Merge = true;
+                                                var valueFilterNV = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.TENNV))
+                                                {
+                                                    valueFilterNV = paging.TENNV;
+                                                }
+                                                worksheet.Cells["A11:K11"].Value = "- Nhân viên: " + valueFilterNV;
+                                                worksheet.Cells["A11:K11"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A11:K11"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A11:K11"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                // Chế độ
+                                                worksheet.Cells["A12:K12"].Merge = true;
+                                                var valueFilterCheDo = "Tất cả";
+                                                if (!string.IsNullOrEmpty(paging.CHEDO))
+                                                {
+                                                    valueFilterCheDo = paging.CHEDO;
+                                                }
+                                                worksheet.Cells["A12:K12"].Value = "- Chế độ: " + valueFilterCheDo;
+                                                worksheet.Cells["A12:K12"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A12:K12"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A12:K12"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                #endregion
+
+                                                #region Nhóm theo
+                                                //Nhóm theo
+                                                worksheet.Cells["A13:K13"].Merge = true;
+                                                worksheet.Cells["A13:K13"].Value = "* Nhóm theo: " + groupName.Substring(0, groupName.IndexOf(":"));
+                                                worksheet.Cells["A13:K13"].Style.Font.Italic = true;
+                                                worksheet.Cells["A13:K13"].Style.Font.Bold = true;
+                                                worksheet.Cells["A13:K13"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A13:K13"].Style.HorizontalAlignment =
+                                                    ExcelHorizontalAlignment.Left;
+                                                worksheet.Cells["A13:K13"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                #endregion
+
+                                                worksheet.Cells["A15"].Value = "Phiếu";
+                                                worksheet.Cells["A15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["B15"].Value = "Ngày lập";
+                                                worksheet.Cells["B15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["C15"].Value = "Khách hàng";
+                                                worksheet.Cells["C15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["D15"].Value = "Công trường";
+                                                worksheet.Cells["D15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["E15"].Value = "Mác";
+                                                worksheet.Cells["E15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["F15"].Value = "Nhân viên";
+                                                worksheet.Cells["F15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["G15"].Value = "Tài xế";
+                                                worksheet.Cells["G15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["H15"].Value = "Xe";
+                                                worksheet.Cells["H15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["I15"].Value = "Tổng khối lượng";
+                                                worksheet.Cells["I15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["J15"].Value = "Số mẻ";
+                                                worksheet.Cells["J15"].Style.Font.Bold = true;
+
+                                                worksheet.Cells["K15"].Value = "M3/Mẻ";
+                                                worksheet.Cells["K15"].Style.Font.Bold = true;
+
+
+
+                                                worksheet.Cells["A15:K15"].Style.Font.Color.SetColor(Color.White);
+                                                worksheet.Cells["A15:K15"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                                worksheet.Cells["A15:K15"].Style.Fill.BackgroundColor.SetColor(Color.Green);
+                                                if (result.Count() > 0)
+                                                {
+                                                    int rowFirts = 16;
+                                                    for (int i = 0; i < result.Count(); i++)
+                                                    {
+                                                        var elementGroup = result.ElementAt(i);
+                                                        //Row merge
+                                                        var region = "A" + rowFirts + ":" + "K" + rowFirts;
+                                                        worksheet.Cells[region].Merge = true;
+                                                        if (elementGroup.Key.GetType() == typeof(DateTime))
+                                                        {
+                                                            worksheet.Cells[region].Value = groupName + Convert.ToDateTime(elementGroup.Key).ToString("dd/MM/yyyy");
+                                                        }
+                                                        else
+                                                        {
+                                                            worksheet.Cells[region].Value = groupName + elementGroup.Key;
+                                                        }
+                                                        worksheet.Cells[region].Style.Font.Italic = true;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.Font.Color.SetColor(Color.Black);
+                                                        worksheet.Cells[region].Style.HorizontalAlignment =
+                                                            ExcelHorizontalAlignment.Left;
+                                                        worksheet.Cells[region].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                        rowFirts = rowFirts + 1;
+                                                        for (var j = 0; j < elementGroup.Data.Count(); j++)
+                                                        {
+                                                            int row = rowFirts + j;
+                                                            var element = elementGroup.Data.ElementAt(j);
+                                                            int column = 1;
+                                                            //Phiếu
+                                                            worksheet.Cells[row, column].Value = element?.SOPHIEU;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Ngày lập
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.NGAYTRON;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
+
+                                                            //Khách hàng
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.TENKHACHHANG;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Công trường
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.TENDUAN;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Mác
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.TENMACBETONG;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Nhân viên
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.TENNV;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Tài xế
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.TENLAIXE;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Xe
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.BIENSO;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Tổng khối lượng
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.M3METRON;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                            //Số mẻ
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.SOTTMETRON;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                            //M3/Mẻ
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.M3TRENMETRON;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                        }
+                                                        rowFirts = rowFirts + elementGroup.Data.Count();
+
+                                                        //Row merge total
+                                                        region = "A" + rowFirts + ":" + "H" + rowFirts;
+                                                        worksheet.Cells[region].Merge = true;
+                                                        worksheet.Cells[region].Value = "Tổng:";
+                                                        worksheet.Cells[region].Style.Font.Italic = true;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.Font.Color.SetColor(Color.Black);
+                                                        worksheet.Cells[region].Style.HorizontalAlignment =
+                                                            ExcelHorizontalAlignment.Center;
+                                                        worksheet.Cells[region].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                        region = "I" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalM3METRON;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        region = "J" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalSOTTMETRON;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        region = "K" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalM3TRENMETRON;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        rowFirts++;
+                                                    }
+                                                    string modelRange = "A16:K" + (listData.Count() + result.Count() * 2 + 16);
+                                                    var modelTable = worksheet.Cells[modelRange];
+                                                    modelTable.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                                                    //modelCells.LoadFromCollection(Collection: model, PrintHeaders: true);
+                                                    worksheet.Cells["A:AZ"].AutoFitColumns();
+
+                                                    var response = new HttpResponseMessage(HttpStatusCode.OK)
+                                                    {
+                                                        Content = new ByteArrayContent(package.GetAsByteArray())
+                                                    };
+                                                    return response;
+                                                }
                                             }
                                         }
-
-                                        #region Comment
-
-                                        //dtSource.TableName = "ThongKeDonHangChiTiet";
-
-                                        //if (dtSource.Rows.Count > 0)
-                                        //{
-                                        //    XSSFWorkbook wb = new XSSFWorkbook();
-                                        //    // Tạo ra 1 sheet
-                                        //    ISheet sheet = wb.CreateSheet();
-
-                                        //    string fileName = "Bao-cao-ke-toan-2";
-                                        //    string template = @"template\export\BCKT1.xlsx";
-                                        //    string webRootPath = _hostingEnvironment.WebRootPath;
-                                        //    string templatePath = Path.Combine(webRootPath, template);
-                                        //    string today = paging.denngay.Day.ToString() + "/" + paging.denngay.Month.ToString() + "/" + paging.denngay.Year.ToString();
-                                        //    string fromday = paging.tungay.Day.ToString() + "/" + paging.tungay.Month.ToString() + "/" + paging.tungay.Year.ToString();
-
-
-
-                                        //    using (XLWorkbook wbx = new XLWorkbook())
-                                        //    {
-                                        //        wbx.Worksheets.Add(dtSource);
-
-                                        //        using (MemoryStream stream = new MemoryStream())
-                                        //        {
-                                        //            wbx.SaveAs(stream);
-                                        //            var a = File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Grid.xlsx");
-                                        //            var response = new HttpResponseMessage(HttpStatusCode.OK)
-                                        //            {
-                                        //                Content = new ByteArrayContent(stream.ToArray())
-                                        //            };
-                                        //            response.Content.Headers.Add("Access-Control-Allow-Headers", "Authorization,Content-Type,x-filename");
-                                        //            response.Content.Headers.Add("Access-Control-Expose-Headers", "Authorization,Content-Type,x-filename");
-                                        //            response.Content.Headers.Add("x-filename", fileName);
-                                        //            response.Content.Headers.ContentType = new MediaTypeHeaderValue
-                                        //                   ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                                        //            response.Content.Headers.ContentDisposition =
-                                        //                   new ContentDispositionHeaderValue("attachment")
-                                        //                   {
-                                        //                       FileName = fileName
-                                        //                   };
-
-                                        //            return response;
-                                        //        }
-                                        //    }
-                                        //}
-
-                                        #endregion
+                                        return null;
                                     }
-
                                 }
                             }
                         }
-                        //18 cua vl
-
-
-                        context.Database.OpenConnection();
-                        using (var result = command.ExecuteReader())
-                        {
-                            result.Read();
-                            def.metadata = result[0];
-                            DataTable dt = new DataTable();
-                            dt.TableName = "ThongKeDonHangChiTiet";
-                            dt.Load(result);
-
-                            XSSFWorkbook wb = new XSSFWorkbook();
-                            // Tạo ra 1 sheet
-                            ISheet sheet = wb.CreateSheet();
-
-                            string fileName = "Bao-cao-ke-toan-2";
-                            string template = @"template\export\BCKT1.xlsx";
-                            string webRootPath = _hostingEnvironment.WebRootPath;
-                            string templatePath = Path.Combine(webRootPath, template);
-                            string today = paging.denngay.Day.ToString() + "/" + paging.denngay.Month.ToString() + "/" + paging.denngay.Year.ToString();
-                            string fromday = paging.tungay.Day.ToString() + "/" + paging.tungay.Month.ToString() + "/" + paging.tungay.Year.ToString();
-
-
-
-                            using (XLWorkbook wbx = new XLWorkbook())
-                            {
-                                wbx.Worksheets.Add(dt);
-
-                                using (MemoryStream stream = new MemoryStream())
-                                {
-                                    wbx.SaveAs(stream);
-                                    var a = File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Grid.xlsx");
-                                    var response = new HttpResponseMessage(HttpStatusCode.OK)
-                                    {
-                                        Content = new ByteArrayContent(stream.ToArray())
-                                    };
-                                    response.Content.Headers.Add("Access-Control-Allow-Headers", "Authorization,Content-Type,x-filename");
-                                    response.Content.Headers.Add("Access-Control-Expose-Headers", "Authorization,Content-Type,x-filename");
-                                    response.Content.Headers.Add("x-filename", fileName);
-                                    response.Content.Headers.ContentType = new MediaTypeHeaderValue
-                                           ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                                    response.Content.Headers.ContentDisposition =
-                                           new ContentDispositionHeaderValue("attachment")
-                                           {
-                                               FileName = fileName
-                                           };
-
-                                    return response;
-                                }
-                            }
-
-
-                            return null;
-
-                        }
-
-
-
+                        return null;
                     }
                 }
                 else
                 {
                     return null;
                 }
-
             }
             catch (Exception ex)
             {
-
                 throw ex;
             }
         }
@@ -1548,54 +1452,6 @@ namespace IOITWebApp.Controllers.ApiCMS
             }
         }
 
-        [HttpGet("GetNV/{Branchlist}")]
-        public IActionResult GetNV(string Branchlist)
-        {
-
-            DefaultResponse def = new DefaultResponse();
-            //check role
-            var identity = (ClaimsIdentity)User.Identity;
-            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
-            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
-            {
-                def.meta = new Meta(222, "No permission");
-                return Ok(def);
-            }
-            if (Branchlist != null)
-            {
-                using (var context = new CNTTVNWebContext())
-                using (var command = context.Database.GetDbConnection().CreateCommand())
-                {
-
-                    List<NhanVienDTO> nv = new List<NhanVienDTO>();
-
-                    Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
-                    command.CommandText += "SELECT DISTINCT TENNV FROM [" + branch.Dataname + "].[dbo].[NHANVIEN]";
-
-                    context.Database.OpenConnection();
-                    using (var result = command.ExecuteReader())
-                    {
-
-                        while (result.Read())
-                        {
-                            NhanVienDTO item = new NhanVienDTO();
-                            item.TENNV = (result["TENNV"] is DBNull) ? String.Empty : (string)result["TENNV"];
-                            nv.Add(item);
-                        }
-
-                        def.data = nv;
-                    }
-                    def.meta = new Meta(200, "Success");
-                    return Ok(def);
-                }
-            }
-            else
-            {
-                def.meta = new Meta(400, "Bad Request");
-                return Ok(def);
-            }
-        }
-
         [HttpGet("GetBienSo/{Branchlist}")]
         public IActionResult GetBienSo(string Branchlist)
         {
@@ -1614,10 +1470,10 @@ namespace IOITWebApp.Controllers.ApiCMS
                 using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
 
-                    List<TC_XeDTO> nv = new List<TC_XeDTO>();
+                    List<string> nv = new List<string>();
 
                     Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
-                    command.CommandText += "SELECT DISTINCT BienSo  FROM [" + branch.Dataname + "].[dbo].[XE]";
+                    command.CommandText += "SELECT DISTINCT BienXe FROM [" + branch.Dataname + "].[dbo].[LSCan] WHERE ISNULL(BienXe, '') <> ''";
 
                     context.Database.OpenConnection();
                     using (var result = command.ExecuteReader())
@@ -1625,9 +1481,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                         while (result.Read())
                         {
-                            TC_XeDTO item = new TC_XeDTO();
-                            item.BienSo = (result["BienSo"] is DBNull) ? String.Empty : (string)result["BienSo"];
-                            nv.Add(item);
+                            nv.Add((result["BienXe"] is DBNull) ? String.Empty : (string)result["BienXe"]);
                         }
 
                         def.data = nv;
@@ -1661,10 +1515,10 @@ namespace IOITWebApp.Controllers.ApiCMS
                 using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
 
-                    List<TC_KhachHangDTO> nv = new List<TC_KhachHangDTO>();
+                    List<string> nv = new List<string>();
 
                     Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
-                    command.CommandText += "SELECT DISTINCT Ten FROM [" + branch.Dataname + "].[dbo].[KHACHHANG]";
+                    command.CommandText += "SELECT DISTINCT KhachHang FROM [" + branch.Dataname + "].[dbo].[LSCan] WHERE ISNULL(KhachHang, '') <> ''";
 
                     context.Database.OpenConnection();
                     using (var result = command.ExecuteReader())
@@ -1672,9 +1526,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                         while (result.Read())
                         {
-                            TC_KhachHangDTO item = new TC_KhachHangDTO();
-                            item.Ten = (result["Ten"] is DBNull) ? String.Empty : (string)result["Ten"];
-                            nv.Add(item);
+                            nv.Add((result["KhachHang"] is DBNull) ? String.Empty : (string)result["KhachHang"]);
                         }
 
                         def.data = nv;
@@ -1709,10 +1561,10 @@ namespace IOITWebApp.Controllers.ApiCMS
                 using (var command = context.Database.GetDbConnection().CreateCommand())
                 {
 
-                    List<TC_VatLieuDTO> nv = new List<TC_VatLieuDTO>();
+                    List<string> nv = new List<string>();
 
                     Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
-                    command.CommandText += "SELECT DISTINCT Ten FROM [" + branch.Dataname + "].[dbo].[VatLieu]";
+                    command.CommandText += "SELECT DISTINCT TenVatLieu FROM [" + branch.Dataname + "].[dbo].[LSCan] WHERE ISNULL(TenVatLieu, '') <> ''";
 
                     context.Database.OpenConnection();
                     using (var result = command.ExecuteReader())
@@ -1720,9 +1572,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                         while (result.Read())
                         {
-                            TC_VatLieuDTO item = new TC_VatLieuDTO();
-                            item.Ten = (result["Ten"] is DBNull) ? String.Empty : (string)result["Ten"];
-                            nv.Add(item);
+                            nv.Add((result["TenVatLieu"] is DBNull) ? String.Empty : (string)result["TenVatLieu"]);
                         }
 
                         def.data = nv;
@@ -1738,6 +1588,58 @@ namespace IOITWebApp.Controllers.ApiCMS
             }
 
         }
+
+        [HttpGet("GetNguoiCan/{Branchlist}")]
+        public IActionResult GetNguoiCan(string Branchlist)
+        {
+            DefaultResponse def = new DefaultResponse();
+            //check role
+            var identity = (ClaimsIdentity)User.Identity;
+            string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
+            if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.VIEW))
+            {
+                def.meta = new Meta(222, "No permission");
+                return Ok(def);
+            }
+            if (Branchlist != null)
+            {
+                using (var context = new CNTTVNWebContext())
+                using (var command = context.Database.GetDbConnection().CreateCommand())
+                {
+
+                    List<string> nv = new List<string>();
+
+                    Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
+                    command.CommandText = $@"
+                                                SELECT DISTINCT UserName1 AS UserName FROM [{branch.Dataname}].[dbo].[LSCan] WHERE ISNULL(UserName1, '') <> ''
+                                                UNION 
+                                                SELECT DISTINCT UserName2 AS UserName FROM [{branch.Dataname}].[dbo].[LSCan] WHERE ISNULL(UserName2, '') <> ''";
+
+                    context.Database.OpenConnection();
+                    using (var result = command.ExecuteReader())
+                    {
+                        while (result.Read())
+                        {
+                            string user = result["UserName"] as string;
+                            if (!string.IsNullOrEmpty(user))
+                                nv.Add(user);
+                        }
+
+                        def.data = nv;
+                    }
+
+                    def.meta = new Meta(200, "Success");
+                    return Ok(def);
+                }
+            }
+            else
+            {
+                def.meta = new Meta(400, "Bad Request");
+                return Ok(def);
+            }
+
+        }
+
         // GET: api/Slide/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSlide(int id)

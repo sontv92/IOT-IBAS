@@ -96,6 +96,14 @@ namespace IOITWebApp.Models
         public int? TypeTram { get; set; }
         [System.ComponentModel.DefaultValue(0)]
         public int? Module { get; set; }
+        [System.ComponentModel.DefaultValue("")]
+        public string VATLIEU { get; set; }
+        [System.ComponentModel.DefaultValue("")]
+        public string TenKH { get; set; }
+        [System.ComponentModel.DefaultValue("")]
+        public string NGUOICAN { get; set; }
+        [System.ComponentModel.DefaultValue("")]
+        public string KIEUCAN { get; set; }
 
     }
 }

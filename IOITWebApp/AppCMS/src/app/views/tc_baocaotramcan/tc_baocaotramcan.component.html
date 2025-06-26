@@ -78,20 +78,23 @@
           <label for="inputCat5"  class="col-sm-2 col-form-label" >Biển số</label>
           <div class="col-sm-4" >
             <ng-select [items]="listBienSo"
-                       bindLabel="BienSo"
-                       bindValue="BienSo"
-                       [multiple]="false"
-                       placeholder="Tất cả"
-                       [(ngModel)]="q.BienSo"
-                       [disabled]="disable"
-                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
+                        [multiple]="false"
+                        placeholder="Tất cả"
+                        [(ngModel)]="q.BIENSO"
+                        [disabled]="disable"
+                        [ngModelOptions]="{standalone: true}"
+                        style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
           <label for="inputCat7" class="col-sm-2 col-form-label">Vật liệu</label>
           <div class="col-sm-4">
-            <ng-select [items]="ListVatLieu" bindLabel="Ten" bindValue="Ten" [multiple]="false"
-              placeholder="Tất cả" [(ngModel)]="q.Ten" [disabled]="disable"
-              [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            <ng-select [items]="ListVatLieu"
+                        [multiple]="false"
+                        placeholder="Tất cả"
+                        [(ngModel)]="q.VATLIEU"
+                        [disabled]="disable"
+                        [ngModelOptions]="{standalone: true}"
+                        style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
           
@@ -100,25 +103,23 @@
           <label for="inputCat6" class="col-sm-2 col-form-label">Tên khách hàng</label>
           <div class="col-sm-4">
             <ng-select [items]="listKH"
-                       bindLabel="Ten"
-                       bindValue="Ten"
-                       [multiple]="false"
-                       placeholder="Tất cả"
-                       [(ngModel)]="q.Ten"
-                       [disabled]="disable"
-                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%">
+                        [multiple]="false"
+                        placeholder="Tất cả"
+                        [(ngModel)]="q.TenKH"
+                        [disabled]="disable"
+                        [ngModelOptions]="{standalone: true}"
+                        style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
           <label for="inputCat7"  class="col-sm-2 col-form-label" >Kiểu cân</label>
           <div class="col-sm-4" >
-            <ng-select [items]="listTenMacBeTong"
-                       bindLabel="TENMACBETONG"
-                       bindValue="TENMACBETONG"
-                       [multiple]="false"
-                       placeholder="Tất cả"
-                       [(ngModel)]="q.TENMACBETONG"
-                       [disabled]="disable"
-                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            <ng-select [items]="listKieuCan"
+                        [multiple]="false"
+                        placeholder="Tất cả"
+                        [(ngModel)]="q.KIEUCAN"
+                        [disabled]="disable"
+                        [ngModelOptions]="{standalone: true}"
+                        style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
           
@@ -126,14 +127,13 @@
         <div class="form-group row">
           <label for="inputCat8" class="col-sm-2 col-form-label">Người cân</label>
           <div class="col-sm-4">
-            <ng-select [items]="ListNV"
-                       bindLabel="TENNV"
-                       bindValue="TENNV"
-                       [multiple]="false"
-                       placeholder="Tất cả"
-                       [(ngModel)]="q.TENNV"
-                       [disabled]="disable"
-                       [ngModelOptions]="{standalone: true}" style="margin-right: 15px;width:100%;">
+            <ng-select [items]="listNguoiCan"
+                        [multiple]="false"
+                        placeholder="Tất cả"
+                        [(ngModel)]="q.NGUOICAN"
+                        [disabled]="disable"
+                        [ngModelOptions]="{standalone: true}"
+                        style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
           <label for="inputCat10" class="col-sm-2 col-form-label">Nhóm theo</label>

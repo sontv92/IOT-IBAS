@@ -44,6 +44,12 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   public tablesilde = [];
   public listDonHangChiTiet = [];
   public listTongDonHangChiTiet = [];
+  public listNguoiCan = [];
+  public listKieuCan: string[] = ['All', 'Nhập hàng', 'Bán hàng', 'Dịch vụ'];
+    public listGroup = [
+    { value: "KH", name: "Khác hàng" },
+    { value: "VL", name: "Vật liệu" },
+    { value: "NL", name: "Ngày lập" }];
   public role: number;
   public disable:boolean = true;
   public loading :boolean;
@@ -218,7 +224,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     this.disable = false;
     this.GetlistKH(val);
     this.GetlistBienSo(val);
-    //this.GetlistNV(val);
+    this.GetNguoiCan(val);
     this.GetListVatLieu(val);
 
   }
@@ -412,25 +418,6 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       }
     );
   }
-  GetlistCD() {
-    this.listCheDo = [
-      { Name: 'All', value:''},
-      { Name: 'Normal', value:'NORMAL'},
-      { Name: 'Simulation', value:'SIM'}
-  ];
-  }
-  GetlistHM(val) {
-    this.http.get('/api/tc_baocaotramcan/GetHangMuc/'+val, this.httpOptions).subscribe(
-      (res) => {
-        if (res["meta"]["error_code"] == 200) {
-          this.listHangMuc = res["data"];
-        }
-      },
-      (err) => {
-        console.log("Error: connect to API");
-      }
-    );
-  }
   // Get danh sách nhân viên kinh doanh
   GetlistNV(val) {
     this.http.get('/api/tc_baocaotramcan/GetNV/'+val, this.httpOptions).subscribe(
@@ -458,13 +445,11 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     );
   }
 
-  //Get danh sách typeAttributeItem
-  GetlistTenMacBeTong(val) {
-    this.http.get('/api/tc_baocaotramcan/GetTenMacBeTong/'+val, this.httpOptions).subscribe(
+    GetNguoiCan(val) {
+    this.http.get('/api/tc_baocaotramcan/GetNguoiCan/'+val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
-          this.listTenMacBeTong = res["data"];
-
+          this.listNguoiCan = res["data"];
         }
       },
       (err) => {
@@ -472,6 +457,8 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       }
     );
   }
+
+  //Get danh sách typeAttributeItem
   GetListCompany() {
     this.http.get('/api/company/GetByPage?page=1&query=1=1&order_by=', this.httpOptions).subscribe(
       (res) => {

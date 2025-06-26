@@ -2176,4 +2176,33 @@ namespace IOITWebApp.Models.Data
         public string LoaiCuaVL { get; set; }
         public double KhoiLuong { get; set; }
     }
+
+    public class CanReportDto
+    {
+        public string SoPhieu { get; set; }                  // MaPhieu
+        public DateTime? Ngay { get; set; }                  // ISNULL(ThoiGianCanLan2, ThoiGianCanLan1)
+        public string KhachHang { get; set; }                // KhachHang
+        public string BienSo { get; set; }                   // BienXe
+        public string LaiXe { get; set; }                    // LaiXe
+        public string HangHoa { get; set; }                  // TenVatLieu
+        public decimal? CanLan1 { get; set; }                // KhoiLuongCanLan1
+        public decimal? CanLan2 { get; set; }                // KhoiLuongCanLan2
+        public decimal? KhoiLuongHang { get; set; }          // KhoiLuongHang
+        public decimal? KhoiLuongQuyDoi { get; set; }        // KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)
+        public string DonVi { get; set; }                    // DonViQuyDoi
+        public DateTime? ThoiGianCanLan1 { get; set; }       // ThoiGianCanLan1
+        public DateTime? ThoiGianCanLan2 { get; set; }       // ThoiGianCanLan2
+        public string NguoiCan { get; set; }                 // ISNULL(UserName2, UserName1)
+    }
+
+    public class CanReportGroupDTO
+    {
+        public object Key { get; set; }
+        public List<CanReportDto> Data { get; set; }
+        public bool Expanded { get; set; }
+        public decimal TotalCanLan1 { get; set; }
+        public decimal TotalCanLan2 { get; set; }
+        public decimal TotalKhoiLuongHang { get; set; }
+        public decimal ToTalKhoiLuongQuyDoi { get; set; }
+    }
 }
