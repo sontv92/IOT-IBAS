@@ -45,6 +45,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   public listDonHangChiTiet = [];
   public listTongDonHangChiTiet = [];
   public listNguoiCan = [];
+  public listChiTietTramCan = [];
   public listKieuCan: string[] = ['All', 'Nhập hàng', 'Bán hàng', 'Dịch vụ'];
     public listGroup = [
     { value: "KH", name: "Khác hàng" },
@@ -245,8 +246,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   GetListSlide() {
     this.SpinnerService.show();
 
-    this.listDonHangChiTiet = [];
-    this.listTongDonHangChiTiet = [];
+    this.listChiTietTramCan = [];
 
     if (this.paging.CompanyId == undefined) {
       this.paging.CompanyId = 0;
@@ -258,28 +258,22 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
                                                + '&denngay=' + this.q.denngay 
                                                + '&timetungay=' + this.q.timetungay
                                                + '&timedenngay=' + this.q.timedenngay
-                                               + '&TENKHACHHANG=' + this.q.TENKHACHHANG 
+                                               + '&TenKH=' + this.q.TenKH 
                                                + '&BIENSO=' + this.q.BIENSO 
-                                               + '&TENMACBETONG=' + this.q.TENMACBETONG 
-                                               +'&TENHANGMUC=' + this.q.TENHANGMUC 
-                                               + '&TENNV=' + this.q.TENNV 
+                                               + '&VATLIEU=' + this.q.VATLIEU 
+                                               +'&NGUOICAN=' + this.q.NGUOICAN 
+                                               + '&KIEUCAN=' + this.q.KIEUCAN 
                                                + '&companyid=' + this.paging.CompanyId 
                                                + '&Branchlist=' + this.paging.Branchid 
-                                               + '&query=' + this.paging.query 
-                                               + '&status=' + this.q.status 
-                                               + '&ckbKhachHang=' + this.q.ckbKhachHang 
-                                               + '&ckbXeTron=' + this.q.ckbXeTron 
-                                               + '&ckbMacBeTong=' + this.q.ckbMacBeTong 
-                                               + '&CHEDO=' + this.q.value, this.httpOptions).subscribe(
+                                               , this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
-          this.listDonHangChiTiet = res["data"];
-          this.listTongDonHangChiTiet = res["data1"];
+          this.listChiTietTramCan = res["data"];
           this.paging.item_count = res["metadata"];
 
 
-          this.tableMockData = this.listDonHangChiTiet;
-          this.tableMockDataTong = this.listTongDonHangChiTiet;
+          this.tableMockData = this.listChiTietTramCan;
+          this.tableMockDataTong = this.listChiTietTramCan;
 
 
 
