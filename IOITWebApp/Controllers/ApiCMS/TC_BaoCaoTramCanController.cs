@@ -88,13 +88,13 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     DateTime thoigianketthuc = new DateTime(paging.denngay.Year, paging.denngay.Month, paging.denngay.Day, hourDenngay, minuteDenngay, 0);
 
 
-                                    string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
-                                    string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
-                                    string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
-                                    string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
+                                    string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) || paging.BIENSO == "undefined" ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
+                                    string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) || paging.VATLIEU == "undefined" ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
+                                    string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) || paging.TenKH == "undefined" ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
+                                    string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) || paging.NGUOICAN == "undefined" ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
 
                                     string dieuKienKieuCan = "1=1";
-                                    if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All")
+                                    if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All" && paging.KIEUCAN != "undefined")
                                     {
                                         // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
                                         dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
@@ -267,13 +267,13 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         DateTime thoigianketthuc = new DateTime(paging.denngay.Year, paging.denngay.Month, paging.denngay.Day, hourDenngay, minuteDenngay, 0);
 
 
-                                        string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
-                                        string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
-                                        string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
-                                        string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
+                                        string dieuKienBienSo = string.IsNullOrEmpty(paging.BIENSO) || paging.BIENSO == "undefined" ? "1=1" : $"BienXe LIKE N'%{paging.BIENSO}%'";
+                                        string dieuKienVatLieu = string.IsNullOrEmpty(paging.VATLIEU) || paging.VATLIEU == "undefined" ? "1=1" : $"TenVatLieu LIKE N'%{paging.VATLIEU}%'";
+                                        string dieuKienKhachHang = string.IsNullOrEmpty(paging.TenKH) || paging.TenKH == "undefined" ? "1=1" : $"KhachHang LIKE N'%{paging.TenKH}%'";
+                                        string dieuKienNguoiCan = string.IsNullOrEmpty(paging.NGUOICAN) || paging.NGUOICAN == "undefined" ? "1=1" : $"ISNULL(UserName2, UserName1) LIKE N'%{paging.NGUOICAN}%'";
 
                                         string dieuKienKieuCan = "1=1";
-                                        if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All")
+                                        if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All" && paging.KIEUCAN != "undefined")
                                         {
                                             // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
                                             dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
@@ -347,6 +347,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                             ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
                                                         });
                                                     }
+                                                    groupName = "Khách hàng: ";
                                                     break;
 
                                                 case "VL": // Group theo vật liệu
@@ -364,6 +365,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                             ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
                                                         });
                                                     }
+                                                    groupName = "Vật liệu: ";
                                                     break;
 
                                                 default: // Mặc định group theo ngày
@@ -381,6 +383,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                             ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
                                                         });
                                                     }
+                                                    groupName = "Ngày lập: ";
                                                     break;
                                             }
 
@@ -406,7 +409,6 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                 worksheet.Cells["A2:N2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
                                                 //Điều kiện lọc
-                                                int row = 3;
 
                                                 worksheet.Cells["A3:N3"].Merge = true;
                                                 worksheet.Cells["A3:N3"].Value = "* Điều kiện lọc:";
@@ -417,10 +419,12 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                     ExcelHorizontalAlignment.Left;
                                                 worksheet.Cells["A3:N3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
+                                                int row = 4;
+
                                                 void WriteCondition(string label, string value)
                                                 {
                                                     worksheet.Cells[$"A{row}:N{row}"].Merge = true;
-                                                    worksheet.Cells[$"A{row}"].Value = $"- {label}: {(string.IsNullOrEmpty(value) ? "Tất cả" : value)}";
+                                                    worksheet.Cells[$"A{row}"].Value = $"- {label}: {(string.IsNullOrEmpty(value) || value == "undefined" ? "Tất cả" : value)}";
                                                     row++;
                                                 }
 
@@ -451,77 +455,201 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                 worksheet.Cells[$"G{row}"].Value = "Đơn vị";
                                                 worksheet.Cells[$"H{row}"].Value = "Thời gian cân lần 1";
                                                 worksheet.Cells[$"I{row}"].Value = "Thời gian cân lần 2";
-                                                worksheet.Cells[$"J{row}"].Value = "Thời gian cân lần 2";
+                                                worksheet.Cells[$"J{row}"].Value = "Người cân";
                                                 worksheet.Cells[$"K{row}"].Value = "Cân lần 1";
                                                 worksheet.Cells[$"L{row}"].Value = "Cân lần 2";
                                                 worksheet.Cells[$"M{row}"].Value = "Khối lượng hàng";
                                                 worksheet.Cells[$"N{row}"].Value = "Khối lượng quy đổi";
-                                                
+
 
 
 
                                                 worksheet.Cells[$"A{row}:N{row}"].Style.Font.Bold = true;
                                                 worksheet.Cells[$"A{row}:N{row}"].Style.Fill.PatternType = ExcelFillStyle.Solid;
                                                 worksheet.Cells[$"A{row}:N{row}"].Style.Fill.BackgroundColor.SetColor(Color.Green);
-                                                worksheet.Cells[$"A{row}:N{row}"].Style.Font.Color.SetColor(Color.White);
+                                                worksheet.Cells[$"A{row}:N{row}"].Style.Font.Color.SetColor(Color.Black);
                                                 row++;
 
-                                                foreach (var group in result)
+                                                if (result.Count() > 0)
                                                 {
-                                                    worksheet.Cells[$"A{row}:N{row}"].Merge = true;
-                                                    worksheet.Cells[$"A{row}"].Value = groupName + ": " + group.Key;
-                                                    worksheet.Cells[$"A{row}"].Style.Font.Bold = true;
-                                                    worksheet.Cells[$"A{row}"].Style.Font.Italic = true;
-                                                    row++;
-
-                                                    foreach (var itemgr in group.Data)
+                                                    int rowFirts = row;
+                                                    for (int i = 0; i < result.Count(); i++)
                                                     {
-                                                        worksheet.Cells[row, 1].Value = itemgr.SoPhieu;
-                                                        worksheet.Cells[row, 2].Value = itemgr.Ngay?.ToString("dd/MM/yyyy");
-                                                        worksheet.Cells[row, 3].Value = itemgr.KhachHang;
-                                                        worksheet.Cells[row, 4].Value = itemgr.BienSo;
-                                                        worksheet.Cells[row, 5].Value = itemgr.LaiXe;
-                                                        worksheet.Cells[row, 6].Value = itemgr.HangHoa;
-                                                        worksheet.Cells[row, 7].Value = itemgr.DonVi;
-                                                        worksheet.Cells[row, 8].Value = itemgr.ThoiGianCanLan1;
-                                                        worksheet.Cells[row, 9].Value = itemgr.ThoiGianCanLan2;
-                                                        worksheet.Cells[row, 10].Value = itemgr.NguoiCan;
-                                                        worksheet.Cells[row, 11].Value = itemgr.CanLan1;
-                                                        worksheet.Cells[row, 12].Value = itemgr.CanLan2;
-                                                        worksheet.Cells[row, 13].Value = itemgr.KhoiLuongHang;
-                                                        worksheet.Cells[row, 14].Value = itemgr.KhoiLuongQuyDoi;
-                                                        
-                                                        row++;
+                                                        var elementGroup = result.ElementAt(i);
+                                                        //Row merge
+                                                        var region = "A" + rowFirts + ":" + "N" + rowFirts;
+                                                        worksheet.Cells[region].Merge = true;
+                                                        if (elementGroup.Key.GetType() == typeof(DateTime))
+                                                        {
+                                                            worksheet.Cells[region].Value = groupName + Convert.ToDateTime(elementGroup.Key).ToString("dd/MM/yyyy");
+                                                        }
+                                                        else
+                                                        {
+                                                            worksheet.Cells[region].Value = groupName + elementGroup.Key;
+                                                        }
+                                                        worksheet.Cells[region].Style.Font.Italic = true;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.Font.Color.SetColor(Color.Black);
+                                                        worksheet.Cells[region].Style.HorizontalAlignment =
+                                                            ExcelHorizontalAlignment.Left;
+                                                        worksheet.Cells[region].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                        rowFirts = rowFirts + 1;
+                                                        for (var j = 0; j < elementGroup.Data.Count(); j++)
+                                                        {
+                                                            row = rowFirts + j;
+                                                            var element = elementGroup.Data.ElementAt(j);
+                                                            int column = 1;
+                                                            //Phiếu
+                                                            worksheet.Cells[row, column].Value = element?.SoPhieu;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Ngày lập
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.Ngay;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
+
+                                                            //Khách hàng
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.KhachHang;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Biển số
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.BienSo;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Lái xe
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.LaiXe;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Hàng hóa
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.HangHoa;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Đơn vị
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.DonVi;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Thời gian cân lần 1
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.ThoiGianCanLan1;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
+
+                                                            //Thời gian cân lần 2
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.ThoiGianCanLan2;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
+
+                                                            //Người cân
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.NguoiCan;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+
+                                                            //Cân lần 1
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                            //Cân lần 2
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                            //Khối lượng hàng
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                            //Khối lượng quy đổi
+                                                            column++;
+                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
+                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
+                                                                ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+
+                                                        }
+                                                        rowFirts = rowFirts + elementGroup.Data.Count();
+
+                                                        //Row merge total
+                                                        region = "A" + rowFirts + ":" + "J" + rowFirts;
+                                                        worksheet.Cells[region].Merge = true;
+                                                        worksheet.Cells[region].Value = "Tổng:";
+                                                        worksheet.Cells[region].Style.Font.Italic = true;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.Font.Color.SetColor(Color.Black);
+                                                        worksheet.Cells[region].Style.HorizontalAlignment =
+                                                            ExcelHorizontalAlignment.Center;
+                                                        worksheet.Cells[region].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+
+                                                        region = "K" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalCanLan1;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        region = "L" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalCanLan2;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        region = "M" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.TotalKhoiLuongHang;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        region = "N" + rowFirts;
+                                                        worksheet.Cells[region].Value = elementGroup.ToTalKhoiLuongQuyDoi;
+                                                        worksheet.Cells[region].Style.Font.Bold = true;
+                                                        worksheet.Cells[region].Style.VerticalAlignment =
+                                                                 ExcelVerticalAlignment.Center;
+                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+
+                                                        rowFirts++;
                                                     }
+                                                    string modelRange = "A16:N" + (listData.Count() + result.Count() * 2 + 16);
+                                                    var modelTable = worksheet.Cells[modelRange];
+                                                    modelTable.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                                                    modelTable.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                                                    //modelCells.LoadFromCollection(Collection: model, PrintHeaders: true);
+                                                    worksheet.Cells["A:AZ"].AutoFitColumns();
 
-                                                    // Tổng của nhóm
-                                                    worksheet.Cells[$"A{row}:J{row}"].Merge = true;
-                                                    worksheet.Cells[$"A{row}"].Value = "Tổng:";
-                                                    worksheet.Cells[$"A{row}"].Style.Font.Bold = true;
-                                                    worksheet.Cells[row, 7].Value = group.TotalCanLan1;
-                                                    worksheet.Cells[row, 8].Value = group.TotalCanLan2;
-                                                    worksheet.Cells[row, 9].Value = group.TotalKhoiLuongHang;
-                                                    worksheet.Cells[row, 10].Value = group.ToTalKhoiLuongQuyDoi;
-                                                    row++;
+                                                    var response = new HttpResponseMessage(HttpStatusCode.OK)
+                                                    {
+                                                        Content = new ByteArrayContent(package.GetAsByteArray())
+                                                    };
+                                                    return response;
                                                 }
-                                                // Viền + căn chỉnh
-                                                worksheet.Cells[$"A1:N{row}"].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                                                worksheet.Cells[$"A1:N{row}"].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                                                worksheet.Cells[$"A1:N{row}"].Style.Border.Right.Style = ExcelBorderStyle.Thin;
-                                                worksheet.Cells[$"A1:N{row}"].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-
-                                                worksheet.Cells["A:N"].AutoFitColumns();
-
-                                                var response = new HttpResponseMessage(HttpStatusCode.OK)
-                                                {
-                                                    Content = new ByteArrayContent(package.GetAsByteArray())
-                                                };
-                                                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                                                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
-                                                {
-                                                    FileName = $"BaoCao_ChiTietTramCan_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
-                                                };
-                                                return response;
                                             }
                                         }
                                         return null;

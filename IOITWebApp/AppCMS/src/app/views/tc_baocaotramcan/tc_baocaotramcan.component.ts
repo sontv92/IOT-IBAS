@@ -11,14 +11,14 @@ import { CommonService } from '../../service/common.service';
 import { Ng4LoadingSpinnerService } from 'ng4-loading-spinner';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Injectable } from '@angular/core';Router
+import { Injectable } from '@angular/core'; Router
 
 import { DatePipe } from '@angular/common'
 
 @Component({
   selector: 'app-tc_baocaotramcan',
   templateUrl: './tc_baocaotramcan.component.html',
-  styles: ['.th-custom { position: sticky !important; top: -1px !important; z-index: 99 !important; color: white !important; background: #3c8dbc !important; }'],
+  styleUrls: ['./tc_baocaotramcan.component.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class TC_BaoCaoTramCanComponent implements OnInit {
@@ -38,8 +38,8 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   public listBranchSearch = [];
   public ListVatLieu = [];
   public ListNV = [];
-  public tableMockData =[];
-  public tableMockDataTong =[];
+  public tableMockData = [];
+  public tableMockDataTong = [];
   public ckeConfig: any;
   public tablesilde = [];
   public listDonHangChiTiet = [];
@@ -47,13 +47,13 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   public listNguoiCan = [];
   public listChiTietTramCan = [];
   public listKieuCan: string[] = ['All', 'Nhập hàng', 'Bán hàng', 'Dịch vụ'];
-    public listGroup = [
+  public listGroup = [
     { value: "KH", name: "Khác hàng" },
     { value: "VL", name: "Vật liệu" },
     { value: "NL", name: "Ngày lập" }];
   public role: number;
-  public disable:boolean = true;
-  public loading :boolean;
+  public disable: boolean = true;
+  public loading: boolean;
   companyId: number;
   BranchId: string;
   tongKg: string;
@@ -68,7 +68,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   actionExport: boolean;
   actionPrint: boolean;
   access_key: string;
-  functionRole: string; 
+  functionRole: string;
   public companyselect: number;
   public companyselectsearch: number;
 
@@ -125,7 +125,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
 
     var json = JSON.parse(localStorage.getItem('roles'));
     this.companyId = parseInt(localStorage.getItem('companyId'));
-    
+
     this.UserId = parseInt(localStorage.getItem('userId'));
     this.BranchId = localStorage.getItem('BranchId');
     this.access_key = localStorage.getItem('access_key');
@@ -149,16 +149,16 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
 
     this.paging.Branchid = '';
     // if (this.role == 3) {
-      
+
     // }
     // if (this.role == 4) {
-      
+
     // }
     if (this.role == 1) {
       this.GetListCompany();
-      
+
     }
-    else{
+    else {
       if (this.role != 1 && this.role != 3) {
         this.paging.Branchid = this.BranchId;
       }
@@ -203,25 +203,25 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
 
   }
 
-  checkRoleByCode(){
+  checkRoleByCode() {
     var functionRole = this.access_key.split('-');
     functionRole.forEach(item => {
       var code = item.split(':')[0];
-      if(code == 'TKDHCT') {
+      if (code == 'TKDHCT') {
         this.functionRole = item.split(':')[1];
       }
     });
-    this.actionExport = this.functionRole.charAt(5) == "1" ? true: false;
+    this.actionExport = this.functionRole.charAt(5) == "1" ? true : false;
   }
 
   ResetCurrentRouter() {
-    this.router.routeReuseStrategy.shouldReuseRoute = function() {
+    this.router.routeReuseStrategy.shouldReuseRoute = function () {
       return false;
     };
     this.router.onSameUrlNavigation = 'reload';
     this.router.navigateByUrl(this.router.url);
   }
-  changeFn(val){
+  changeFn(val) {
     this.disable = false;
     this.GetlistKH(val);
     this.GetlistBienSo(val);
@@ -230,7 +230,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
 
   }
 
-  resetValue(){
+  resetValue() {
     this.q.Branchlist = undefined;
     this.q.TENKHACHHANG = undefined;
     this.q.TENMACBETONG = undefined;
@@ -251,44 +251,58 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     if (this.paging.CompanyId == undefined) {
       this.paging.CompanyId = 0;
     }
-    this.http.get('/api/tc_baocaotramcan/GetByPage?page=' + this.paging.page 
-                                               + '&page_size=' + this.paging.page_size 
-                                               + '&order_by=' + this.paging.order_by 
-                                               + '&tungay=' + this.q.tungay 
-                                               + '&denngay=' + this.q.denngay 
-                                               + '&timetungay=' + this.q.timetungay
-                                               + '&timedenngay=' + this.q.timedenngay
-                                               + '&TenKH=' + this.q.TenKH 
-                                               + '&BIENSO=' + this.q.BIENSO 
-                                               + '&VATLIEU=' + this.q.VATLIEU 
-                                               +'&NGUOICAN=' + this.q.NGUOICAN 
-                                               + '&KIEUCAN=' + this.q.KIEUCAN 
-                                               + '&companyid=' + this.paging.CompanyId 
-                                               + '&Branchlist=' + this.paging.Branchid 
-                                               , this.httpOptions).subscribe(
-      (res) => {
-        if (res["meta"]["error_code"] == 200) {
-          this.listChiTietTramCan = res["data"];
-          this.paging.item_count = res["metadata"];
+    this.http.get('/api/tc_baocaotramcan/GetByPage?page=' + this.paging.page
+      + '&page_size=' + this.paging.page_size
+      + '&order_by=' + this.paging.order_by
+      + '&tungay=' + this.q.tungay
+      + '&denngay=' + this.q.denngay
+      + '&timetungay=' + this.q.timetungay
+      + '&timedenngay=' + this.q.timedenngay
+      + '&TenKH=' + this.q.TenKH
+      + '&BIENSO=' + this.q.BIENSO
+      + '&VATLIEU=' + this.q.VATLIEU
+      + '&NGUOICAN=' + this.q.NGUOICAN
+      + '&KIEUCAN=' + this.q.KIEUCAN
+      + '&companyid=' + this.paging.CompanyId
+      + '&Branchlist=' + this.paging.Branchid
+      + '&GroupBy=' + this.q.GroupBy
+      , this.httpOptions).subscribe(
+        (res) => {
+          if (res["meta"]["error_code"] == 200) {
+            if (res["data"] != null) {
+              this.listChiTietTramCan = res["data"];
+              this.paging.item_count = res["metadata"];
 
+              switch (this.q.GroupBy) {
+                case "KH":
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Khách hàng: " + item.Key;
+                  });
+                  break;
+                case "VL":
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Vật liệu: " + item.Key;
+                  });
+                  break;
+                default:
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Ngày lập: " + item.Key;
+                  });
+                  break;
+              }
 
-          this.tableMockData = this.listChiTietTramCan;
-          this.tableMockDataTong = this.listChiTietTramCan;
-
-
-
-
+            }
+            this.SpinnerService.hide();
+          }
+        },
+        (err) => {
           this.SpinnerService.hide();
+          console.log("Error: connect to API");
         }
-      },
-      (err) => {
-        this.SpinnerService.hide();
-        console.log("Error: connect to API");
-      }
-    );
+      );
   }
   ExportExcel() {
-    if (this.role == 1){
+    if (this.role == 1) {
       if (this.q.CompanyId == undefined || this.q.CompanyId == null) {
         this.toastr.warning('Vui lòng chọn công ty !', 'Cảnh báo');
         return;
@@ -312,54 +326,42 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       var _denngay = this.datepipe.transform(this.q.denngay, 'yyyy-MM-dd');
       this.paging.query += "AND  [D].GIOBATDAU > '" + _tungay + " 00:00:00.000' AND [D].GIOXONG < '" + _denngay + " 23:59:59.999' ";
     }
-    if (this.q.BIENSO != undefined && this.q.BIENSO != '')
-    {
-      this.paging.query += " AND [D].BIENSO='"+this.q.BIENSO+"'";
+    if (this.q.BIENSO != undefined && this.q.BIENSO != '') {
+      this.paging.query += " AND [D].BIENSO='" + this.q.BIENSO + "'";
     }
-    if (this.q.TENKHACHHANG != undefined && this.q.TENKHACHHANG != '')
-    {
-      this.paging.query += " AND [E].TENKHACHHANG='"+this.q.TENKHACHHANG+"'";
+    if (this.q.TENKHACHHANG != undefined && this.q.TENKHACHHANG != '') {
+      this.paging.query += " AND [E].TenKH='" + this.q.TENKHACHHANG + "'";
     }
-    if (this.q.TENMACBETONG != undefined && this.q.TENMACBETONG != '')
-    {
-      this.paging.query += " AND [D].TENMACBETONG='"+this.q.TENMACBETONG+"'";
+    if (this.q.TENMACBETONG != undefined && this.q.TENMACBETONG != '') {
+      this.paging.query += " AND [D].VATLIEU='" + this.q.TENMACBETONG + "'";
     }
-    if (this.q.TENNV != undefined && this.q.TENNV != '')
-    {
-      this.paging.query += " AND [E].TENNV='"+this.q.TENNV+"'";
+    if (this.q.TENNV != undefined && this.q.TENNV != '') {
+      this.paging.query += " AND [E].TENNV='" + this.q.TENNV + "'";
     }
-    if (this.q.TENHANGMUC != undefined && this.q.TENHANGMUC != '')
-    {
-      this.paging.query += " AND [E].TENHANGMUC='"+this.q.TENHANGMUC+"'";
+    if (this.q.TENHANGMUC != undefined && this.q.TENHANGMUC != '') {
+      this.paging.query += " AND [E].NGUOICAN='" + this.q.TENHANGMUC + "'";
     }
-    if (this.q.value != undefined && this.q.value != '')
-    {
-      this.paging.query += " AND [D].CHEDO='"+this.q.value+"'";
+    if (this.q.value != undefined && this.q.value != '') {
+      this.paging.query += " AND [D].KIEUCAN='" + this.q.value + "'";
     }
 
     let tenchinhanh = this.listBranchSearch.find(x => x.BranchId == this.paging.Branchid);
-  //  debugger;
-    fetch('/api/tc_baocaotramcan/GetReportChiTiet?page=' + this.paging.page 
-                                              + '&page_size=' + this.paging.page_size 
-                                              + '&order_by=' + this.paging.order_by 
-                                              + '&tungay=' + _tungay 
-                                              + '&denngay=' + _denngay
-                                              + '&timetungay=' + this.q.timetungay
-                                              + '&timedenngay=' + this.q.timedenngay
-                                              + '&TENHANGMUC=' + this.q.TENHANGMUC 
-                                              + '&CHEDO=' + this.q.value 
-                                              + '&TENKHACHHANG=' + this.q.TENKHACHHANG 
-                                              + '&CHEDO=' + this.q.value 
-                                              + '&BIENSO=' + this.q.BIENSO 
-                                              + '&TENMACBETONG=' + this.q.TENMACBETONG 
-                                              + '&TENNV=' + this.q.TENNV 
-                                              + '&companyid=' + this.paging.CompanyId 
-                                              + '&Branchlist=' + this.paging.Branchid 
-                                              + '&query=' + this.paging.query 
-                                              + '&status=' + this.q.status 
-                                              + '&ckbKhachHang=' + this.q.ckbKhachHang 
-                                              + '&ckbXeTron=' + this.q.ckbXeTron 
-                                              + '&ckbMacBeTong=' + this.q.ckbMacBeTong, {
+    //  debugger;
+    fetch('/api/tc_baocaotramcan/GetReportChiTiet?page=' + this.paging.page
+      + '&page_size=' + this.paging.page_size
+      + '&order_by=' + this.paging.order_by
+      + '&tungay=' + this.q.tungay
+      + '&denngay=' + this.q.denngay
+      + '&timetungay=' + this.q.timetungay
+      + '&timedenngay=' + this.q.timedenngay
+      + '&TenKH=' + this.q.TenKH
+      + '&BIENSO=' + this.q.BIENSO
+      + '&VATLIEU=' + this.q.VATLIEU
+      + '&NGUOICAN=' + this.q.NGUOICAN
+      + '&KIEUCAN=' + this.q.KIEUCAN
+      + '&companyid=' + this.paging.CompanyId
+      + '&Branchlist=' + this.paging.Branchid
+      + '&GroupBy=' + this.q.GroupBy, {
       method: 'GET',
       headers: new Headers({
         'Authorization': 'bearer ' + localStorage.getItem("access_token")
@@ -371,8 +373,8 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       }).then(blob => {
         var DateObj = new Date();
         var date = ('0' + DateObj.getDate()).slice(-2) + '_' + ('0' + (DateObj.getMonth() + 1)).slice(-2) + '_' + DateObj.getFullYear();
-        this.DownloadFile(blob, this.commonService.ConvertUrl(tenchinhanh.Name) + "_thong_ke_dn_hang_ngay_" + date + ".xlsx", 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-     //   this.DownloadFile(blob,   "_thong_ke_dn_hang" + date + ".xlsx", 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        this.DownloadFile(blob, this.commonService.ConvertUrl(tenchinhanh.Name) + "_chi_tiet_tram_can" + date + ".xlsx", 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        //   this.DownloadFile(blob,   "_thong_ke_dn_hang" + date + ".xlsx", 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         this.SpinnerService.hide();
       });
   }
@@ -401,7 +403,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   }
   // Get danh sách khách hàng
   GetlistKH(val) {
-    this.http.get('/api/tc_baocaotramcan/GetKH/'+val, this.httpOptions).subscribe(
+    this.http.get('/api/tc_baocaotramcan/GetKH/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.listKH = res["data"];
@@ -414,7 +416,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   }
   // Get danh sách nhân viên kinh doanh
   GetlistNV(val) {
-    this.http.get('/api/tc_baocaotramcan/GetNV/'+val, this.httpOptions).subscribe(
+    this.http.get('/api/tc_baocaotramcan/GetNV/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.ListNV = res["data"];
@@ -427,7 +429,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   }
   //Get danh sách biển số
   GetlistBienSo(val) {
-    this.http.get('/api/tc_baocaotramcan/GetBienSo/'+val, this.httpOptions).subscribe(
+    this.http.get('/api/tc_baocaotramcan/GetBienSo/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.listBienSo = res["data"];
@@ -439,8 +441,8 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     );
   }
 
-    GetNguoiCan(val) {
-    this.http.get('/api/tc_baocaotramcan/GetNguoiCan/'+val, this.httpOptions).subscribe(
+  GetNguoiCan(val) {
+    this.http.get('/api/tc_baocaotramcan/GetNguoiCan/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
           this.listNguoiCan = res["data"];
@@ -463,7 +465,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
             this.q.CompanyId = index.CompanyId;
             this.paging.CompanyId = parseInt(localStorage.getItem('congtyd'));
             this.companyId = parseInt(localStorage.getItem('congtyd'));
-             this.GetListBranchSearchStart();
+            this.GetListBranchSearchStart();
             // this.GetListSlide();
           }
         }
@@ -525,7 +527,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
       }
     );
   }
-    GetListVatLieu(val) {
+  GetListVatLieu(val) {
     this.http.get('/api/tc_baocaotramcan/GetVatLieu/' + val, this.httpOptions).subscribe(
       (res) => {
         if (res["meta"]["error_code"] == 200) {
@@ -573,7 +575,7 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   //
   QueryChanged() {
 
-    if (this.role == 1){
+    if (this.role == 1) {
       if (this.q.CompanyId == undefined || this.q.CompanyId == null) {
         this.toastr.warning('Vui lòng chọn công ty !', 'Cảnh báo');
         return;
@@ -608,29 +610,23 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     //     query += "( [D].GIOBATDAU >= convert(datetime ,'" + this.q.tungay + " 00:00:00.000') AND [D].GIOXONG <= convert(datetime ,'" + this.q.denngay + " 23:59:59.999') )";
     //   }
     // }
-    if (this.q.BIENSO != undefined && this.q.BIENSO != '')
-    {
-      this.paging.query += " AND [D].BIENSO='"+this.q.BIENSO+"'";
+    if (this.q.BIENSO != undefined && this.q.BIENSO != '') {
+      this.paging.query += " AND [D].BIENSO='" + this.q.BIENSO + "'";
     }
-    if (this.q.TENKHACHHANG != undefined && this.q.TENKHACHHANG != '')
-    {
-      this.paging.query += " AND [E].TENKHACHHANG='"+this.q.TENKHACHHANG+"'";
+    if (this.q.TENKHACHHANG != undefined && this.q.TENKHACHHANG != '') {
+      this.paging.query += " AND [E].TENKHACHHANG='" + this.q.TENKHACHHANG + "'";
     }
-    if (this.q.TENMACBETONG != undefined && this.q.TENMACBETONG != '')
-    {
-      this.paging.query += " AND [D].TENMACBETONG='"+this.q.TENMACBETONG+"'";
+    if (this.q.TENMACBETONG != undefined && this.q.TENMACBETONG != '') {
+      this.paging.query += " AND [D].TENMACBETONG='" + this.q.TENMACBETONG + "'";
     }
-    if (this.q.TENNV != undefined && this.q.TENNV != '')
-    {
-      this.paging.query += " AND [E].TENNV='"+this.q.TENNV+"'";
+    if (this.q.TENNV != undefined && this.q.TENNV != '') {
+      this.paging.query += " AND [E].TENNV='" + this.q.TENNV + "'";
     }
-    if (this.q.TENHANGMUC != undefined && this.q.TENHANGMUC != '')
-    {
-      this.paging.query += " AND [E].TENHANGMUC='"+this.q.TENHANGMUC+"'";
+    if (this.q.TENHANGMUC != undefined && this.q.TENHANGMUC != '') {
+      this.paging.query += " AND [E].TENHANGMUC='" + this.q.TENHANGMUC + "'";
     }
-    if (this.q.value != undefined && this.q.value != '')
-    {
-      this.paging.query += " AND [D].CHEDO='"+this.q.value+"'";
+    if (this.q.value != undefined && this.q.value != '') {
+      this.paging.query += " AND [D].CHEDO='" + this.q.value + "'";
     }
 
 
@@ -658,25 +654,23 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
     this.GetListSlide();
   }
 
-  RoundData(val){
+  RoundData(val) {
 
-    if(!isNaN(Number(val))){
-      if(this.isInt(val))
-      {
+    if (!isNaN(Number(val))) {
+      if (this.isInt(val)) {
         return val;
       }
-      else
-      {
+      else {
         return Number(val).toFixed(2);
       }
-    } else{
+    } else {
       return val;
     }
   }
 
   isInt(n) {
     return n % 1 === 0;
- }
+  }
 
   SortTable(str) {
     let First = "";
