@@ -635,7 +635,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                                                         rowFirts++;
                                                     }
-                                                    string modelRange = "A16:N" + (listData.Count() + result.Count() * 2 + 16);
+                                                    string modelRange = "A13:N" + (listData.Count() + result.Count() * 2 + 13);
                                                     var modelTable = worksheet.Cells[modelRange];
                                                     modelTable.Style.Border.Top.Style = ExcelBorderStyle.Thin;
                                                     modelTable.Style.Border.Left.Style = ExcelBorderStyle.Thin;
