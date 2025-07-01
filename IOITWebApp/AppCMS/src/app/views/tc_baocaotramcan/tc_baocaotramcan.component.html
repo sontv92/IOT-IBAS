@@ -229,19 +229,19 @@
                           {{itemData.DonVi}}
                         </td>
                         <td style="min-width:200px">
-                          {{RoundData(itemData.ThoiGianCanLan1) | date: 'HH:mm:ss dd/MM/yyyy'}}
+                          {{itemData.ThoiGianCanLan1 | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
                         <td style="min-width:200px">
-                          {{RoundData(itemData.ThoiGianCanLan2) | date: 'HH:mm:ss dd/MM/yyyy'}}
+                          {{itemData.ThoiGianCanLan2 | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
                          <td style="min-width:200px">
                           {{itemData.NguoiCan}}
                         </td>
                         <td style="min-width:200px">
-                          {{itemData.CanLan1}}
+                          {{RoundData(itemData.CanLan1)}}
                         </td>
                         <td style="min-width:200px">
-                          {{itemData.CanLan2}}
+                          {{RoundData(itemData.CanLan2)}}
                         </td>
                         <td style="min-width:100px">
                           {{RoundData(itemData.KhoiLuongHang)}}
