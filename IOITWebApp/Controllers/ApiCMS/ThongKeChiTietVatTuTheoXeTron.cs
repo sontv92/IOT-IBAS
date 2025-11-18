@@ -214,14 +214,12 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                         "	SELECT DISTINCT B.MACHITIETMETRON MACHITIETMETRON_MAIN, B.MALSTRON N'Mã phiếu' \n" +
                                                         "		, FORMAT(A.GIOXONG, 'HH:mm:ss dd/MM/yyy') N'Ngày trộn' \n" +
                                                         "		, H.TENKHACHHANG N'Khách hàng', A.TENMACBETONG N'Tên mác BT', round(B.M3METRON,2) N'Khối lượng' \n" +
-                                                        "      , I.DIACHI N'Địa chỉ' \n" +
+                                                        "      , H.DIADIEMXD N'Địa chỉ' \n" +
                                                         "		, H.TENHANGMUC N'Hạng mục' \n" +
                                                         "		, A.BIENSO N'Số xe' \n" +
                                                         "		, A.TENLAIXE N'Tên tài xế' \n" +
                                                         "	FROM [" + branch.Dataname + "].[dbo].LSTRON A INNER JOIN [" + branch.Dataname + "].[dbo].LSCHITIETMETRON B ON A.MALSTRON = B.MALSTRON   \n" +
                                                         "		LEFT JOIN [" + branch.Dataname + "].[dbo].LSDATHANG H ON H.STT = A.STTLSDATHANG   \n" +
-                                                        "      LEFT JOIN [" + branch.Dataname + "].[dbo].DATHANG G ON H.MADATHANG = G.Ma  \n" +
-                                                        "      LEFT JOIN [" + branch.Dataname + "].[dbo].KHACHHANG I ON I.ID = G.KHACHHANGID \n" +
                                                         "	WHERE '{0}' <= A.GIOBATDAU AND A.GIOXONG <= '{1}' \n" +
                                                         "       AND {2} AND {3} AND {4} \n" +
                                                         ") AS A LEFT JOIN ( \n" +
@@ -646,14 +644,12 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                          "	SELECT DISTINCT B.MACHITIETMETRON MACHITIETMETRON_MAIN, B.MALSTRON N'Mã phiếu' \n" +
                                                          "		, FORMAT(A.GIOXONG, 'HH:mm:ss dd/MM/yyy') N'Ngày trộn' \n" +
                                                          "		, H.TENKHACHHANG N'Khách hàng', A.TENMACBETONG N'Tên mác BT', round(B.M3METRON,2) N'Khối lượng' \n" +
-                                                         "      , I.DIACHI N'Địa chỉ' \n" +
+                                                         "      , H.DIADIEMXD N'Địa chỉ' \n" +
                                                          "		, H.TENHANGMUC N'Hạng mục' \n" +
                                                          "		, A.BIENSO N'Số xe' \n" +
                                                          "		, A.TENLAIXE N'Tên tài xế' \n" +
                                                          "	FROM [" + branch.Dataname + "].[dbo].LSTRON A INNER JOIN [" + branch.Dataname + "].[dbo].LSCHITIETMETRON B ON A.MALSTRON = B.MALSTRON   \n" +
                                                          "		LEFT JOIN [" + branch.Dataname + "].[dbo].LSDATHANG H ON H.STT = A.STTLSDATHANG   \n" +
-                                                         "      LEFT JOIN [" + branch.Dataname + "].[dbo].DATHANG G ON H.MADATHANG = G.Ma  \n" +
-                                                         "      LEFT JOIN [" + branch.Dataname + "].[dbo].KHACHHANG I ON I.ID = G.KHACHHANGID \n" +
                                                          "	WHERE '{0}' <= A.GIOBATDAU AND A.GIOXONG <= '{1}' \n" +
                                                          "       AND {2} AND {3} AND {4} \n" +
                                                          ") AS A LEFT JOIN ( \n" +
