@@ -97,25 +97,40 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All" && paging.KIEUCAN != "undefined")
                                     {
                                         // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
-                                        dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
+                                        dieuKienKieuCan = $"LOAICAN = N'{paging.KIEUCAN}'";
                                     }
 
-                                    String sql = string.Format($@"SELECT 
-                                                                        MaPhieu AS SoPhieu,
-                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) AS Ngay,
-                                                                        KhachHang AS KhachHang,
-                                                                        BienXe AS BienSo,
-                                                                        LaiXe AS LaiXe,
-                                                                        TenVatLieu AS HangHoa,
-                                                                        KhoiLuongCanLan1 AS CanLan1,
-                                                                        KhoiLuongCanLan2 AS CanLan2,
-                                                                        KhoiLuongHang AS KhoiLuongHang,
-                                                                        (KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)) AS KhoiLuongQuyDoi,
-                                                                        DonViQuyDoi AS DonVi,
-                                                                        ThoiGianCanLan1 AS ThoiGianCanLan1,
-                                                                        ThoiGianCanLan2 AS ThoiGianCanLan2,
-                                                                        ISNULL(UserName2, UserName1) AS NguoiCan
-                                                                    FROM [{branch.Dataname}].[dbo].[LSCan]
+                                    String sql = string.Format($@"SELECT
+                                                                    A.MaPhieu N'Số phiếu',ISNULL(A.ThoiGianCanLan2, A.ThoiGianCanLan1) N'Ngày', 
+                                                                    A.LoaiCan N'Loại cân', A.BienXe N'Biển số', A.LaiXe N'Lái xe', A.KhachHang N'Khách hàng',
+                                                                    A.TenHangHoa N'Hàng hóa', A.SoNiemChi N'Số niêm chì',
+                                                                    A.KhoiLuongCanLan1 N'KL cân bì', A.ThoiGianCanLan1 N'TG cân bì',
+                                                                    A.KhoiLuongCanLan2 N'KL cân hàng', A.ThoiGianCanLan2 N'TG cân hàng',
+                                                                    A.KhoiLuongTapChat N'KL tạp chất',
+                                                                    ABS(ISNULL(A.KhoiLuongCanLan2, 0) - ISNULL(A.KhoiLuongCanLan1, 0)) - ISNULL(A.KhoiLuongTapChat, 0) N'KL hàng',
+                                                                    (ABS(ISNULL(A.KhoiLuongCanLan2, 0) - ISNULL(A.KhoiLuongCanLan1, 0)) - ISNULL(A.KhoiLuongTapChat, 0)) * A.HeSoQuyDoi N'KL quy đổi',
+							                                                    A.KhoiLuongDat N'KL đặt hàng',							
+							                                                    A.KhoiLuongCanTD + A.KhoiLuongCanTay N'KL cân tinh',
+							                                                    A.ThoiGianBDCanLieu N'TG bắt đầu cân tinh',
+							                                                    A.ThoiGianKTCanLieu N'TG kết thúc cân tinh'
+                                                                    --B.TenVL,
+                                                                    --X.MAXDATE
+                                                                    FROM [{branch.Dataname}].[dbo].[LSCan] A
+
+                                                                        CROSS APPLY
+                                                                                    (
+                                                                                        SELECT
+                                                                                            CASE
+                                                                                                WHEN A.ThoiGianCanLan1 IS NULL THEN A.ThoiGianCanLan2
+                                                                                                WHEN A.ThoiGianCanLan2 IS NULL THEN A.ThoiGianCanLan1
+                                                                                                WHEN A.ThoiGianCanLan1 >= A.ThoiGianCanLan2 THEN A.ThoiGianCanLan1
+                                                                                                ELSE A.ThoiGianCanLan2
+                                                                                            END AS MAXDATE
+                                                                                    ) X
+
+                                                                                    --LEFT JOIN VatLieuTramTron B
+                                                                                    --    ON B.DBName = A.ListTramTron
+                                                                                    --   AND B.TenVL = A.ListVatLieuTramTron
                                                                     WHERE 
                                                                         ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) >= '{CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau)}'
                                                                         AND ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) <= '{CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc)}'
