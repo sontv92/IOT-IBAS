@@ -2205,4 +2205,42 @@ namespace IOITWebApp.Models.Data
         public decimal TotalKhoiLuongHang { get; set; }
         public decimal ToTalKhoiLuongQuyDoi { get; set; }
     }
+
+    public class CanTramCanReportDto
+    {
+        public string SoPhieu { get; set; }                   // N'Số phiếu'              - A.MaPhieu
+        public DateTime? Ngay { get; set; }                   // N'Ngày'                  - ISNULL(A.ThoiGianCanLan2, A.ThoiGianCanLan1)
+        public string LoaiCan { get; set; }                   // N'Loại cân'              - A.LoaiCan
+        public string BienSo { get; set; }                    // N'Biển số'               - A.BienXe
+        public string LaiXe { get; set; }                     // N'Lái xe'                - A.LaiXe
+        public string KhachHang { get; set; }                 // N'Khách hàng'            - A.KhachHang
+        public string HangHoa { get; set; }                   // N'Hàng hóa'              - A.TenHangHoa
+        public string SoNiemChi { get; set; }                 // N'Số niêm chì'           - A.SoNiemChi
+        public string NguoiCan { get; set; }                  // N'Người cân'             - ISNULL(A.UserName2, A.UserName1)
+        public decimal? KLCanBi { get; set; }                 // N'KL cân bì'             - A.KhoiLuongCanLan1
+        public DateTime? TGCanBi { get; set; }                // N'TG cân bì'             - A.ThoiGianCanLan1
+        public decimal? KLCanHang { get; set; }               // N'KL cân hàng'           - A.KhoiLuongCanLan2
+        public DateTime? TGCanHang { get; set; }              // N'TG cân hàng'           - A.ThoiGianCanLan2
+        public decimal? KLTapChat { get; set; }               // N'KL tạp chất'           - A.KhoiLuongTapChat
+        public decimal? KLHang { get; set; }                  // N'KL hàng'               - ABS(CanLan2 - CanLan1) - TapChat
+        public decimal? KLQuyDoi { get; set; }                // N'KL quy đổi'            - KL hàng * A.HeSoQuyDoi
+        public decimal? KLDatHang { get; set; }               // N'KL đặt hàng'           - A.KhoiLuongDat
+        public decimal? KLCanTinh { get; set; }               // N'KL cân tinh'           - A.KhoiLuongCanTD + A.KhoiLuongCanTay
+        public DateTime? TGBatDauCanTinh { get; set; }        // N'TG bắt đầu cân tinh'   - A.ThoiGianBDCanLieu
+        public DateTime? TGKetThucCanTinh { get; set; }       // N'TG kết thúc cân tinh'  - A.ThoiGianKTCanLieu
+    }
+
+    public class CanTramCanReportGroupDTO
+    {
+        public object Key { get; set; }
+        public List<CanTramCanReportDto> Data { get; set; }
+        public bool Expanded { get; set; }
+        public decimal TotalKLCanBi { get; set; }
+        public decimal TotalKLCanHang { get; set; }
+        public decimal TotalKLTapChat { get; set; }
+        public decimal TotalKLHang { get; set; }
+        public decimal TotalKLQuyDoi { get; set; }
+        public decimal TotalKLDatHang { get; set; }
+        public decimal TotalKLCanTinh { get; set; }
+    }
 }

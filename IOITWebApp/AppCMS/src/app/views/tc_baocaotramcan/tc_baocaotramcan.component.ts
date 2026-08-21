@@ -49,7 +49,10 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
   public listKieuCan: string[] = ['All', 'Nhập hàng', 'Bán hàng', 'Dịch vụ'];
   public listGroup = [
     { value: "KH", name: "Khác hàng" },
-    { value: "VL", name: "Vật liệu" },
+    { value: "VL", name: "Hàng hóa" },
+    { value: "BS", name: "Biển số" },
+    { value: "KC", name: "Kiểu cân" },
+    { value: "NC", name: "Người cân" },
     { value: "NL", name: "Ngày lập" }];
   public role: number;
   public disable: boolean = true;
@@ -281,7 +284,22 @@ export class TC_BaoCaoTramCanComponent implements OnInit {
                   break;
                 case "VL":
                   this.listChiTietTramCan.forEach(item => {
-                    item.Key = "Vật liệu: " + item.Key;
+                    item.Key = "Hàng hóa: " + item.Key;
+                  });
+                  break;
+                case "BS":
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Biển số: " + item.Key;
+                  });
+                  break;
+                case "KC":
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Kiểu cân: " + item.Key;
+                  });
+                  break;
+                case "NC":
+                  this.listChiTietTramCan.forEach(item => {
+                    item.Key = "Người cân: " + item.Key;
                   });
                   break;
                 default:

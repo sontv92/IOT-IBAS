@@ -46,6 +46,45 @@ namespace IOITWebApp.Controllers.ApiCMS
             _hostingEnvironment = hostingEnvironment;
         }
 
+        #region Helper đọc dữ liệu theo tên cột (alias) của câu query
+        private static bool HasValue(DataRow row, string columnName)
+        {
+            return row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value;
+        }
+
+        private static string GetString(DataRow row, string columnName)
+        {
+            return HasValue(row, columnName) ? row[columnName].ToString() : "";
+        }
+
+        private static decimal? GetDecimal(DataRow row, string columnName)
+        {
+            return HasValue(row, columnName) ? Convert.ToDecimal(row[columnName]) : (decimal?)null;
+        }
+
+        private static DateTime? GetDate(DataRow row, string columnName)
+        {
+            return HasValue(row, columnName) ? Convert.ToDateTime(row[columnName]) : (DateTime?)null;
+        }
+
+        private static CanTramCanReportGroupDTO BuildGroup(object key, List<CanTramCanReportDto> data)
+        {
+            return new CanTramCanReportGroupDTO
+            {
+                Key = key,
+                Data = data,
+                Expanded = false,
+                TotalKLCanBi = data.Sum(x => x.KLCanBi ?? 0),
+                TotalKLCanHang = data.Sum(x => x.KLCanHang ?? 0),
+                TotalKLTapChat = data.Sum(x => x.KLTapChat ?? 0),
+                TotalKLHang = data.Sum(x => x.KLHang ?? 0),
+                TotalKLQuyDoi = data.Sum(x => x.KLQuyDoi ?? 0),
+                TotalKLDatHang = data.Sum(x => x.KLDatHang ?? 0),
+                TotalKLCanTinh = data.Sum(x => x.KLCanTinh ?? 0),
+            };
+        }
+        #endregion
+
 
         [HttpGet("GetByPage")]
         public IActionResult GetByPage([FromQuery] FilteredPagination paging)
@@ -75,8 +114,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                                 if (branch != null)
                                 {
 
-                                    List<CanReportDto> lstResult = new List<CanReportDto>();
-                                    List<CanReportDto> lstTong = new List<CanReportDto>();
+                                    List<CanTramCanReportDto> lstResult = new List<CanTramCanReportDto>();
+                                    List<CanTramCanReportDto> lstTong = new List<CanTramCanReportDto>();
 
                                     int hourTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(0, 2)) : 0;
                                     int minuteTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(3)) : 0;
@@ -104,6 +143,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                                     A.MaPhieu N'Số phiếu',ISNULL(A.ThoiGianCanLan2, A.ThoiGianCanLan1) N'Ngày', 
                                                                     A.LoaiCan N'Loại cân', A.BienXe N'Biển số', A.LaiXe N'Lái xe', A.KhachHang N'Khách hàng',
                                                                     A.TenHangHoa N'Hàng hóa', A.SoNiemChi N'Số niêm chì',
+                                                                    ISNULL(A.UserName2, A.UserName1) N'Người cân',
                                                                     A.KhoiLuongCanLan1 N'KL cân bì', A.ThoiGianCanLan1 N'TG cân bì',
                                                                     A.KhoiLuongCanLan2 N'KL cân hàng', A.ThoiGianCanLan2 N'TG cân hàng',
                                                                     A.KhoiLuongTapChat N'KL tạp chất',
@@ -145,26 +185,33 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     DataTable dtSource = CommonLib.GetDataBySql(sql);
                                     var dataTable = CommonLib.AsEnumerable(dtSource);
 
-                                    List<CanReportDto> listData = dataTable.Select(row => new CanReportDto()
+                                    // Tên cột lấy đúng theo alias trong câu SELECT ở trên
+                                    List<CanTramCanReportDto> listData = dataTable.Select(row => new CanTramCanReportDto()
                                     {
-                                        SoPhieu = row["SoPhieu"] != DBNull.Value ? row["SoPhieu"].ToString() : "",
-                                        Ngay = row["Ngay"] != DBNull.Value ? Convert.ToDateTime(row["Ngay"]) : (DateTime?)null,
-                                        KhachHang = row["KhachHang"] != DBNull.Value ? row["KhachHang"].ToString() : "",
-                                        BienSo = row["BienSo"] != DBNull.Value ? row["BienSo"].ToString() : "",
-                                        LaiXe = row["LaiXe"] != DBNull.Value ? row["LaiXe"].ToString() : "",
-                                        HangHoa = row["HangHoa"] != DBNull.Value ? row["HangHoa"].ToString() : "",
-                                        CanLan1 = row["CanLan1"] != DBNull.Value ? Convert.ToDecimal(row["CanLan1"]) : (decimal?)null,
-                                        CanLan2 = row["CanLan2"] != DBNull.Value ? Convert.ToDecimal(row["CanLan2"]) : (decimal?)null,
-                                        KhoiLuongHang = row["KhoiLuongHang"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongHang"]) : (decimal?)null,
-                                        KhoiLuongQuyDoi = row["KhoiLuongQuyDoi"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongQuyDoi"]) : (decimal?)null,
-                                        DonVi = row["DonVi"] != DBNull.Value ? row["DonVi"].ToString() : "",
-                                        ThoiGianCanLan1 = row["ThoiGianCanLan1"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan1"]) : (DateTime?)null,
-                                        ThoiGianCanLan2 = row["ThoiGianCanLan2"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan2"]) : (DateTime?)null,
-                                        NguoiCan = row["NguoiCan"] != DBNull.Value ? row["NguoiCan"].ToString() : ""
+                                        SoPhieu = GetString(row, "Số phiếu"),
+                                        Ngay = GetDate(row, "Ngày"),
+                                        LoaiCan = GetString(row, "Loại cân"),
+                                        BienSo = GetString(row, "Biển số"),
+                                        LaiXe = GetString(row, "Lái xe"),
+                                        KhachHang = GetString(row, "Khách hàng"),
+                                        HangHoa = GetString(row, "Hàng hóa"),
+                                        SoNiemChi = GetString(row, "Số niêm chì"),
+                                        NguoiCan = GetString(row, "Người cân"),
+                                        KLCanBi = GetDecimal(row, "KL cân bì"),
+                                        TGCanBi = GetDate(row, "TG cân bì"),
+                                        KLCanHang = GetDecimal(row, "KL cân hàng"),
+                                        TGCanHang = GetDate(row, "TG cân hàng"),
+                                        KLTapChat = GetDecimal(row, "KL tạp chất"),
+                                        KLHang = GetDecimal(row, "KL hàng"),
+                                        KLQuyDoi = GetDecimal(row, "KL quy đổi"),
+                                        KLDatHang = GetDecimal(row, "KL đặt hàng"),
+                                        KLCanTinh = GetDecimal(row, "KL cân tinh"),
+                                        TGBatDauCanTinh = GetDate(row, "TG bắt đầu cân tinh"),
+                                        TGKetThucCanTinh = GetDate(row, "TG kết thúc cân tinh")
                                     }).ToList();
 
 
-                                    List<CanReportGroupDTO> result = new List<CanReportGroupDTO>();
+                                    List<CanTramCanReportGroupDTO> result = new List<CanTramCanReportGroupDTO>();
 
                                     switch (paging.GroupBy)
                                     {
@@ -172,33 +219,39 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             var groupByKH = listData.GroupBy(x => x.KhachHang);
                                             foreach (var itemGrp in groupByKH)
                                             {
-                                                result.Add(new CanReportGroupDTO
-                                                {
-                                                    Key = itemGrp.Key,
-                                                    Data = itemGrp.ToList(),
-                                                    Expanded = false,
-                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                });
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                             }
                                             break;
 
-                                        case "VL": // Group theo vật liệu
+                                        case "VL": // Group theo hàng hóa
                                             var groupByVL = listData.GroupBy(x => x.HangHoa);
                                             foreach (var itemGrp in groupByVL)
                                             {
-                                                result.Add(new CanReportGroupDTO
-                                                {
-                                                    Key = itemGrp.Key,
-                                                    Data = itemGrp.ToList(),
-                                                    Expanded = false,
-                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                });
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                            }
+                                            break;
+
+                                        case "BS": // Group theo biển số
+                                            var groupByBS = listData.GroupBy(x => x.BienSo);
+                                            foreach (var itemGrp in groupByBS)
+                                            {
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                            }
+                                            break;
+
+                                        case "KC": // Group theo kiểu cân (Loại cân)
+                                            var groupByKC = listData.GroupBy(x => x.LoaiCan);
+                                            foreach (var itemGrp in groupByKC)
+                                            {
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                            }
+                                            break;
+
+                                        case "NC": // Group theo người cân
+                                            var groupByNC = listData.GroupBy(x => x.NguoiCan);
+                                            foreach (var itemGrp in groupByNC)
+                                            {
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                             }
                                             break;
 
@@ -206,16 +259,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             var groupByNgay = listData.GroupBy(x => x.Ngay?.ToString("yyyy-MM-dd")); // Format ngày nếu cần gom theo ngày
                                             foreach (var itemGrp in groupByNgay)
                                             {
-                                                result.Add(new CanReportGroupDTO
-                                                {
-                                                    Key = itemGrp.Key,
-                                                    Data = itemGrp.ToList(),
-                                                    Expanded = false,
-                                                    TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                    TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                    TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                    ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                });
+                                                result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                             }
                                             break;
                                     }
@@ -270,7 +314,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                     if (branch != null)
                                     {
 
-                                        List<CanReportDto> lstResult = new List<CanReportDto>();
+                                        List<CanTramCanReportDto> lstResult = new List<CanTramCanReportDto>();
 
                                         int hourTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(0, 2)) : 0;
                                         int minuteTungay = !string.IsNullOrEmpty(paging.timetungay) ? int.Parse(paging.timetungay.Substring(3)) : 0;
@@ -290,27 +334,25 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         string dieuKienKieuCan = "1=1";
                                         if (!string.IsNullOrEmpty(paging.KIEUCAN) && paging.KIEUCAN != "All" && paging.KIEUCAN != "undefined")
                                         {
-                                            // Giả sử cột trong DB là TrangThaiCan, bạn sửa lại nếu khác
-                                            dieuKienKieuCan = $"KieuCan = N'{paging.KIEUCAN}'";
+                                            dieuKienKieuCan = $"LOAICAN = N'{paging.KIEUCAN}'";
                                         }
 
-                                        String sql = string.Format($@"SELECT 
-                                                                        MaPhieu AS SoPhieu,
-                                                                        ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) AS Ngay,
-                                                                        KhachHang AS KhachHang,
-                                                                        BienXe AS BienSo,
-                                                                        LaiXe AS LaiXe,
-                                                                        TenVatLieu AS HangHoa,
-                                                                        KhoiLuongCanLan1 AS CanLan1,
-                                                                        KhoiLuongCanLan2 AS CanLan2,
-                                                                        KhoiLuongHang AS KhoiLuongHang,
-                                                                        (KhoiLuongHang / NULLIF(HeSoQuyDoi, 0)) AS KhoiLuongQuyDoi,
-                                                                        DonViQuyDoi AS DonVi,
-                                                                        ThoiGianCanLan1 AS ThoiGianCanLan1,
-                                                                        ThoiGianCanLan2 AS ThoiGianCanLan2,
-                                                                        ISNULL(UserName2, UserName1) AS NguoiCan
-                                                                    FROM [{branch.Dataname}].[dbo].[LSCan]
-                                                                    WHERE 
+                                        String sql = string.Format($@"SELECT
+                                                                        A.MaPhieu N'Số phiếu',ISNULL(A.ThoiGianCanLan2, A.ThoiGianCanLan1) N'Ngày',
+                                                                        A.LoaiCan N'Loại cân', A.BienXe N'Biển số', A.LaiXe N'Lái xe', A.KhachHang N'Khách hàng',
+                                                                        A.TenHangHoa N'Hàng hóa', A.SoNiemChi N'Số niêm chì',
+                                                                        ISNULL(A.UserName2, A.UserName1) N'Người cân',
+                                                                        A.KhoiLuongCanLan1 N'KL cân bì', A.ThoiGianCanLan1 N'TG cân bì',
+                                                                        A.KhoiLuongCanLan2 N'KL cân hàng', A.ThoiGianCanLan2 N'TG cân hàng',
+                                                                        A.KhoiLuongTapChat N'KL tạp chất',
+                                                                        ABS(ISNULL(A.KhoiLuongCanLan2, 0) - ISNULL(A.KhoiLuongCanLan1, 0)) - ISNULL(A.KhoiLuongTapChat, 0) N'KL hàng',
+                                                                        (ABS(ISNULL(A.KhoiLuongCanLan2, 0) - ISNULL(A.KhoiLuongCanLan1, 0)) - ISNULL(A.KhoiLuongTapChat, 0)) * A.HeSoQuyDoi N'KL quy đổi',
+                                                                        A.KhoiLuongDat N'KL đặt hàng',
+                                                                        A.KhoiLuongCanTD + A.KhoiLuongCanTay N'KL cân tinh',
+                                                                        A.ThoiGianBDCanLieu N'TG bắt đầu cân tinh',
+                                                                        A.ThoiGianKTCanLieu N'TG kết thúc cân tinh'
+                                                                    FROM [{branch.Dataname}].[dbo].[LSCan] A
+                                                                    WHERE
                                                                         ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) >= '{CommonLib.DateTimeRealDayForSQLToString(thoigianbatdau)}'
                                                                         AND ISNULL(ThoiGianCanLan2, ThoiGianCanLan1) <= '{CommonLib.DateTimeRealDayForSQLToString(thoigianketthuc)}'
                                                                         AND {dieuKienBienSo}
@@ -321,82 +363,84 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                                         DataTable dtSource = CommonLib.GetDataBySql(sql);
 
-                                        List<CanReportGroupDTO> result = new List<CanReportGroupDTO>();
+                                        List<CanTramCanReportGroupDTO> result = new List<CanTramCanReportGroupDTO>();
                                         if (dtSource.Rows.Count > 0)
                                         {
                                             var dataTable = CommonLib.AsEnumerable(dtSource);
 
-                                            List<CanReportDto> listData = dataTable.Select(row => new CanReportDto()
+                                            // Tên cột lấy đúng theo alias trong câu SELECT ở trên
+                                            List<CanTramCanReportDto> listData = dataTable.Select(row => new CanTramCanReportDto()
                                             {
-                                                SoPhieu = row["SoPhieu"] != DBNull.Value ? row["SoPhieu"].ToString() : "",
-                                                Ngay = row["Ngay"] != DBNull.Value ? Convert.ToDateTime(row["Ngay"]) : (DateTime?)null,
-                                                KhachHang = row["KhachHang"] != DBNull.Value ? row["KhachHang"].ToString() : "",
-                                                BienSo = row["BienSo"] != DBNull.Value ? row["BienSo"].ToString() : "",
-                                                LaiXe = row["LaiXe"] != DBNull.Value ? row["LaiXe"].ToString() : "",
-                                                HangHoa = row["HangHoa"] != DBNull.Value ? row["HangHoa"].ToString() : "",
-                                                CanLan1 = row["CanLan1"] != DBNull.Value ? Convert.ToDecimal(row["CanLan1"]) : (decimal?)null,
-                                                CanLan2 = row["CanLan2"] != DBNull.Value ? Convert.ToDecimal(row["CanLan2"]) : (decimal?)null,
-                                                KhoiLuongHang = row["KhoiLuongHang"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongHang"]) : (decimal?)null,
-                                                KhoiLuongQuyDoi = row["KhoiLuongQuyDoi"] != DBNull.Value ? Convert.ToDecimal(row["KhoiLuongQuyDoi"]) : (decimal?)null,
-                                                DonVi = row["DonVi"] != DBNull.Value ? row["DonVi"].ToString() : "",
-                                                ThoiGianCanLan1 = row["ThoiGianCanLan1"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan1"]) : (DateTime?)null,
-                                                ThoiGianCanLan2 = row["ThoiGianCanLan2"] != DBNull.Value ? Convert.ToDateTime(row["ThoiGianCanLan2"]) : (DateTime?)null,
-                                                NguoiCan = row["NguoiCan"] != DBNull.Value ? row["NguoiCan"].ToString() : ""
+                                                SoPhieu = GetString(row, "Số phiếu"),
+                                                Ngay = GetDate(row, "Ngày"),
+                                                LoaiCan = GetString(row, "Loại cân"),
+                                                BienSo = GetString(row, "Biển số"),
+                                                LaiXe = GetString(row, "Lái xe"),
+                                                KhachHang = GetString(row, "Khách hàng"),
+                                                HangHoa = GetString(row, "Hàng hóa"),
+                                                SoNiemChi = GetString(row, "Số niêm chì"),
+                                                NguoiCan = GetString(row, "Người cân"),
+                                                KLCanBi = GetDecimal(row, "KL cân bì"),
+                                                TGCanBi = GetDate(row, "TG cân bì"),
+                                                KLCanHang = GetDecimal(row, "KL cân hàng"),
+                                                TGCanHang = GetDate(row, "TG cân hàng"),
+                                                KLTapChat = GetDecimal(row, "KL tạp chất"),
+                                                KLHang = GetDecimal(row, "KL hàng"),
+                                                KLQuyDoi = GetDecimal(row, "KL quy đổi"),
+                                                KLDatHang = GetDecimal(row, "KL đặt hàng"),
+                                                KLCanTinh = GetDecimal(row, "KL cân tinh"),
+                                                TGBatDauCanTinh = GetDate(row, "TG bắt đầu cân tinh"),
+                                                TGKetThucCanTinh = GetDate(row, "TG kết thúc cân tinh")
                                             }).ToList();
 
                                             var groupName = string.Empty;
                                             switch (paging.GroupBy)
                                             {
                                                 case "KH": // Group theo khách hàng
-                                                    var groupByKH = listData.GroupBy(x => x.KhachHang);
-                                                    foreach (var itemGrp in groupByKH)
+                                                    foreach (var itemGrp in listData.GroupBy(x => x.KhachHang))
                                                     {
-                                                        result.Add(new CanReportGroupDTO
-                                                        {
-                                                            Key = itemGrp.Key,
-                                                            Data = itemGrp.ToList(),
-                                                            Expanded = false,
-                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                        });
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                                     }
                                                     groupName = "Khách hàng: ";
                                                     break;
 
-                                                case "VL": // Group theo vật liệu
-                                                    var groupByVL = listData.GroupBy(x => x.HangHoa);
-                                                    foreach (var itemGrp in groupByVL)
+                                                case "VL": // Group theo hàng hóa
+                                                    foreach (var itemGrp in listData.GroupBy(x => x.HangHoa))
                                                     {
-                                                        result.Add(new CanReportGroupDTO
-                                                        {
-                                                            Key = itemGrp.Key,
-                                                            Data = itemGrp.ToList(),
-                                                            Expanded = false,
-                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                        });
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                                     }
-                                                    groupName = "Vật liệu: ";
+                                                    groupName = "Hàng hóa: ";
+                                                    break;
+
+                                                case "BS": // Group theo biển số
+                                                    foreach (var itemGrp in listData.GroupBy(x => x.BienSo))
+                                                    {
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                                    }
+                                                    groupName = "Biển số: ";
+                                                    break;
+
+                                                case "KC": // Group theo kiểu cân (Loại cân)
+                                                    foreach (var itemGrp in listData.GroupBy(x => x.LoaiCan))
+                                                    {
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                                    }
+                                                    groupName = "Kiểu cân: ";
+                                                    break;
+
+                                                case "NC": // Group theo người cân
+                                                    foreach (var itemGrp in listData.GroupBy(x => x.NguoiCan))
+                                                    {
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
+                                                    }
+                                                    groupName = "Người cân: ";
                                                     break;
 
                                                 default: // Mặc định group theo ngày
                                                     var groupByNgay = listData.GroupBy(x => x.Ngay?.ToString("yyyy-MM-dd")); // Format ngày nếu cần gom theo ngày
                                                     foreach (var itemGrp in groupByNgay)
                                                     {
-                                                        result.Add(new CanReportGroupDTO
-                                                        {
-                                                            Key = itemGrp.Key,
-                                                            Data = itemGrp.ToList(),
-                                                            Expanded = false,
-                                                            TotalCanLan1 = itemGrp.Sum(x => x.CanLan1 ?? 0),
-                                                            TotalCanLan2 = itemGrp.Sum(x => x.CanLan2 ?? 0),
-                                                            TotalKhoiLuongHang = itemGrp.Sum(x => x.KhoiLuongHang ?? 0),
-                                                            ToTalKhoiLuongQuyDoi = itemGrp.Sum(x => x.KhoiLuongQuyDoi ?? 0),
-                                                        });
+                                                        result.Add(BuildGroup(itemGrp.Key, itemGrp.ToList()));
                                                     }
                                                     groupName = "Ngày lập: ";
                                                     break;
@@ -406,39 +450,39 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             using (var package = new ExcelPackage())
                                             {
                                                 ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Báo cáo chi tiết trạm cân");
-                                                worksheet.Cells["A1:N1"].Merge = true;
-                                                worksheet.Cells["A1:N1"].Value = "BÁO CÁO CHI TIẾT TRẠM CÂN";
-                                                worksheet.Cells["A1:N1"].Style.Font.Bold = true;
-                                                worksheet.Cells["A1:N1"].Style.Font.Size = 16;
-                                                worksheet.Cells["A1:N1"].Style.Font.Color.SetColor(Color.Black);
-                                                worksheet.Cells["A1:N1"].Style.HorizontalAlignment =
+                                                worksheet.Cells["A1:T1"].Merge = true;
+                                                worksheet.Cells["A1:T1"].Value = "BÁO CÁO CHI TIẾT TRẠM CÂN";
+                                                worksheet.Cells["A1:T1"].Style.Font.Bold = true;
+                                                worksheet.Cells["A1:T1"].Style.Font.Size = 16;
+                                                worksheet.Cells["A1:T1"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A1:T1"].Style.HorizontalAlignment =
                                                     ExcelHorizontalAlignment.Left;
-                                                worksheet.Cells["A1:N1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                worksheet.Cells["A1:T1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                                                worksheet.Cells["A2:N2"].Merge = true;
-                                                worksheet.Cells["A2:N2"].Value = "Báo cáo được tạo vào ngày " + DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
-                                                worksheet.Cells["A2:N2"].Style.Font.Italic = true;
-                                                worksheet.Cells["A2:N2"].Style.Font.Color.SetColor(Color.Black);
-                                                worksheet.Cells["A2:N2"].Style.HorizontalAlignment =
+                                                worksheet.Cells["A2:T2"].Merge = true;
+                                                worksheet.Cells["A2:T2"].Value = "Báo cáo được tạo vào ngày " + DateTime.Now.ToString("HH:mm:ss dd-MM-yyyy");
+                                                worksheet.Cells["A2:T2"].Style.Font.Italic = true;
+                                                worksheet.Cells["A2:T2"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A2:T2"].Style.HorizontalAlignment =
                                                     ExcelHorizontalAlignment.Left;
-                                                worksheet.Cells["A2:N2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                worksheet.Cells["A2:T2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
                                                 //Điều kiện lọc
 
-                                                worksheet.Cells["A3:N3"].Merge = true;
-                                                worksheet.Cells["A3:N3"].Value = "* Điều kiện lọc:";
-                                                worksheet.Cells["A3:N3"].Style.Font.Italic = true;
-                                                worksheet.Cells["A3:N3"].Style.Font.Bold = true;
-                                                worksheet.Cells["A3:N3"].Style.Font.Color.SetColor(Color.Black);
-                                                worksheet.Cells["A3:N3"].Style.HorizontalAlignment =
+                                                worksheet.Cells["A3:T3"].Merge = true;
+                                                worksheet.Cells["A3:T3"].Value = "* Điều kiện lọc:";
+                                                worksheet.Cells["A3:T3"].Style.Font.Italic = true;
+                                                worksheet.Cells["A3:T3"].Style.Font.Bold = true;
+                                                worksheet.Cells["A3:T3"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells["A3:T3"].Style.HorizontalAlignment =
                                                     ExcelHorizontalAlignment.Left;
-                                                worksheet.Cells["A3:N3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                worksheet.Cells["A3:T3"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
                                                 int row = 4;
 
                                                 void WriteCondition(string label, string value)
                                                 {
-                                                    worksheet.Cells[$"A{row}:N{row}"].Merge = true;
+                                                    worksheet.Cells[$"A{row}:T{row}"].Merge = true;
                                                     worksheet.Cells[$"A{row}"].Value = $"- {label}: {(string.IsNullOrEmpty(value) || value == "undefined" ? "Tất cả" : value)}";
                                                     row++;
                                                 }
@@ -453,36 +497,41 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                                                 #region Nhóm theo
 
-                                                worksheet.Cells[$"A{row}:N{row}"].Merge = true;
+                                                worksheet.Cells[$"A{row}:T{row}"].Merge = true;
                                                 worksheet.Cells[$"A{row}"].Value = "* Nhóm theo: " + groupName;
                                                 worksheet.Cells[$"A{row}"].Style.Font.Bold = true;
                                                 row += 2;
 
                                                 #endregion
 
-                                                // Header
+                                                // Header - đúng theo thứ tự cột của câu query
+                                                int headerRow = row;
                                                 worksheet.Cells[$"A{row}"].Value = "Số phiếu";
                                                 worksheet.Cells[$"B{row}"].Value = "Ngày";
-                                                worksheet.Cells[$"C{row}"].Value = "Khách hàng";
+                                                worksheet.Cells[$"C{row}"].Value = "Loại cân";
                                                 worksheet.Cells[$"D{row}"].Value = "Biển số";
                                                 worksheet.Cells[$"E{row}"].Value = "Lái xe";
-                                                worksheet.Cells[$"F{row}"].Value = "Hàng hóa";
-                                                worksheet.Cells[$"G{row}"].Value = "Đơn vị";
-                                                worksheet.Cells[$"H{row}"].Value = "Thời gian cân lần 1";
-                                                worksheet.Cells[$"I{row}"].Value = "Thời gian cân lần 2";
-                                                worksheet.Cells[$"J{row}"].Value = "Người cân";
-                                                worksheet.Cells[$"K{row}"].Value = "Cân lần 1";
-                                                worksheet.Cells[$"L{row}"].Value = "Cân lần 2";
-                                                worksheet.Cells[$"M{row}"].Value = "Khối lượng hàng";
-                                                worksheet.Cells[$"N{row}"].Value = "Khối lượng quy đổi";
+                                                worksheet.Cells[$"F{row}"].Value = "Khách hàng";
+                                                worksheet.Cells[$"G{row}"].Value = "Hàng hóa";
+                                                worksheet.Cells[$"H{row}"].Value = "Số niêm chì";
+                                                worksheet.Cells[$"I{row}"].Value = "Người cân";
+                                                worksheet.Cells[$"J{row}"].Value = "KL cân bì";
+                                                worksheet.Cells[$"K{row}"].Value = "TG cân bì";
+                                                worksheet.Cells[$"L{row}"].Value = "KL cân hàng";
+                                                worksheet.Cells[$"M{row}"].Value = "TG cân hàng";
+                                                worksheet.Cells[$"N{row}"].Value = "KL tạp chất";
+                                                worksheet.Cells[$"O{row}"].Value = "KL hàng";
+                                                worksheet.Cells[$"P{row}"].Value = "KL quy đổi";
+                                                worksheet.Cells[$"Q{row}"].Value = "KL đặt hàng";
+                                                worksheet.Cells[$"R{row}"].Value = "KL cân tinh";
+                                                worksheet.Cells[$"S{row}"].Value = "TG bắt đầu cân tinh";
+                                                worksheet.Cells[$"T{row}"].Value = "TG kết thúc cân tinh";
 
 
-
-
-                                                worksheet.Cells[$"A{row}:N{row}"].Style.Font.Bold = true;
-                                                worksheet.Cells[$"A{row}:N{row}"].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                                worksheet.Cells[$"A{row}:N{row}"].Style.Fill.BackgroundColor.SetColor(Color.Green);
-                                                worksheet.Cells[$"A{row}:N{row}"].Style.Font.Color.SetColor(Color.Black);
+                                                worksheet.Cells[$"A{row}:T{row}"].Style.Font.Bold = true;
+                                                worksheet.Cells[$"A{row}:T{row}"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                                worksheet.Cells[$"A{row}:T{row}"].Style.Fill.BackgroundColor.SetColor(Color.Green);
+                                                worksheet.Cells[$"A{row}:T{row}"].Style.Font.Color.SetColor(Color.Black);
                                                 row++;
 
                                                 if (result.Count() > 0)
@@ -492,7 +541,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                     {
                                                         var elementGroup = result.ElementAt(i);
                                                         //Row merge
-                                                        var region = "A" + rowFirts + ":" + "N" + rowFirts;
+                                                        var region = "A" + rowFirts + ":" + "T" + rowFirts;
                                                         worksheet.Cells[region].Merge = true;
                                                         if (elementGroup.Key.GetType() == typeof(DateTime))
                                                         {
@@ -515,102 +564,55 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                             row = rowFirts + j;
                                                             var element = elementGroup.Data.ElementAt(j);
                                                             int column = 1;
-                                                            //Phiếu
-                                                            worksheet.Cells[row, column].Value = element?.SoPhieu;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
 
-                                                            //Ngày lập
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.Ngay;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
+                                                            void WriteText(string value)
+                                                            {
+                                                                worksheet.Cells[row, column].Value = value;
+                                                                worksheet.Cells[row, column].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                                column++;
+                                                            }
 
-                                                            //Khách hàng
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.KhachHang;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
+                                                            void WriteNumber(decimal? value)
+                                                            {
+                                                                worksheet.Cells[row, column].Value = value;
+                                                                worksheet.Cells[row, column].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                                worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
+                                                                column++;
+                                                            }
 
-                                                            //Biển số
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.BienSo;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
+                                                            void WriteDateTime(DateTime? value)
+                                                            {
+                                                                worksheet.Cells[row, column].Value = value;
+                                                                worksheet.Cells[row, column].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                                worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy hh:mm:ss";
+                                                                column++;
+                                                            }
 
-                                                            //Lái xe
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.LaiXe;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-
-                                                            //Hàng hóa
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.HangHoa;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-
-                                                            //Đơn vị
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.DonVi;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-
-                                                            //Thời gian cân lần 1
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.ThoiGianCanLan1;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
-
-                                                            //Thời gian cân lần 2
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.ThoiGianCanLan2;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "dd/mm/yyyy";
-
-                                                            //Người cân
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.NguoiCan;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-
-                                                            //Cân lần 1
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
-
-                                                            //Cân lần 2
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
-
-                                                            //Khối lượng hàng
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
-
-                                                            //Khối lượng quy đổi
-                                                            column++;
-                                                            worksheet.Cells[row, column].Value = element?.CanLan1;
-                                                            worksheet.Cells[row, column].Style.VerticalAlignment =
-                                                                ExcelVerticalAlignment.Center;
-                                                            worksheet.Cells[row, column].Style.Numberformat.Format = "#,##";
-
+                                                            WriteText(element?.SoPhieu);              //A - Số phiếu
+                                                            WriteDateTime(element?.Ngay);             //B - Ngày
+                                                            WriteText(element?.LoaiCan);              //C - Loại cân
+                                                            WriteText(element?.BienSo);               //D - Biển số
+                                                            WriteText(element?.LaiXe);                //E - Lái xe
+                                                            WriteText(element?.KhachHang);            //F - Khách hàng
+                                                            WriteText(element?.HangHoa);              //G - Hàng hóa
+                                                            WriteText(element?.SoNiemChi);            //H - Số niêm chì
+                                                            WriteText(element?.NguoiCan);             //I - Người cân
+                                                            WriteNumber(element?.KLCanBi);            //J - KL cân bì
+                                                            WriteDateTime(element?.TGCanBi);          //K - TG cân bì
+                                                            WriteNumber(element?.KLCanHang);          //L - KL cân hàng
+                                                            WriteDateTime(element?.TGCanHang);        //M - TG cân hàng
+                                                            WriteNumber(element?.KLTapChat);          //N - KL tạp chất
+                                                            WriteNumber(element?.KLHang);             //O - KL hàng
+                                                            WriteNumber(element?.KLQuyDoi);           //P - KL quy đổi
+                                                            WriteNumber(element?.KLDatHang);          //Q - KL đặt hàng
+                                                            WriteNumber(element?.KLCanTinh);          //R - KL cân tinh
+                                                            WriteDateTime(element?.TGBatDauCanTinh);  //S - TG bắt đầu cân tinh
+                                                            WriteDateTime(element?.TGKetThucCanTinh); //T - TG kết thúc cân tinh
                                                         }
                                                         rowFirts = rowFirts + elementGroup.Data.Count();
 
                                                         //Row merge total
-                                                        region = "A" + rowFirts + ":" + "J" + rowFirts;
+                                                        region = "A" + rowFirts + ":" + "I" + rowFirts;
                                                         worksheet.Cells[region].Merge = true;
                                                         worksheet.Cells[region].Value = "Tổng:";
                                                         worksheet.Cells[region].Style.Font.Italic = true;
@@ -620,37 +622,25 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                             ExcelHorizontalAlignment.Center;
                                                         worksheet.Cells[region].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 
-                                                        region = "K" + rowFirts;
-                                                        worksheet.Cells[region].Value = elementGroup.TotalCanLan1;
-                                                        worksheet.Cells[region].Style.Font.Bold = true;
-                                                        worksheet.Cells[region].Style.VerticalAlignment =
-                                                                 ExcelVerticalAlignment.Center;
-                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+                                                        void WriteTotal(string cell, decimal value)
+                                                        {
+                                                            worksheet.Cells[cell].Value = value;
+                                                            worksheet.Cells[cell].Style.Font.Bold = true;
+                                                            worksheet.Cells[cell].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                                                            worksheet.Cells[cell].Style.Numberformat.Format = "#,##";
+                                                        }
 
-                                                        region = "L" + rowFirts;
-                                                        worksheet.Cells[region].Value = elementGroup.TotalCanLan2;
-                                                        worksheet.Cells[region].Style.Font.Bold = true;
-                                                        worksheet.Cells[region].Style.VerticalAlignment =
-                                                                 ExcelVerticalAlignment.Center;
-                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
-
-                                                        region = "M" + rowFirts;
-                                                        worksheet.Cells[region].Value = elementGroup.TotalKhoiLuongHang;
-                                                        worksheet.Cells[region].Style.Font.Bold = true;
-                                                        worksheet.Cells[region].Style.VerticalAlignment =
-                                                                 ExcelVerticalAlignment.Center;
-                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
-
-                                                        region = "N" + rowFirts;
-                                                        worksheet.Cells[region].Value = elementGroup.ToTalKhoiLuongQuyDoi;
-                                                        worksheet.Cells[region].Style.Font.Bold = true;
-                                                        worksheet.Cells[region].Style.VerticalAlignment =
-                                                                 ExcelVerticalAlignment.Center;
-                                                        worksheet.Cells[region].Style.Numberformat.Format = "#,##";
+                                                        WriteTotal("J" + rowFirts, elementGroup.TotalKLCanBi);   //KL cân bì
+                                                        WriteTotal("L" + rowFirts, elementGroup.TotalKLCanHang); //KL cân hàng
+                                                        WriteTotal("N" + rowFirts, elementGroup.TotalKLTapChat); //KL tạp chất
+                                                        WriteTotal("O" + rowFirts, elementGroup.TotalKLHang);    //KL hàng
+                                                        WriteTotal("P" + rowFirts, elementGroup.TotalKLQuyDoi);  //KL quy đổi
+                                                        WriteTotal("Q" + rowFirts, elementGroup.TotalKLDatHang); //KL đặt hàng
+                                                        WriteTotal("R" + rowFirts, elementGroup.TotalKLCanTinh); //KL cân tinh
 
                                                         rowFirts++;
                                                     }
-                                                    string modelRange = "A13:N" + (listData.Count() + result.Count() * 2 + 13);
+                                                    string modelRange = $"A{headerRow}:T" + (listData.Count() + result.Count() * 2 + headerRow);
                                                     var modelTable = worksheet.Cells[modelRange];
                                                     modelTable.Style.Border.Top.Style = ExcelBorderStyle.Thin;
                                                     modelTable.Style.Border.Left.Style = ExcelBorderStyle.Thin;
@@ -1494,7 +1484,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                     List<string> nv = new List<string>();
 
                     Branch branch = context.Branch.Find(Convert.ToInt32(Branchlist));
-                    command.CommandText += "SELECT DISTINCT TenVatLieu FROM [" + branch.Dataname + "].[dbo].[LSCan] WHERE ISNULL(TenVatLieu, '') <> ''";
+                    command.CommandText += "SELECT DISTINCT TenHangHoa FROM [" + branch.Dataname + "].[dbo].[LSCan] WHERE ISNULL(TenHangHoa, '') <> ''";
 
                     context.Database.OpenConnection();
                     using (var result = command.ExecuteReader())
@@ -1502,7 +1492,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                         while (result.Read())
                         {
-                            nv.Add((result["TenVatLieu"] is DBNull) ? String.Empty : (string)result["TenVatLieu"]);
+                            nv.Add((result["TenHangHoa"] is DBNull) ? String.Empty : (string)result["TenHangHoa"]);
                         }
 
                         def.data = nv;

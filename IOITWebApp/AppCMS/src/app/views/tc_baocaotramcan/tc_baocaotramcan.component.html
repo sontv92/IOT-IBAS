@@ -86,7 +86,7 @@
                         style="margin-right: 15px;width:100%">
             </ng-select>
           </div>
-          <label for="inputCat7" class="col-sm-2 col-form-label">Vật liệu</label>
+          <label for="inputCat7" class="col-sm-2 col-form-label">Hàng hóa</label>
           <div class="col-sm-4">
             <ng-select [items]="ListVatLieu"
                         [multiple]="false"
@@ -179,25 +179,31 @@
                 <thead style="color: white;">
                   <tr>
                     <th style="min-width:100px; text-align: center;">Số phiếu</th>
-                    <th>Ngày</th>
-                    <th>Khách hàng</th>
-                    <th>Biển số</th>
-                    <th>Lái xe</th>
-                    <th>Hàng hóa</th>
-                    <th style="min-width:100px">Đơn vị</th>
-                    <th style="min-width:200px">Thời gian cân lần 1</th>
-                    <th style="min-width:200px">Thời gian cân lần 2</th>
-                    <th style="min-width:200px">Người cân</th>
-                    <th>Cân lần 1</th>
-                    <th>Cân lần 2</th>
-                    <th style="min-width:100px">Khối lượng hàng</th>
-                    <th style="min-width:100px">Khối lượng quy đổi</th>
+                    <th style="min-width:200px">Ngày</th>
+                    <th style="min-width:120px">Loại cân</th>
+                    <th style="min-width:120px">Biển số</th>
+                    <th style="min-width:150px">Lái xe</th>
+                    <th style="min-width:200px">Khách hàng</th>
+                    <th style="min-width:200px">Hàng hóa</th>
+                    <th style="min-width:120px">Số niêm chì</th>
+                    <th style="min-width:150px">Người cân</th>
+                    <th style="min-width:100px">KL cân bì</th>
+                    <th style="min-width:200px">TG cân bì</th>
+                    <th style="min-width:100px">KL cân hàng</th>
+                    <th style="min-width:200px">TG cân hàng</th>
+                    <th style="min-width:100px">KL tạp chất</th>
+                    <th style="min-width:100px">KL hàng</th>
+                    <th style="min-width:100px">KL quy đổi</th>
+                    <th style="min-width:100px">KL đặt hàng</th>
+                    <th style="min-width:100px">KL cân tinh</th>
+                    <th style="min-width:200px">TG bắt đầu cân tinh</th>
+                    <th style="min-width:200px">TG kết thúc cân tinh</th>
                   </tr>
                 </thead>
                 <tbody>
                   <ng-template ngFor let-item [ngForOf]="listChiTietTramCan">
                     <tr>
-                      <td colspan="10">
+                      <td colspan="20">
                         <i *ngIf="!item.expanded" class="fas fa-plus-square" (click)="item.expanded = !item.expanded"
                           type="button"></i>
                         <i *ngIf="item.expanded" class="fas fa-minus-square" (click)="item.expanded = !item.expanded"
@@ -213,64 +219,95 @@
                         <td style="min-width:200px">
                           {{itemData.Ngay | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
+                        <td style="min-width:120px">
+                          {{itemData.LoaiCan}}
+                        </td>
+                        <td style="min-width:120px">
+                          {{itemData.BienSo}}
+                        </td>
+                        <td style="min-width:150px">
+                          {{itemData.LaiXe}}
+                        </td>
                         <td style="min-width:200px">
                           {{itemData.KhachHang}}
                         </td>
                         <td style="min-width:200px">
-                          {{itemData.BienSo}}
-                        </td>
-                        <td style="min-width:100px">
-                          {{itemData.LaiXe}}
-                        </td>
-                        <td style="min-width:200px">
                           {{itemData.HangHoa}}
                         </td>
-                         <td style="min-width:200px">
-                          {{itemData.DonVi}}
+                        <td style="min-width:120px">
+                          {{itemData.SoNiemChi}}
                         </td>
-                        <td style="min-width:200px">
-                          {{itemData.ThoiGianCanLan1 | date: 'HH:mm:ss dd/MM/yyyy'}}
-                        </td>
-                        <td style="min-width:200px">
-                          {{itemData.ThoiGianCanLan2 | date: 'HH:mm:ss dd/MM/yyyy'}}
-                        </td>
-                         <td style="min-width:200px">
+                        <td style="min-width:150px">
                           {{itemData.NguoiCan}}
                         </td>
-                        <td style="min-width:200px">
-                          {{RoundData(itemData.CanLan1)}}
+                        <td style="min-width:100px">
+                          {{RoundData(itemData.KLCanBi)}}
                         </td>
                         <td style="min-width:200px">
-                          {{RoundData(itemData.CanLan2)}}
+                          {{itemData.TGCanBi | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
                         <td style="min-width:100px">
-                          {{RoundData(itemData.KhoiLuongHang)}}
+                          {{RoundData(itemData.KLCanHang)}}
+                        </td>
+                        <td style="min-width:200px">
+                          {{itemData.TGCanHang | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
                         <td style="min-width:100px">
-                          {{RoundData(itemData.KhoiLuongQuyDoi)}}
+                          {{RoundData(itemData.KLTapChat)}}
+                        </td>
+                        <td style="min-width:100px">
+                          {{RoundData(itemData.KLHang)}}
+                        </td>
+                        <td style="min-width:100px">
+                          {{RoundData(itemData.KLQuyDoi)}}
+                        </td>
+                        <td style="min-width:100px">
+                          {{RoundData(itemData.KLDatHang)}}
+                        </td>
+                        <td style="min-width:100px">
+                          {{RoundData(itemData.KLCanTinh)}}
+                        </td>
+                        <td style="min-width:200px">
+                          {{itemData.TGBatDauCanTinh | date: 'HH:mm:ss dd/MM/yyyy'}}
+                        </td>
+                        <td style="min-width:200px">
+                          {{itemData.TGKetThucCanTinh | date: 'HH:mm:ss dd/MM/yyyy'}}
                         </td>
                       </tr>
                     </ng-template>
                     <tr *ngIf="item.expanded">
-                      <td colspan="10" style="text-align: center;">
+                      <td colspan="9" style="text-align: center;">
                         <b>Tổng:</b>
                       </td>
                       <td style="min-width:100px">
-                        <b>{{RoundData(item.TotalCanLan1)}}</b>
+                        <b>{{RoundData(item.TotalKLCanBi)}}</b>
+                      </td>
+                      <td style="min-width:200px"></td>
+                      <td style="min-width:100px">
+                        <b>{{RoundData(item.TotalKLCanHang)}}</b>
+                      </td>
+                      <td style="min-width:200px"></td>
+                      <td style="min-width:100px">
+                        <b>{{RoundData(item.TotalKLTapChat)}}</b>
                       </td>
                       <td style="min-width:100px">
-                        <b>{{RoundData(item.TotalCanLan2)}}</b>
+                        <b>{{RoundData(item.TotalKLHang)}}</b>
                       </td>
                       <td style="min-width:100px">
-                        <b>{{RoundData(item.TotalKhoiLuongHang)}}</b>
+                        <b>{{RoundData(item.TotalKLQuyDoi)}}</b>
                       </td>
-                      <td style="min-width:200px">
-                        <b>{{RoundData(item.ToTalKhoiLuongQuyDoi)}}</b>
+                      <td style="min-width:100px">
+                        <b>{{RoundData(item.TotalKLDatHang)}}</b>
                       </td>
+                      <td style="min-width:100px">
+                        <b>{{RoundData(item.TotalKLCanTinh)}}</b>
+                      </td>
+                      <td style="min-width:200px"></td>
+                      <td style="min-width:200px"></td>
                     </tr>
                   </ng-template>
                   <tr *ngIf="paging.item_count == 0">
-                    <td colspan="10" style="text-align: center;">
+                    <td colspan="20" style="text-align: center;">
                       <p>Không có dữ liệu</p>
                     </td>
                   </tr>
