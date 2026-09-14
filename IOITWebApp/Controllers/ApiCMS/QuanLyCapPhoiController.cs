@@ -1,4 +1,5 @@
 ﻿using IOITWebApp;
+using IOITWebApp.Helper;
 using IOITWebApp.Models;
 using IOITWebApp.Models.Common;
 using IOITWebApp.Models.Data;
@@ -230,6 +231,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, null, null, capphoi, false, "Không có quyền thêm mới mác bê tông");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -238,12 +240,12 @@ namespace IOITWebApp.Controllers.ApiCMS
                     using (var context = new CNTTVNWebContext())
                     using (var command = context.Database.GetDbConnection().CreateCommand())
                     {
-
+                        Branch branch = null;
                         command.CommandText += "BEGIN TRANSACTION [Tran1] BEGIN TRY ";
                         if (capphoi.BranchId != 0)
                         {
 
-                            Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                            branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
                             //sinh ID tu dong
                             capphoi.ID = CustomGuid.NewSequentialId();
                             capphoi.MACBETONGID = CustomGuid.NewSequentialId();
@@ -430,12 +432,20 @@ namespace IOITWebApp.Controllers.ApiCMS
                         using (var result = command.ExecuteReader())
                         {
                             result.Read();
-                            def.meta = new Meta(200, "Them moi thanh cong !");
-                            return Ok(def);
+                        }
+                        context.Database.CloseConnection();
 
+                        // Ghi nhật ký: đọc lại bản ghi vừa thêm để xác nhận đã ghi vào DB
+                        if (branch != null)
+                        {
+                            var after = SnapshotMacBeTong(branch.Dataname, capphoi.MACBETONGID);
+                            AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, capphoi.MACBETONGID.ToString(),
+                                null, after ?? (object)capphoi, after != null,
+                                "Trạm: " + branch.Name + " - Thêm mới mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không ghi được vào DB)" : ""));
                         }
 
-
+                        def.meta = new Meta(200, "Them moi thanh cong !");
+                        return Ok(def);
                     }
                 }
                 else
@@ -447,9 +457,30 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, capphoi != null ? capphoi.MACBETONGID.ToString() : null,
+                    null, capphoi, false, "Lỗi thêm mới mác bê tông: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
+        }
+
+        /// <summary>
+        /// Đọc thông tin mác bê tông + định mức vật liệu tại DB trạm để ghi nhật ký (OldValues / NewValues).
+        /// Trả về null nếu mác không tồn tại.
+        /// </summary>
+        private static Dictionary<string, object> SnapshotMacBeTong(string dataname, Guid macBeTongId)
+        {
+            var mac = AuditLogService.Snapshot(
+                "SELECT ID, Ma, MaLK, TENMACBETONG, CUONGDO, COTLIEUMAX, DOSUT, LASTUPDATED FROM [" + dataname + "].[dbo].[MACBETONG] WHERE ID = @id",
+                new { id = macBeTongId });
+            if (mac == null) return null;
+
+            mac["VatLieus"] = AuditLogService.SnapshotList(
+                "SELECT sl.MACUAVL, cv.TENCUAVL, sl.SOLUONG FROM [" + dataname + "].[dbo].[SOLUONGVL] sl " +
+                "LEFT JOIN [" + dataname + "].[dbo].[CUAVL] cv ON cv.MACUAVL = sl.MACUAVL " +
+                "WHERE sl.MACBETONGID = @id ORDER BY sl.MACUAVL",
+                new { id = macBeTongId });
+            return mac;
         }
 
         [HttpPut("{macbetongid}")]
@@ -471,6 +502,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(), null, capphoi, false, "Không có quyền sửa mác bê tông");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -479,12 +511,15 @@ namespace IOITWebApp.Controllers.ApiCMS
                     using (var context = new CNTTVNWebContext())
                     using (var command = context.Database.GetDbConnection().CreateCommand())
                     {
-
+                        Branch branch = null;
+                        Dictionary<string, object> before = null;
                         command.CommandText += "BEGIN TRANSACTION [Tran1] BEGIN TRY ";
                         if (capphoi.BranchId != 0)
                         {
 
-                            Branch branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                            branch = context.Branch.Find(Convert.ToInt32(capphoi.BranchId));
+                            // Snapshot trước khi sửa để ghi nhật ký
+                            before = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
                             //Xoa du lieu cua bang SOLUONGVL theo MACBETONGID
                             command.CommandText += "DELETE FROM [" + branch.Dataname + "].[dbo].[SOLUONGVL]  WHERE MACBETONGID = @paramMACBETONGID;";
                             //Cap nhat du lieu tren bang MACBETONG
@@ -660,12 +695,20 @@ namespace IOITWebApp.Controllers.ApiCMS
                         using (var result = command.ExecuteReader())
                         {
                             result.Read();
-                            def.meta = new Meta(200, "Chinh sua thanh cong !");
-                            return Ok(def);
+                        }
+                        context.Database.CloseConnection();
 
+                        // Ghi nhật ký: giá trị cũ / giá trị mới đọc lại từ DB
+                        if (branch != null)
+                        {
+                            var after = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
+                            AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
+                                before, after ?? (object)capphoi, after != null,
+                                "Trạm: " + branch.Name + " - Sửa mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không đọc lại được bản ghi)" : ""));
                         }
 
-
+                        def.meta = new Meta(200, "Chinh sua thanh cong !");
+                        return Ok(def);
                     }
                 }
                 else
@@ -677,6 +720,8 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
+                    null, capphoi, false, "Lỗi sửa mác bê tông: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -700,6 +745,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.DELETED))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, ID, null, null, false, "Không có quyền xóa mác bê tông");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -711,6 +757,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                         string[] IdList = ID.Split("_");
                         int branchID = 0;
                         Guid MACBETONGID = System.Guid.Empty;
+                        Branch branch = null;
+                        Dictionary<string, object> before = null;
 
 
                         for (int i = 0; i < IdList.Length; i++)
@@ -731,7 +779,9 @@ namespace IOITWebApp.Controllers.ApiCMS
                         if (branchID > 0)
                         {
 
-                            Branch branch = context.Branch.Find(Convert.ToInt32(branchID));
+                            branch = context.Branch.Find(Convert.ToInt32(branchID));
+                            // Snapshot trước khi xóa để ghi nhật ký
+                            before = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
 
                             // check Mác bê tông đang được sử dụng hay không
                             command.CommandText += "SELECT Ma FROM [" + branch.Dataname + "].[dbo].[MACBETONG] WHERE ID = @paramID;";
@@ -766,6 +816,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         }
                                         if (!string.IsNullOrEmpty(maDathang))
                                         {
+                                            AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
+                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa mác bê tông " + ma + ": đang được sử dụng tại đơn hàng " + maDathang);
                                             def.meta = new Meta(212, "Mác bê tông này đang được sử dụng tại đơn hàng " + maDathang + ", không thể xóa !");
                                             return Ok(def);
                                         }
@@ -826,10 +878,17 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             using (var result = command.ExecuteReader())
                                             {
                                                 result.Read();
-                                                def.meta = new Meta(200, "Xoa khach hang thanh cong !");
-                                                return Ok(def);
-
                                             }
+                                            context.Database.CloseConnection();
+
+                                            // Ghi nhật ký: xóa thành công khi bản ghi không còn trong DB
+                                            var after = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
+                                            AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
+                                                before, null, after == null,
+                                                "Trạm: " + branch.Name + " - Xóa mác bê tông " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+
+                                            def.meta = new Meta(200, "Xoa khach hang thanh cong !");
+                                            return Ok(def);
                                         }
                                     }
                                 }
@@ -854,6 +913,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, ID, null, null, false, "Lỗi xóa mác bê tông: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }

@@ -86,6 +86,7 @@ import { ThongKeTongKhoiLuongBeTongComponent } from './views/thongketongkhoiluon
 import { ThongKeChiTietVatTuComponent } from './views/thongkechitietvattu/thongkechitietvattu.component';
 import { BaoCaoXuatKhoComponent } from './views/baocaoxuatkho/baocaoxuatkho.component';
 import { ThongKeChiTietVatTuTheoXeTronComponent } from './views/thongkechitietvattutheoxetron/thongkechitietvattutheoxetron.component';
+import { AuditLogComponent } from './views/auditlog/auditlog.component';
 export const routes: Routes = [
   {
     path: '',
@@ -145,6 +146,14 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         data: {
           title: 'Người dùng'
+        }
+      },
+      {
+        path: 'system/auditlog',
+        component: AuditLogComponent,
+        canActivate: [AuthGuard],
+        data: {
+          title: 'Nhật ký người dùng'
         }
       },
       {

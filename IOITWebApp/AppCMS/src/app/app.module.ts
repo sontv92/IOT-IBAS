@@ -148,6 +148,7 @@ import { ThongKeTongKhoiLuongBeTongComponent } from './views/thongketongkhoiluon
 import { ThongKeChiTietVatTuComponent } from './views/thongkechitietvattu/thongkechitietvattu.component';
 import { BaoCaoXuatKhoComponent } from './views/baocaoxuatkho/baocaoxuatkho.component';
 import { ThongKeChiTietVatTuTheoXeTronComponent } from './views/thongkechitietvattutheoxetron/thongkechitietvattutheoxetron.component';
+import { AuditLogComponent } from './views/auditlog/auditlog.component';
 import { CanvasJSChart } from './canvasjs.angular.component';
 @NgModule({
     imports: [
@@ -257,6 +258,7 @@ import { CanvasJSChart } from './canvasjs.angular.component';
         ThongKeChiTietVatTuComponent,
         BaoCaoXuatKhoComponent,
         ThongKeChiTietVatTuTheoXeTronComponent,
+        AuditLogComponent,
         CanvasJSChart
     ],
     exports: [PreCliDirective],

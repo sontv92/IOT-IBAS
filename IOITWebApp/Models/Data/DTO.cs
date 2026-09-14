@@ -2104,4 +2104,22 @@ namespace IOITWebApp.Models.Data
         public string LoaiCuaVL { get; set; }
         public double KhoiLuong { get; set; }
     }
+
+    public partial class AuditLogDTO
+    {
+        public Guid Id { get; set; }
+        public DateTime OccurredAt { get; set; }
+        public string OccurredAtTitle { get; set; }
+        public int? UserId { get; set; }
+        public string UserName { get; set; }
+        public string Action { get; set; }
+        public string EntityType { get; set; }
+        public string EntityId { get; set; }
+        public string OldValues { get; set; }
+        public string NewValues { get; set; }
+        public bool Success { get; set; }
+        public string IpAddress { get; set; }
+        public string TraceId { get; set; }
+        public string Description { get; set; }
+    }
 }

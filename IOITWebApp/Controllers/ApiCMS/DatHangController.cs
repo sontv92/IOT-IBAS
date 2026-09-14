@@ -460,6 +460,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, null, null, dathang, false, "Không có quyền thêm mới hợp đồng");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -468,12 +469,12 @@ namespace IOITWebApp.Controllers.ApiCMS
                     using (var context = new CNTTVNWebContext())
                     using (var command = context.Database.GetDbConnection().CreateCommand())
                     {
-
+                        Branch branch = null;
 
                         if (dathang.BranchId != 0)
                         {
 
-                            Branch branch = context.Branch.Find(Convert.ToInt32(dathang.BranchId));
+                            branch = context.Branch.Find(Convert.ToInt32(dathang.BranchId));
                             //sinh ID tu dong
                             dathang.ID = CustomGuid.NewSequentialId();
                             dathang.Ma = CommonLib.GetSo("DATHANG", "Ma", "DH1_" + DateTime.Now.ToString("yyMMdd") + "-", branch.Dataname);
@@ -538,12 +539,20 @@ namespace IOITWebApp.Controllers.ApiCMS
                         using (var result = command.ExecuteReader())
                         {
                             result.Read();
-                            def.meta = new Meta(200, "Them moi thanh cong !");
-                            return Ok(def);
+                        }
+                        context.Database.CloseConnection();
 
+                        // Ghi nhật ký: đọc lại hợp đồng vừa thêm để xác nhận đã ghi vào DB
+                        if (branch != null)
+                        {
+                            var after = SnapshotHopDong(branch.Dataname, dathang.ID);
+                            AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, dathang.ID.ToString(),
+                                null, after ?? (object)dathang, after != null,
+                                "Trạm: " + branch.Name + " - Thêm mới hợp đồng " + dathang.Ma + (after == null ? " (không ghi được vào DB)" : ""));
                         }
 
-
+                        def.meta = new Meta(200, "Them moi thanh cong !");
+                        return Ok(def);
                     }
                 }
                 else
@@ -555,9 +564,30 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, dathang != null ? dathang.ID.ToString() : null,
+                    null, dathang, false, "Lỗi thêm mới hợp đồng: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
+        }
+
+        /// <summary>
+        /// Đọc thông tin hợp đồng (kèm tên khách hàng / dự án / mác / nhân viên) tại DB trạm để ghi nhật ký.
+        /// Trả về null nếu hợp đồng không tồn tại.
+        /// </summary>
+        private static Dictionary<string, object> SnapshotHopDong(string dataname, Guid id)
+        {
+            string db = "[" + dataname + "].[dbo]";
+            return AuditLogService.Snapshot(
+                "SELECT sa.ID, sa.Ma, sa.MAKHACHHANG, kh.TENKHACHHANG, sa.MADUAN, da.TENDUAN, sa.MAMACBETONG, mac.TENMACBETONG, " +
+                "sa.NHANVIENID, nv.TENNV, sa.METKHOIDATHANG, sa.METKHOITICHLUY, sa.METKHOITICHLUY_TEMP, sa.TONGSOPHIEU, sa.TONGSOPHIEU_TEMP, sa.NGAYDATHANG, sa.LASTUPDATED " +
+                "FROM " + db + ".[DATHANG] sa " +
+                "LEFT JOIN " + db + ".[KHACHHANG] kh ON kh.ID = sa.KHACHHANGID " +
+                "LEFT JOIN " + db + ".[DUAN] da ON da.ID = sa.DUANID " +
+                "LEFT JOIN " + db + ".[MACBETONG] mac ON mac.ID = sa.MACBETONGID " +
+                "LEFT JOIN " + db + ".[NHANVIEN] nv ON nv.ID = sa.NHANVIENID " +
+                "WHERE sa.ID = @id",
+                new { id });
         }
 
 
@@ -579,6 +609,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(), null, dathang, false, "Không có quyền sửa hợp đồng");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -592,6 +623,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                         if (dathang.BranchId != 0)
                         {
                             Branch branch = context.Branch.Find(Convert.ToInt32(dathang.BranchId));
+                            // Snapshot trước khi sửa để ghi nhật ký
+                            var before = SnapshotHopDong(branch.Dataname, ID);
 
                             command.CommandText += "UPDATE TOP(1) [" + branch.Dataname + "].[dbo].[DATHANG] SET [KHACHHANGID]= @paramKHACHHANGID ,[NHANVIENID] = @paramNHANVIENID ,[DUANID]= @paramDUANID,[MACBETONGID]= @paramMACBETONGID,[METKHOIDATHANG]= @paramMETKHOIDATHANG,[TONGSOPHIEU]= @paramTONGSOPHIEU, [TONGSOPHIEU_TEMP]=0, [MAKHACHHANG] = (select Ma from [" + branch.Dataname + "].[dbo].KHACHHANG where ID =  @paramKHACHHANGID),[MADUAN] = (select Ma from [" + branch.Dataname + "].[dbo].DUAN where ID =  @paramDUANID),[MAMACBETONG]= (select Ma from [" + branch.Dataname + "].[dbo].MACBETONG where ID =  @paramMACBETONGID) WHERE ID = @paramID";
 
@@ -661,6 +694,13 @@ namespace IOITWebApp.Controllers.ApiCMS
                                 var qrInsert = $"INSERT INTO [{branch.Dataname}].[dbo].[DATHANG_TEMP] ([ID], [DATHANGID], [Ma], [METKHOITICHLUY_BUTRU], [LASTUPDATED]) VALUES ('{id}', '{dathang.ID}', '{dathang.Ma}', {hieuso}, '{DateTime.Now}')";
                                 DapperHepper.Execute(LocalSettings.ConnectString, qrInsert);
 
+                                // Ghi nhật ký: giá trị cũ / giá trị mới đọc lại từ DB
+                                var after = SnapshotHopDong(branch.Dataname, ID);
+                                if (after != null) after["METKHOITICHLUY_BUTRU_MOI"] = hieuso;
+                                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(),
+                                    before, after ?? (object)dathang, after != null,
+                                    "Trạm: " + branch.Name + " - Sửa hợp đồng " + dathang.Ma + (after == null ? " (không đọc lại được bản ghi)" : ""));
+
                                 def.meta = new Meta(200, "Cap nhat thanh cong !");
                                 return Ok(def);
 
@@ -679,6 +719,8 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(),
+                    null, dathang, false, "Lỗi sửa hợp đồng: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -702,6 +744,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.DELETED))
                 {
+                    AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, ID, null, null, false, "Không có quyền xóa hợp đồng");
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -713,6 +756,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                         string[] IdList = ID.Split("_");
                         int branchID = 0;
                         Guid Id = System.Guid.Empty;
+                        Dictionary<string, object> before = null;
 
 
                         for (int i = 0; i < IdList.Length; i++)
@@ -733,6 +777,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                         {
 
                             Branch branch = context.Branch.Find(Convert.ToInt32(branchID));
+                            // Snapshot trước khi xóa để ghi nhật ký
+                            before = SnapshotHopDong(branch.Dataname, Id);
                             // check đơn hàng đang được sử dụng hay không
                             command.CommandText += "SELECT Ma FROM [" + branch.Dataname + "].[dbo].[DATHANG] WHERE ID = @paramID;";
                             var paramID = command.CreateParameter();
@@ -766,6 +812,8 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         }
                                         if (!string.IsNullOrEmpty(maDonHang))
                                         {
+                                            AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, Id.ToString(),
+                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa hợp đồng " + ma + ": đang được sử dụng (đã có phiếu trộn)");
                                             def.meta = new Meta(212, "Đơn hàng đang được sử dụng, không thể xóa !");
                                             return Ok(def);
                                         }
@@ -795,10 +843,17 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             using (var result = command.ExecuteReader())
                                             {
                                                 result.Read();
-                                                def.meta = new Meta(200, "Xóa đơn hàng thành công !");
-                                                return Ok(def);
-
                                             }
+                                            context.Database.CloseConnection();
+
+                                            // Ghi nhật ký: xóa thành công khi bản ghi không còn trong DB
+                                            var after = SnapshotHopDong(branch.Dataname, Id);
+                                            AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, Id.ToString(),
+                                                before, null, after == null,
+                                                "Trạm: " + branch.Name + " - Xóa hợp đồng " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+
+                                            def.meta = new Meta(200, "Xóa đơn hàng thành công !");
+                                            return Ok(def);
                                         }
                                     }
                                 }
@@ -817,6 +872,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
+                AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, ID, null, null, false, "Lỗi xóa hợp đồng: " + ex.Message);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
