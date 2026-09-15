@@ -85,13 +85,8 @@
           </div>
         </div>
         <div class="form-group row">
-          <label class="col-sm-2 col-form-label">Mã đối tượng</label>
-          <div class="col-sm-4">
-            <input type="text" style="width:100%" name="inputentityid" class="form-control" [(ngModel)]="q.EntityId" (keyup.enter)="QueryChanged()"
-                   placeholder="ID mác bê tông / hợp đồng" />
-          </div>
           <label class="col-sm-2 col-form-label">Từ khóa</label>
-          <div class="col-sm-4">
+          <div class="col-sm-10">
             <input type="text" style="width:100%" name="inputsearch" class="form-control" [(ngModel)]="q.search" (keyup.enter)="QueryChanged()"
                    placeholder="Tìm trong mô tả, IP, giá trị cũ/mới..." />
           </div>
@@ -120,7 +115,6 @@
                 <th (click)="SortTable('UserName')" style="cursor:pointer">Người dùng</th>
                 <th (click)="SortTable('Action')" style="cursor:pointer; text-align:center">Thao tác</th>
                 <th (click)="SortTable('EntityType')" style="cursor:pointer">Đối tượng</th>
-                <th (click)="SortTable('EntityId')" style="cursor:pointer">Mã đối tượng</th>
                 <th (click)="SortTable('Success')" style="cursor:pointer; text-align:center">Kết quả</th>
                 <th (click)="SortTable('IpAddress')" style="cursor:pointer">IP</th>
                 <th>Mô tả</th>
@@ -134,7 +128,6 @@
                 <td>{{ item.UserName }}</td>
                 <td style="text-align:center"><span [ngClass]="ActionClass(item.Action)">{{ ActionName(item.Action) }}</span></td>
                 <td>{{ EntityName(item.EntityType) }}</td>
-                <td><small>{{ item.EntityId }}</small></td>
                 <td style="text-align:center">
                   <span *ngIf="item.Success" class="badge badge-success"><i class="fa fa-check"></i> Thành công</span>
                   <span *ngIf="!item.Success" class="badge badge-danger"><i class="fa fa-times"></i> Thất bại</span>
@@ -146,7 +139,7 @@
                 </td>
               </tr>
               <tr *ngIf="listLog.length == 0">
-                <td colspan="10" style="text-align:center">Không có dữ liệu</td>
+                <td colspan="9" style="text-align:center">Không có dữ liệu</td>
               </tr>
             </tbody>
           </table>
@@ -200,7 +193,6 @@
               </div>
               <div class="col-sm-6">
                 <table class="table table-sm table-borderless mb-0">
-                  <tr><th style="width:140px">Mã đối tượng</th><td><small>{{ Item.EntityId }}</small></td></tr>
                   <tr><th>Kết quả</th>
                     <td>
                       <span *ngIf="Item.Success" class="badge badge-success">Thành công</span>

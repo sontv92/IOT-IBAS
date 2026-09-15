@@ -250,7 +250,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 using (var workbook = new ClosedXML.Excel.XLWorkbook())
                 {
                     var ws = workbook.Worksheets.Add("NhatKyNguoiDung");
-                    string[] headers = { "STT", "Thời gian", "Người dùng", "Thao tác", "Đối tượng", "Mã đối tượng", "Kết quả", "IP", "Mô tả", "Giá trị cũ", "Giá trị mới", "TraceId" };
+                    string[] headers = { "STT", "Thời gian", "Người dùng", "Thao tác", "Đối tượng", "Kết quả", "IP", "Mô tả", "Giá trị cũ", "Giá trị mới", "TraceId" };
                     for (int i = 0; i < headers.Length; i++)
                     {
                         ws.Cell(1, i + 1).Value = headers[i];
@@ -266,16 +266,15 @@ namespace IOITWebApp.Controllers.ApiCMS
                         ws.Cell(row, 3).Value = item.UserName;
                         ws.Cell(row, 4).Value = item.Action;
                         ws.Cell(row, 5).Value = item.EntityType;
-                        ws.Cell(row, 6).Value = item.EntityId;
-                        ws.Cell(row, 7).Value = item.Success ? "Thành công" : "Thất bại";
-                        ws.Cell(row, 8).Value = item.IpAddress;
-                        ws.Cell(row, 9).Value = item.Description;
-                        ws.Cell(row, 10).Value = item.OldValues;
-                        ws.Cell(row, 11).Value = item.NewValues;
-                        ws.Cell(row, 12).Value = item.TraceId;
+                        ws.Cell(row, 6).Value = item.Success ? "Thành công" : "Thất bại";
+                        ws.Cell(row, 7).Value = item.IpAddress;
+                        ws.Cell(row, 8).Value = item.Description;
+                        ws.Cell(row, 9).Value = item.OldValues;
+                        ws.Cell(row, 10).Value = item.NewValues;
+                        ws.Cell(row, 11).Value = item.TraceId;
                         row++;
                     }
-                    ws.Columns(1, 9).AdjustToContents();
+                    ws.Columns(1, 8).AdjustToContents();
 
                     using (var stream = new System.IO.MemoryStream())
                     {
