@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Dapper;
 using IOITWebApp.Models;
+using IOITWebApp.Models.EF;
 using log4net;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -72,7 +73,9 @@ namespace IOITWebApp.Helper
             bool success,
             string ipAddress,
             string traceId,
-            string description = null)
+            string description = null,
+            int? companyId = null,
+            int? branchId = null)
         {
             string oldValuesJson = Serialize(oldValues);
             string newValuesJson = Serialize(newValues);
@@ -92,7 +95,9 @@ namespace IOITWebApp.Helper
                 [Success],
                 [IpAddress],
                 [TraceId],
-                [Description]
+                [Description],
+                [CompanyId],
+                [BranchId]
             )
             VALUES
             (
@@ -108,7 +113,9 @@ namespace IOITWebApp.Helper
                 @Success,
                 @IpAddress,
                 @TraceId,
-                @Description
+                @Description,
+                @CompanyId,
+                @BranchId
             );";
 
             using (SqlCommand command = new SqlCommand(sql, connection, transaction))
@@ -125,6 +132,8 @@ namespace IOITWebApp.Helper
                 command.Parameters.AddWithValue("@IpAddress", string.IsNullOrWhiteSpace(ipAddress) ? (object)DBNull.Value : Truncate(ipAddress, 50));
                 command.Parameters.AddWithValue("@TraceId", string.IsNullOrWhiteSpace(traceId) ? (object)DBNull.Value : Truncate(traceId, 100));
                 command.Parameters.AddWithValue("@Description", string.IsNullOrWhiteSpace(description) ? (object)DBNull.Value : Truncate(description, 500));
+                command.Parameters.AddWithValue("@CompanyId", (object)companyId ?? DBNull.Value);
+                command.Parameters.AddWithValue("@BranchId", (object)branchId ?? DBNull.Value);
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -142,11 +151,27 @@ namespace IOITWebApp.Helper
             object oldValues,
             object newValues,
             bool success,
-            string description = null)
+            string description = null,
+            Branch branch = null,
+            int? branchId = null)
         {
             try
             {
                 int? userId = null;
+                int? companyId = null;
+                if (branch != null)
+                {
+                    branchId = branch.BranchId;
+                    companyId = branch.CompanyId;
+                }
+                else if (branchId.HasValue && branchId.Value > 0)
+                {
+                    companyId = LookupCompanyId(branchId.Value);
+                }
+                else
+                {
+                    branchId = null;
+                }
                 string userName = null;
                 string ipAddress = null;
                 string traceId = null;
@@ -182,7 +207,7 @@ namespace IOITWebApp.Helper
                     connection.Open();
                     new AuditLogService()
                         .WriteAsync(connection, null, userId, userName, action, entityType, entityId,
-                                    oldValues, newValues, success, ipAddress, traceId, description)
+                                    oldValues, newValues, success, ipAddress, traceId, description, companyId, branchId)
                         .GetAwaiter().GetResult();
                 }
             }
@@ -241,6 +266,22 @@ namespace IOITWebApp.Helper
                 dict[kv.Key] = kv.Value;
             }
             return dict;
+        }
+
+        private static int? LookupCompanyId(int branchId)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(LocalSettings.ConnectString))
+                {
+                    return connection.Query<int?>("SELECT CompanyId FROM [Branch] WHERE BranchId = @id", new { id = branchId }).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("AuditLog lookup CompanyId loi: " + ex);
+                return null;
+            }
         }
 
         private static string GetClaim(ClaimsIdentity identity, string type)

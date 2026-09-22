@@ -25,6 +25,8 @@ export class AuditLogComponent implements OnInit {
   public q: any;
   public listLog = [];
   public listUser = [];
+  public listCompany = [];
+  public listBranch = [];
   public listAction = [
     { value: 'CREATE', name: 'Thêm mới' },
     { value: 'UPDATE', name: 'Sửa' },
@@ -52,6 +54,9 @@ export class AuditLogComponent implements OnInit {
 
   public httpOptions: any;
   access_key: string;
+  public role: number;
+  companyId: number;
+  BranchId: string;
   functionRole: string;
   actionView: boolean;
   actionExport: boolean;
@@ -78,7 +83,9 @@ export class AuditLogComponent implements OnInit {
       EntityType: '',
       EntityId: '',
       Success: -1,
-      search: ''
+      search: '',
+      CompanyId: null,
+      BranchId: null
     };
 
     this.httpOptions = {
@@ -98,6 +105,24 @@ export class AuditLogComponent implements OnInit {
 
     this.access_key = localStorage.getItem('access_key');
     this.checkRoleByCode();
+
+    var json = JSON.parse(localStorage.getItem('roles'));
+    this.companyId = parseInt(localStorage.getItem('companyId'));
+    this.BranchId = localStorage.getItem('BranchId');
+    if (json && json.length > 0) {
+      for (var i = 0; i < json.length; i++) {
+        this.role = json[i].RoleId;
+      }
+    }
+    if (this.role == 1) {
+      // Admin: chọn công ty rồi chọn trạm
+      this.GetListCompany();
+    }
+    else {
+      // Người dùng công ty: cố định công ty; người dùng trạm: chỉ thấy trạm của mình
+      this.q.CompanyId = this.companyId;
+      this.GetListBranch();
+    }
 
     this.GetListUser();
     this.GetListLog();
@@ -120,7 +145,11 @@ export class AuditLogComponent implements OnInit {
 
   /** Chuỗi query string từ bộ lọc hiện tại */
   BuildQuery(): string {
+    // Người dùng cấp trạm chưa chọn trạm thì chỉ xem các trạm được gán (BranchId trong localStorage)
+    let branchlist = this.q.BranchId || ((this.role != 1 && this.role != 3) ? (this.BranchId || '') : '');
     let s = '&tungay=' + (this.q.tungay || '')
+      + '&CompanyId=' + (this.q.CompanyId || 0)
+      + '&Branchlist=' + branchlist
       + '&denngay=' + (this.q.denngay || '')
       + '&UserName=' + encodeURIComponent(this.q.UserName || '')
       + '&Action=' + (this.q.Action || '')
@@ -129,6 +158,42 @@ export class AuditLogComponent implements OnInit {
       + '&Success=' + (this.q.Success == null ? -1 : this.q.Success)
       + '&search=' + encodeURIComponent(this.q.search || '');
     return s;
+  }
+
+  GetListCompany() {
+    this.http.get('/api/userrole/GetByCompany?page=1&query=1=1&order_by=', this.httpOptions).subscribe(
+      (res) => {
+        if (res["meta"]["error_code"] == 200) {
+          this.listCompany = res["data"];
+        }
+      },
+      (err) => {
+        console.log("Error: connect to API");
+      }
+    );
+  }
+
+  /** Danh sách trạm theo công ty đang chọn; người dùng cấp trạm chỉ thấy trạm của mình (Branchlist) */
+  GetListBranch() {
+    let branchlist = (this.role != 1 && this.role != 3) ? (this.BranchId || '') : '';
+    this.http.get('/api/branch/GetByPage?page=1&query=CompanyId = ' + this.q.CompanyId + '&Branchlist=' + branchlist + ' &order_by=', this.httpOptions).subscribe(
+      (res) => {
+        if (res["meta"]["error_code"] == 200) {
+          this.listBranch = res["data"];
+        }
+      },
+      (err) => {
+        console.log("Error: connect to API");
+      }
+    );
+  }
+
+  CompanyChanged() {
+    this.listBranch = [];
+    this.q.BranchId = null;
+    if (this.q.CompanyId) {
+      this.GetListBranch();
+    }
   }
 
   GetListUser() {
@@ -191,6 +256,11 @@ export class AuditLogComponent implements OnInit {
     this.q.EntityId = '';
     this.q.Success = -1;
     this.q.search = '';
+    this.q.BranchId = null;
+    if (this.role == 1) {
+      this.q.CompanyId = null;
+      this.listBranch = [];
+    }
     this.QueryChanged();
   }
 

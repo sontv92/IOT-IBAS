@@ -460,7 +460,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, null, null, dathang, false, "Không có quyền thêm mới hợp đồng");
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, null, null, dathang, false, "Không có quyền thêm mới hợp đồng", branchId: dathang != null ? (int?)dathang.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -548,7 +548,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotHopDong(branch.Dataname, dathang.ID);
                             AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, dathang.ID.ToString(),
                                 null, after ?? (object)dathang, after != null,
-                                "Trạm: " + branch.Name + " - Thêm mới hợp đồng " + dathang.Ma + (after == null ? " (không ghi được vào DB)" : ""));
+                                "Trạm: " + branch.Name + " - Thêm mới hợp đồng " + dathang.Ma + (after == null ? " (không ghi được vào DB)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Them moi thanh cong !");
@@ -565,7 +565,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 log.Error("Error:" + ex);
                 AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.HopDong, dathang != null ? dathang.ID.ToString() : null,
-                    null, dathang, false, "Lỗi thêm mới hợp đồng: " + ex.Message);
+                    null, dathang, false, "Lỗi thêm mới hợp đồng: " + ex.Message, branchId: dathang != null ? (int?)dathang.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -609,7 +609,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(), null, dathang, false, "Không có quyền sửa hợp đồng");
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(), null, dathang, false, "Không có quyền sửa hợp đồng", branchId: dathang != null ? (int?)dathang.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -699,7 +699,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                 if (after != null) after["METKHOITICHLUY_BUTRU_MOI"] = hieuso;
                                 AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(),
                                     before, after ?? (object)dathang, after != null,
-                                    "Trạm: " + branch.Name + " - Sửa hợp đồng " + dathang.Ma + (after == null ? " (không đọc lại được bản ghi)" : ""));
+                                    "Trạm: " + branch.Name + " - Sửa hợp đồng " + dathang.Ma + (after == null ? " (không đọc lại được bản ghi)" : ""), branch: branch);
 
                                 def.meta = new Meta(200, "Cap nhat thanh cong !");
                                 return Ok(def);
@@ -720,7 +720,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 log.Error("Error:" + ex);
                 AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(),
-                    null, dathang, false, "Lỗi sửa hợp đồng: " + ex.Message);
+                    null, dathang, false, "Lỗi sửa hợp đồng: " + ex.Message, branchId: dathang != null ? (int?)dathang.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -813,7 +813,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         if (!string.IsNullOrEmpty(maDonHang))
                                         {
                                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, Id.ToString(),
-                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa hợp đồng " + ma + ": đang được sử dụng (đã có phiếu trộn)");
+                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa hợp đồng " + ma + ": đang được sử dụng (đã có phiếu trộn)", branch: branch);
                                             def.meta = new Meta(212, "Đơn hàng đang được sử dụng, không thể xóa !");
                                             return Ok(def);
                                         }
@@ -850,7 +850,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             var after = SnapshotHopDong(branch.Dataname, Id);
                                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.HopDong, Id.ToString(),
                                                 before, null, after == null,
-                                                "Trạm: " + branch.Name + " - Xóa hợp đồng " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+                                                "Trạm: " + branch.Name + " - Xóa hợp đồng " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""), branch: branch);
 
                                             def.meta = new Meta(200, "Xóa đơn hàng thành công !");
                                             return Ok(def);

@@ -2121,5 +2121,9 @@ namespace IOITWebApp.Models.Data
         public string IpAddress { get; set; }
         public string TraceId { get; set; }
         public string Description { get; set; }
+        public int? CompanyId { get; set; }
+        public int? BranchId { get; set; }
+        public string CompanyName { get; set; }
+        public string BranchName { get; set; }
     }
 }

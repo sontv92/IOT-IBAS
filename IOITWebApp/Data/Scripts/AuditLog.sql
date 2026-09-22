@@ -24,7 +24,10 @@ BEGIN
         Success     BIT              NOT NULL,
         IpAddress   NVARCHAR(50)     NULL,
         TraceId     NVARCHAR(100)    NULL,
-        Description NVARCHAR(500)    NULL
+        Description NVARCHAR(500)    NULL,
+
+        CompanyId   INT              NULL,       -- Công ty của trạm thao tác
+        BranchId    INT              NULL        -- Trạm trộn thao tác
     );
 
     CREATE INDEX IX_AuditLog_OccurredAt ON [dbo].[AuditLog] (OccurredAt DESC);
@@ -45,6 +48,22 @@ BEGIN
 
     CREATE INDEX IX_AuditLog_UserId ON [dbo].[AuditLog] (UserId);
 END
+GO
+
+-- Bổ sung cột CompanyId / BranchId để lọc theo công ty / trạm
+IF COL_LENGTH(N'[dbo].[AuditLog]', N'CompanyId') IS NULL
+    ALTER TABLE [dbo].[AuditLog] ADD CompanyId INT NULL;
+IF COL_LENGTH(N'[dbo].[AuditLog]', N'BranchId') IS NULL
+    ALTER TABLE [dbo].[AuditLog] ADD BranchId INT NULL;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_AuditLog_Branch' AND object_id = OBJECT_ID(N'[dbo].[AuditLog]'))
+    CREATE INDEX IX_AuditLog_Branch ON [dbo].[AuditLog] (CompanyId, BranchId, OccurredAt DESC);
+GO
+-- Backfill các log cũ từ mô tả "Trạm: <tên trạm> - ..."
+UPDATE a SET a.BranchId = b.BranchId, a.CompanyId = b.CompanyId
+FROM [dbo].[AuditLog] a
+JOIN [dbo].[Branch] b ON a.[Description] LIKE N'Trạm: ' + b.Name + N' - %'
+WHERE a.BranchId IS NULL;
 GO
 
 -- Bổ sung index nếu bảng tạo bằng script mẫu (chưa có index)

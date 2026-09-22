@@ -13,6 +13,14 @@ namespace IOITWebApp.Models
         [System.ComponentModel.DefaultValue(null)]
         public DateTime? denngay { get; set; }
 
+        /// <summary>0: tất cả công ty</summary>
+        [System.ComponentModel.DefaultValue(0)]
+        public int CompanyId { get; set; }
+
+        /// <summary>Danh sách BranchId cách nhau bởi dấu phẩy, rỗng: tất cả trạm</summary>
+        [System.ComponentModel.DefaultValue("")]
+        public string Branchlist { get; set; }
+
         [System.ComponentModel.DefaultValue("")]
         public string UserName { get; set; }
 

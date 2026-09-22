@@ -27,10 +27,21 @@ namespace IOITWebApp.Controllers.ApiCMS
         private static readonly ILog log = LogMaster.GetLogger("AuditLog", "AuditLog");
         private static string functionCode = "NKND";
 
-        private static readonly HashSet<string> AllowedOrderBy = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        /// <summary>Cột được phép sắp xếp -> biểu thức SQL (a: AuditLog, b: Branch, c: Company)</summary>
+        private static readonly Dictionary<string, string> AllowedOrderBy = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            "OccurredAt", "UserName", "Action", "EntityType", "EntityId", "Success", "IpAddress"
+            { "OccurredAt", "a.OccurredAt" },
+            { "UserName", "a.UserName" },
+            { "Action", "a.[Action]" },
+            { "EntityType", "a.EntityType" },
+            { "EntityId", "a.EntityId" },
+            { "Success", "a.Success" },
+            { "IpAddress", "a.IpAddress" },
+            { "CompanyName", "c.Name" },
+            { "BranchName", "b.Name" }
         };
+
+        private const string FromClause = " FROM [AuditLog] a LEFT JOIN [Branch] b ON b.BranchId = a.BranchId LEFT JOIN [Company] c ON c.CompanyId = a.CompanyId ";
 
         private bool HasPermission(int action)
         {
@@ -46,44 +57,59 @@ namespace IOITWebApp.Controllers.ApiCMS
         {
             var where = new StringBuilder("WHERE 1 = 1");
 
+            if (f.CompanyId > 0)
+            {
+                where.Append(" AND a.CompanyId = @CompanyId");
+                p.Add("@CompanyId", f.CompanyId);
+            }
+            if (!string.IsNullOrWhiteSpace(f.Branchlist))
+            {
+                var branchIds = f.Branchlist.Split(',').Select(x => { int v; return int.TryParse(x.Trim(), out v) ? v : 0; }).Where(v => v > 0).ToList();
+                if (branchIds.Count > 0)
+                {
+                    where.Append(" AND a.BranchId IN @BranchIds");
+                    p.Add("@BranchIds", branchIds);
+                }
+            }
+
             if (f.tungay.HasValue)
             {
-                where.Append(" AND OccurredAt >= @tungay");
+                where.Append(" AND a.OccurredAt >= @tungay");
                 p.Add("@tungay", f.tungay.Value.Date);
             }
             if (f.denngay.HasValue)
             {
-                where.Append(" AND OccurredAt < @denngay");
+                where.Append(" AND a.OccurredAt < @denngay");
                 p.Add("@denngay", f.denngay.Value.Date.AddDays(1));
             }
             if (!string.IsNullOrWhiteSpace(f.UserName))
             {
-                where.Append(" AND UserName LIKE @UserName");
+                where.Append(" AND a.UserName LIKE @UserName");
                 p.Add("@UserName", "%" + f.UserName.Trim() + "%");
             }
             if (!string.IsNullOrWhiteSpace(f.Action))
             {
-                where.Append(" AND [Action] = @Action");
+                where.Append(" AND a.[Action] = @Action");
                 p.Add("@Action", f.Action.Trim());
             }
             if (!string.IsNullOrWhiteSpace(f.EntityType))
             {
-                where.Append(" AND EntityType = @EntityType");
+                where.Append(" AND a.EntityType = @EntityType");
                 p.Add("@EntityType", f.EntityType.Trim());
             }
             if (!string.IsNullOrWhiteSpace(f.EntityId))
             {
-                where.Append(" AND EntityId LIKE @EntityId");
+                where.Append(" AND a.EntityId LIKE @EntityId");
                 p.Add("@EntityId", "%" + f.EntityId.Trim() + "%");
             }
             if (f.Success == 0 || f.Success == 1)
             {
-                where.Append(" AND Success = @Success");
+                where.Append(" AND a.Success = @Success");
                 p.Add("@Success", f.Success == 1);
             }
             if (!string.IsNullOrWhiteSpace(f.search))
             {
-                where.Append(" AND (UserName LIKE @search OR EntityId LIKE @search OR [Description] LIKE @search OR IpAddress LIKE @search OR OldValues LIKE @search OR NewValues LIKE @search)");
+                where.Append(" AND (a.UserName LIKE @search OR a.EntityId LIKE @search OR a.[Description] LIKE @search OR a.IpAddress LIKE @search OR a.OldValues LIKE @search OR a.NewValues LIKE @search)");
                 p.Add("@search", "%" + f.search.Trim() + "%");
             }
 
@@ -106,17 +132,18 @@ namespace IOITWebApp.Controllers.ApiCMS
                 if (paging.page_size <= 0) paging.page_size = 20;
 
                 // order_by dạng "OccurredAt Desc" - chỉ cho phép các cột trong danh sách
-                string orderBy = "OccurredAt DESC";
+                string orderBy = "a.OccurredAt DESC";
                 if (!string.IsNullOrWhiteSpace(paging.order_by))
                 {
                     var parts = paging.order_by.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length > 0 && AllowedOrderBy.Contains(parts[0]))
+                    string sortExpr;
+                    if (parts.Length > 0 && AllowedOrderBy.TryGetValue(parts[0], out sortExpr))
                     {
                         string dir = parts.Length > 1 && parts[1].Equals("asc", StringComparison.OrdinalIgnoreCase) ? "ASC" : "DESC";
-                        orderBy = "[" + parts[0] + "] " + dir;
+                        orderBy = sortExpr + " " + dir;
                         // Cột phụ để thứ tự ổn định - không được trùng với cột chính (SQL Server báo lỗi)
-                        if (!parts[0].Equals("OccurredAt", StringComparison.OrdinalIgnoreCase))
-                            orderBy += ", OccurredAt DESC";
+                        if (sortExpr != "a.OccurredAt")
+                            orderBy += ", a.OccurredAt DESC";
                     }
                 }
 
@@ -125,12 +152,13 @@ namespace IOITWebApp.Controllers.ApiCMS
                 p.Add("@offset", (paging.page - 1) * paging.page_size);
                 p.Add("@fetch", paging.page_size);
 
-                string sqlCount = "SELECT COUNT(*) FROM [AuditLog] " + where;
+                string sqlCount = "SELECT COUNT(*)" + FromClause + where;
                 // Không trả OldValues/NewValues ở danh sách để nhẹ dữ liệu, chỉ trả cờ có/không
-                string sqlData = @"SELECT Id, OccurredAt, UserId, UserName, [Action], EntityType, EntityId, Success, IpAddress, TraceId, [Description],
-                                          CASE WHEN OldValues IS NULL THEN NULL ELSE '1' END AS OldValues,
-                                          CASE WHEN NewValues IS NULL THEN NULL ELSE '1' END AS NewValues
-                                   FROM [AuditLog] " + where +
+                string sqlData = @"SELECT a.Id, a.OccurredAt, a.UserId, a.UserName, a.[Action], a.EntityType, a.EntityId, a.Success, a.IpAddress, a.TraceId, a.[Description],
+                                          a.CompanyId, a.BranchId, c.Name AS CompanyName, b.Name AS BranchName,
+                                          CASE WHEN a.OldValues IS NULL THEN NULL ELSE '1' END AS OldValues,
+                                          CASE WHEN a.NewValues IS NULL THEN NULL ELSE '1' END AS NewValues" +
+                                 FromClause + where +
                                  " ORDER BY " + orderBy +
                                  " OFFSET @offset ROWS FETCH NEXT @fetch ROWS ONLY";
 
@@ -171,7 +199,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 using (var connection = new SqlConnection(LocalSettings.ConnectString))
                 {
-                    var item = connection.Query<AuditLogDTO>("SELECT * FROM [AuditLog] WHERE Id = @id", new { id }).FirstOrDefault();
+                    var item = connection.Query<AuditLogDTO>("SELECT a.*, c.Name AS CompanyName, b.Name AS BranchName" + FromClause + "WHERE a.Id = @id", new { id }).FirstOrDefault();
                     if (item == null)
                     {
                         def.meta = new Meta(404, "Không tìm thấy bản ghi");
@@ -239,7 +267,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 var p = new DynamicParameters();
                 string where = BuildWhere(paging, p);
-                string sql = "SELECT TOP 50000 * FROM [AuditLog] " + where + " ORDER BY OccurredAt DESC";
+                string sql = "SELECT TOP 50000 a.*, c.Name AS CompanyName, b.Name AS BranchName" + FromClause + where + " ORDER BY a.OccurredAt DESC";
 
                 List<AuditLogDTO> list;
                 using (var connection = new SqlConnection(LocalSettings.ConnectString))
@@ -250,7 +278,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 using (var workbook = new ClosedXML.Excel.XLWorkbook())
                 {
                     var ws = workbook.Worksheets.Add("NhatKyNguoiDung");
-                    string[] headers = { "STT", "Thời gian", "Người dùng", "Thao tác", "Đối tượng", "Kết quả", "IP", "Mô tả", "Giá trị cũ", "Giá trị mới", "TraceId" };
+                    string[] headers = { "STT", "Thời gian", "Người dùng", "Công ty", "Trạm", "Thao tác", "Đối tượng", "Kết quả", "IP", "Mô tả", "Giá trị cũ", "Giá trị mới", "TraceId" };
                     for (int i = 0; i < headers.Length; i++)
                     {
                         ws.Cell(1, i + 1).Value = headers[i];
@@ -264,17 +292,19 @@ namespace IOITWebApp.Controllers.ApiCMS
                         ws.Cell(row, 1).Value = stt++;
                         ws.Cell(row, 2).Value = item.OccurredAt.ToString("dd/MM/yyyy HH:mm:ss");
                         ws.Cell(row, 3).Value = item.UserName;
-                        ws.Cell(row, 4).Value = item.Action;
-                        ws.Cell(row, 5).Value = item.EntityType;
-                        ws.Cell(row, 6).Value = item.Success ? "Thành công" : "Thất bại";
-                        ws.Cell(row, 7).Value = item.IpAddress;
-                        ws.Cell(row, 8).Value = item.Description;
-                        ws.Cell(row, 9).Value = item.OldValues;
-                        ws.Cell(row, 10).Value = item.NewValues;
-                        ws.Cell(row, 11).Value = item.TraceId;
+                        ws.Cell(row, 4).Value = item.CompanyName;
+                        ws.Cell(row, 5).Value = item.BranchName;
+                        ws.Cell(row, 6).Value = item.Action;
+                        ws.Cell(row, 7).Value = item.EntityType;
+                        ws.Cell(row, 8).Value = item.Success ? "Thành công" : "Thất bại";
+                        ws.Cell(row, 9).Value = item.IpAddress;
+                        ws.Cell(row, 10).Value = item.Description;
+                        ws.Cell(row, 11).Value = item.OldValues;
+                        ws.Cell(row, 12).Value = item.NewValues;
+                        ws.Cell(row, 13).Value = item.TraceId;
                         row++;
                     }
-                    ws.Columns(1, 8).AdjustToContents();
+                    ws.Columns(1, 10).AdjustToContents();
 
                     using (var stream = new System.IO.MemoryStream())
                     {

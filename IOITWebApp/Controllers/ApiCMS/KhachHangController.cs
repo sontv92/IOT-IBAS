@@ -147,7 +147,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.KhachHang, null, null, khachhang, false, "Không có quyền thêm mới khách hàng");
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.KhachHang, null, null, khachhang, false, "Không có quyền thêm mới khách hàng", branchId: khachhang != null ? (int?)khachhang.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -231,7 +231,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotKhachHang(branch.Dataname, khachhang.ID);
                             AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.KhachHang, khachhang.ID.ToString(),
                                 null, after ?? (object)khachhang, after != null,
-                                "Trạm: " + branch.Name + " - Thêm mới khách hàng " + khachhang.TENKHACHHANG + (after == null ? " (không ghi được vào DB)" : ""));
+                                "Trạm: " + branch.Name + " - Thêm mới khách hàng " + khachhang.TENKHACHHANG + (after == null ? " (không ghi được vào DB)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Them moi thanh cong !");
@@ -249,7 +249,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.KhachHang, khachhang != null ? khachhang.ID.ToString() : null, null, khachhang, false, "Lỗi thêm mới khách hàng: " + ex.Message);
+                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.KhachHang, khachhang != null ? khachhang.ID.ToString() : null, null, khachhang, false, "Lỗi thêm mới khách hàng: " + ex.Message, branchId: khachhang != null ? (int?)khachhang.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -281,7 +281,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.KhachHang, ID.ToString(), null, khachhang, false, "Không có quyền sửa khách hàng");
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.KhachHang, ID.ToString(), null, khachhang, false, "Không có quyền sửa khách hàng", branchId: khachhang != null ? (int?)khachhang.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -354,7 +354,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotKhachHang(branch.Dataname, ID);
                             AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.KhachHang, ID.ToString(),
                                 before, after ?? (object)khachhang, after != null,
-                                "Trạm: " + branch.Name + " - Sửa khách hàng " + khachhang.TENKHACHHANG + (after == null ? " (không đọc lại được bản ghi)" : ""));
+                                "Trạm: " + branch.Name + " - Sửa khách hàng " + khachhang.TENKHACHHANG + (after == null ? " (không đọc lại được bản ghi)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Cap nhat thanh cong !");
@@ -372,7 +372,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.KhachHang, ID.ToString(), null, khachhang, false, "Lỗi sửa khách hàng: " + ex.Message);
+                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.KhachHang, ID.ToString(), null, khachhang, false, "Lỗi sửa khách hàng: " + ex.Message, branchId: khachhang != null ? (int?)khachhang.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -468,7 +468,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         if (!string.IsNullOrEmpty(maDathang))
                                         {
                                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.KhachHang, Id.ToString(), before, null, false,
-                                                "Trạm: " + branch.Name + " - Không thể xóa khách hàng: " + "Khách hàng này đang được sử dụng tại đơn hàng " + maDathang + ", không thể xóa !");
+                                                "Trạm: " + branch.Name + " - Không thể xóa khách hàng: " + "Khách hàng này đang được sử dụng tại đơn hàng " + maDathang + ", không thể xóa !", branch: branch);
                                             def.meta = new Meta(212, "Khách hàng này đang được sử dụng tại đơn hàng " + maDathang + ", không thể xóa !");
                                             return Ok(def);
                                         }
@@ -507,7 +507,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                                 var after = SnapshotKhachHang(branch.Dataname, Id);
                                                 AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.KhachHang, Id.ToString(),
                                                     before, null, after == null,
-                                                    "Trạm: " + branch.Name + " - Xóa khách hàng " + (before != null && before.ContainsKey("Ma") ? Convert.ToString(before["Ma"]) : Id.ToString()) + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+                                                    "Trạm: " + branch.Name + " - Xóa khách hàng " + (before != null && before.ContainsKey("Ma") ? Convert.ToString(before["Ma"]) : Id.ToString()) + (after != null ? " (bản ghi vẫn còn trong DB)" : ""), branch: branch);
                                             }
 
                                             def.meta = new Meta(200, "Xoa khach hang thanh cong !");

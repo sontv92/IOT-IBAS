@@ -176,7 +176,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.Xe, null, null, xe, false, "Không có quyền thêm mới xe");
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.Xe, null, null, xe, false, "Không có quyền thêm mới xe", branchId: xe != null ? (int?)xe.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -250,7 +250,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotXe(branch.Dataname, xe.ID);
                             AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.Xe, xe.ID.ToString(),
                                 null, after ?? (object)xe, after != null,
-                                "Trạm: " + branch.Name + " - Thêm mới xe " + xe.BIENSO + (after == null ? " (không ghi được vào DB)" : ""));
+                                "Trạm: " + branch.Name + " - Thêm mới xe " + xe.BIENSO + (after == null ? " (không ghi được vào DB)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Them moi thanh cong !");
@@ -268,7 +268,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.Xe, xe != null ? xe.ID.ToString() : null, null, xe, false, "Lỗi thêm mới xe: " + ex.Message);
+                AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.Xe, xe != null ? xe.ID.ToString() : null, null, xe, false, "Lỗi thêm mới xe: " + ex.Message, branchId: xe != null ? (int?)xe.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -301,7 +301,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.Xe, ID.ToString(), null, xe, false, "Không có quyền sửa xe");
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.Xe, ID.ToString(), null, xe, false, "Không có quyền sửa xe", branchId: xe != null ? (int?)xe.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -364,7 +364,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotXe(branch.Dataname, ID);
                             AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.Xe, ID.ToString(),
                                 before, after ?? (object)xe, after != null,
-                                "Trạm: " + branch.Name + " - Sửa xe " + xe.BIENSO + (after == null ? " (không đọc lại được bản ghi)" : ""));
+                                "Trạm: " + branch.Name + " - Sửa xe " + xe.BIENSO + (after == null ? " (không đọc lại được bản ghi)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Cap nhat thanh cong !");
@@ -382,7 +382,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             catch (Exception ex)
             {
                 log.Error("Error:" + ex);
-                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.Xe, ID.ToString(), null, xe, false, "Lỗi sửa xe: " + ex.Message);
+                AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.Xe, ID.ToString(), null, xe, false, "Lỗi sửa xe: " + ex.Message, branchId: xe != null ? (int?)xe.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -487,7 +487,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotXe(branch.Dataname, Id);
                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.Xe, Id.ToString(),
                                 before, null, after == null,
-                                "Trạm: " + branch.Name + " - Xóa xe " + (before != null && before.ContainsKey("Ma") ? Convert.ToString(before["Ma"]) : Id.ToString()) + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+                                "Trạm: " + branch.Name + " - Xóa xe " + (before != null && before.ContainsKey("Ma") ? Convert.ToString(before["Ma"]) : Id.ToString()) + (after != null ? " (bản ghi vẫn còn trong DB)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Xoa khach hang thanh cong !");

@@ -231,7 +231,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.CREATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, null, null, capphoi, false, "Không có quyền thêm mới mác bê tông");
+                    AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, null, null, capphoi, false, "Không có quyền thêm mới mác bê tông", branchId: capphoi != null ? (int?)capphoi.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -441,7 +441,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotMacBeTong(branch.Dataname, capphoi.MACBETONGID);
                             AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, capphoi.MACBETONGID.ToString(),
                                 null, after ?? (object)capphoi, after != null,
-                                "Trạm: " + branch.Name + " - Thêm mới mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không ghi được vào DB)" : ""));
+                                "Trạm: " + branch.Name + " - Thêm mới mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không ghi được vào DB)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Them moi thanh cong !");
@@ -458,7 +458,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 log.Error("Error:" + ex);
                 AuditLogService.Write(HttpContext, AuditAction.CREATE, AuditEntity.MacBeTong, capphoi != null ? capphoi.MACBETONGID.ToString() : null,
-                    null, capphoi, false, "Lỗi thêm mới mác bê tông: " + ex.Message);
+                    null, capphoi, false, "Lỗi thêm mới mác bê tông: " + ex.Message, branchId: capphoi != null ? (int?)capphoi.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -502,7 +502,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                 string access_key = identity.Claims.Where(c => c.Type == "AccessKey").Select(c => c.Value).SingleOrDefault();
                 if (!CheckRole.CheckRoleByCode(access_key, functionCode, (int)Const.Action.UPDATE))
                 {
-                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(), null, capphoi, false, "Không có quyền sửa mác bê tông");
+                    AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(), null, capphoi, false, "Không có quyền sửa mác bê tông", branchId: capphoi != null ? (int?)capphoi.BranchId : null);
                     def.meta = new Meta(222, "No permission");
                     return Ok(def);
                 }
@@ -704,7 +704,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                             var after = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
                             AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
                                 before, after ?? (object)capphoi, after != null,
-                                "Trạm: " + branch.Name + " - Sửa mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không đọc lại được bản ghi)" : ""));
+                                "Trạm: " + branch.Name + " - Sửa mác bê tông " + capphoi.TENMACBETONG + (after == null ? " (không đọc lại được bản ghi)" : ""), branch: branch);
                         }
 
                         def.meta = new Meta(200, "Chinh sua thanh cong !");
@@ -721,7 +721,7 @@ namespace IOITWebApp.Controllers.ApiCMS
             {
                 log.Error("Error:" + ex);
                 AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
-                    null, capphoi, false, "Lỗi sửa mác bê tông: " + ex.Message);
+                    null, capphoi, false, "Lỗi sửa mác bê tông: " + ex.Message, branchId: capphoi != null ? (int?)capphoi.BranchId : null);
                 def.meta = new Meta(500, "Lỗi máy chủ!");
                 return Ok(def);
             }
@@ -817,7 +817,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                         if (!string.IsNullOrEmpty(maDathang))
                                         {
                                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
-                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa mác bê tông " + ma + ": đang được sử dụng tại đơn hàng " + maDathang);
+                                                before, null, false, "Trạm: " + branch.Name + " - Không thể xóa mác bê tông " + ma + ": đang được sử dụng tại đơn hàng " + maDathang, branch: branch);
                                             def.meta = new Meta(212, "Mác bê tông này đang được sử dụng tại đơn hàng " + maDathang + ", không thể xóa !");
                                             return Ok(def);
                                         }
@@ -885,7 +885,7 @@ namespace IOITWebApp.Controllers.ApiCMS
                                             var after = SnapshotMacBeTong(branch.Dataname, MACBETONGID);
                                             AuditLogService.Write(HttpContext, AuditAction.DELETE, AuditEntity.MacBeTong, MACBETONGID.ToString(),
                                                 before, null, after == null,
-                                                "Trạm: " + branch.Name + " - Xóa mác bê tông " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""));
+                                                "Trạm: " + branch.Name + " - Xóa mác bê tông " + ma + (after != null ? " (bản ghi vẫn còn trong DB)" : ""), branch: branch);
 
                                             def.meta = new Meta(200, "Xoa khach hang thanh cong !");
                                             return Ok(def);
