@@ -696,7 +696,7 @@ namespace IOITWebApp.Controllers.ApiCMS
 
                                 // Ghi nhật ký: giá trị cũ / giá trị mới đọc lại từ DB
                                 var after = SnapshotHopDong(branch.Dataname, ID);
-                                if (after != null) after["METKHOITICHLUY_BUTRU_MOI"] = hieuso;
+                                if (after != null && hieuso != 0) after["METKHOITICHLUY_BUTRU_MOI"] = hieuso;
                                 AuditLogService.Write(HttpContext, AuditAction.UPDATE, AuditEntity.HopDong, ID.ToString(),
                                     before, after ?? (object)dathang, after != null,
                                     "Trạm: " + branch.Name + " - Sửa hợp đồng " + dathang.Ma + (after == null ? " (không đọc lại được bản ghi)" : ""), branch: branch);

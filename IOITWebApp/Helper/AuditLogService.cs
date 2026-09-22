@@ -157,6 +157,10 @@ namespace IOITWebApp.Helper
         {
             try
             {
+                // Sửa thành công nhưng dữ liệu không đổi (chỉ khác LASTUPDATED) thì không ghi để tránh rác
+                if (action == AuditAction.UPDATE && success && !HasChanges(oldValues, newValues))
+                    return;
+
                 int? userId = null;
                 int? companyId = null;
                 if (branch != null)
@@ -215,6 +219,44 @@ namespace IOITWebApp.Helper
             {
                 log.Error("Khong ghi duoc AuditLog: " + ex);
             }
+        }
+
+        /// <summary>Các cột bỏ qua khi so sánh cũ / mới (thay đổi tự động, không phải do người dùng)</summary>
+        private static readonly HashSet<string> IgnoredCompareFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "LASTUPDATED"
+        };
+
+        /// <summary>
+        /// So sánh giá trị cũ / mới (bỏ qua các cột trong IgnoredCompareFields).
+        /// Trả về true nếu có thay đổi thực sự hoặc không so sánh được (để không bỏ sót log).
+        /// </summary>
+        public static bool HasChanges(object oldValues, object newValues)
+        {
+            if (oldValues == null || newValues == null) return true;
+            try
+            {
+                return Serialize(StripIgnored(oldValues)) != Serialize(StripIgnored(newValues));
+            }
+            catch (Exception ex)
+            {
+                log.Error("AuditLog so sanh cu/moi loi: " + ex);
+                return true;
+            }
+        }
+
+        private static object StripIgnored(object value)
+        {
+            var dict = value as IDictionary<string, object>;
+            if (dict == null) return value;
+            var copy = new Dictionary<string, object>();
+            foreach (var kv in dict)
+            {
+                if (IgnoredCompareFields.Contains(kv.Key)) continue;
+                var list = kv.Value as IEnumerable<Dictionary<string, object>>;
+                copy[kv.Key] = list != null ? (object)list.Select(StripIgnored).ToList() : kv.Value;
+            }
+            return copy;
         }
 
         /// <summary>
